@@ -1,0 +1,77 @@
+[
+  {
+    "symbol": "bren",
+    "name": "bren",
+    "mintAddress": "G6JPcWtNz7757yvdLsBqAcwkNuz7Yaz8tsviMf2daos",
+    "amount": "203469825.400937",
+    "priceUsd": "0.000000",
+    "priceUsd1dChange": null,
+    "priceUsd7dTrend": [
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000"
+    ],
+    "valueUsd": "0.545648",
+    "valueUsd1dChange": "0E-12",
+    "averagePriceUsd": "2.393744956086846974010462203545646087121667733299545943737030029296875E-9",
+    "logoUrl": "https://ipfs.io/ipfs/QmQcQEm6TPqms8cmZSdL1bZUpeGQLTZ3mABQESNWvhXVwC",
+    "category": null,
+    "decimals": 6,
+    "verified": false,
+    "slot": 366449001
+  },
+  {
+    "symbol": "JIMMY",
+    "name": "Melancholy Jimmy",
+    "mintAddress": "jimmMDpC9VDEeggKkgNwdMVDNhTqcbQ5sMG8ZoFJ4b4",
+    "amount": "1149099.111127",
+    "priceUsd": "0.000000",
+    "priceUsd1dChange": null,
+    "priceUsd7dTrend": [
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000"
+    ],
+    "valueUsd": "0.016807",
+    "valueUsd1dChange": "0E-12",
+    "averagePriceUsd": "0.00000116687168259108307516512363644078931201875093393027782440185546875",
+    "logoUrl": "https://amaranth-additional-fowl-434.mypinata.cloud/ipfs/bafkreigusvz462yrzfodune5swbm4pchfi6hhqjlq63ii2mbdxotd4wy7i",
+    "category": null,
+    "decimals": 6,
+    "verified": false,
+    "slot": 366075710
+  },
+  {
+    "symbol": "",
+    "name": null,
+    "mintAddress": "6QvGNiEN8pydyzV6VirFLt26gJn8KPYgfcT3kJCAjZA2",
+    "amount": "5000.000000",
+    "priceUsd": null,
+    "priceUsd1dChange": null,
+    "priceUsd7dTrend": [
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000",
+      "0.000000"
+    ],
+    "valueUsd": null,
+    "valueUsd1dChange": null,
+    "averagePriceUsd": null,
+    "logoUrl": null,
+    "category": null,
+    "decimals": 6,
+    "verified": false,
+    "slot": 380562775
+  }
+]
