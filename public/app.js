@@ -67,8 +67,11 @@ const holdersSummaryCategorised = document.getElementById('holdersSummaryCategor
 const holdersSummaryCategorisedTip = document.getElementById('holdersSummaryCategorisedTip');
 const holdersBody = document.getElementById('holdersBody');
 const holdersSectionTitle = document.getElementById('holdersSectionTitle');
-const holdersTableViewSwitch = document.getElementById('holdersTableViewSwitch');
-const holdersTableViewSwitchLabel = document.getElementById('holdersTableViewSwitchLabel');
+const holdersTableViewSwitchRoot = document.getElementById('holdersTableViewSwitchRoot');
+const holdersTableViewSwitchTrack = document.getElementById('holdersTableViewSwitchTrack');
+const holdersTableViewSwitchLabel = document.getElementById('holdersTableViewSwitchRoot');
+const defiTableWrap = document.getElementById('defiTableWrap');
+const defiHideDustSwitchLabel = document.getElementById('defiHideDustSwitchLabel');
 const walletStatsViewSwitchLabel = document.getElementById('walletStatsViewSwitchRoot');
 const holdersTableWrap = document.getElementById('holdersTableWrap');
 const walletPnlTableWrap = document.getElementById('walletPnlTableWrap');
@@ -1173,13 +1176,17 @@ function formatWalletUpdateTime() {
   });
 }
 
+let holdersTableViewMode = 'defi';
+
 function setSectionViewSwitchersLocked(locked) {
   for (const label of [holdersTableViewSwitchLabel, walletStatsViewSwitchLabel]) {
     if (!label) continue;
     label.classList.toggle('trades-fetch-switch--locked', locked);
     label.setAttribute('aria-disabled', locked ? 'true' : 'false');
   }
-  if (holdersTableViewSwitch) holdersTableViewSwitch.disabled = locked;
+  holdersTableViewSwitchRoot?.querySelectorAll('[data-view]').forEach((btn) => {
+    btn.disabled = locked;
+  });
   walletStatsViewSwitchRoot?.querySelectorAll('[data-view]').forEach((btn) => {
     btn.disabled = locked;
   });
@@ -1750,12 +1757,12 @@ async function fetchBalances() {
     for (const item of repairCandidates) {
       repairTokenLogo(item.mintAddress);
     }
-    if (!holdersTableViewSwitch?.checked) {
+    if (holdersTableViewMode === 'holdings') {
       holdersMeta.textContent = formatHoldersMetaLoadedText(lastTokens.length);
     }
 
     if (walletPnlPromise) await walletPnlPromise;
-    if (holdersTableViewSwitch?.checked) {
+    if (holdersTableViewMode === 'pnl') {
       updateHoldersSectionMeta('pnl');
     }
     await defiPromise.catch(() => {});
@@ -1778,8 +1785,9 @@ function formatHoldersPnlMetaLoadedText(metricsCount) {
   return `Wallet PnL: ${metricsCount} per-token row(s) for the 7d window.`;
 }
 
-function updateHoldersSectionMeta(view = holdersTableViewSwitch?.checked ? 'pnl' : 'holdings') {
+function updateHoldersSectionMeta(view = holdersTableViewMode) {
   if (!holdersMeta) return;
+  if (view === 'defi') return;
   if (view === 'pnl') {
     const metrics = window.WalletPnlSection?.getLastTokenMetrics?.() ?? [];
     holdersMeta.textContent = metrics.length
@@ -1793,14 +1801,33 @@ function updateHoldersSectionMeta(view = holdersTableViewSwitch?.checked ? 'pnl'
 }
 
 function setHoldersTableView(mode) {
+  holdersTableViewMode = mode;
+  const showDefi = mode === 'defi';
+  const showHoldings = mode === 'holdings';
   const showPnl = mode === 'pnl';
-  if (holdersTableViewSwitch) holdersTableViewSwitch.checked = showPnl;
-  if (holdersTableWrap) holdersTableWrap.hidden = showPnl;
+  if (defiTableWrap) defiTableWrap.hidden = !showDefi;
+  if (holdersMeta) holdersMeta.hidden = showDefi;
+  if (holdersTableWrap) holdersTableWrap.hidden = !showHoldings;
   if (walletPnlTableWrap) walletPnlTableWrap.hidden = !showPnl;
-  if (holdersSummaryGrid) holdersSummaryGrid.hidden = showPnl;
+  if (holdersSummaryGrid) holdersSummaryGrid.hidden = !showHoldings;
+  if (defiHideDustSwitchLabel) defiHideDustSwitchLabel.hidden = !showDefi;
   if (holdersSectionTitle) {
-    holdersSectionTitle.textContent = showPnl ? 'Wallet PnL (7d)' : 'Token Holdings';
+    const titles = {
+      defi: 'DeFi Positions',
+      holdings: 'Token Holdings',
+      pnl: 'Wallet PnL (7d)',
+    };
+    holdersSectionTitle.textContent = titles[mode] || titles.defi;
   }
+  const indexMap = { defi: 0, holdings: 1, pnl: 2 };
+  if (holdersTableViewSwitchTrack) {
+    holdersTableViewSwitchTrack.style.setProperty('--holders-table-view-index', String(indexMap[mode] ?? 0));
+  }
+  holdersTableViewSwitchRoot?.querySelectorAll('[data-view]').forEach((btn) => {
+    const active = btn.dataset.view === mode;
+    btn.classList.toggle('is-active', active);
+    btn.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
   updateHoldersSectionMeta(mode);
   if (showPnl && window.WalletPnlTable) {
     window.WalletPnlTable.onMetricsUpdated();
@@ -1822,10 +1849,14 @@ function initWalletPnlIntegration() {
       walletPnlAssetsBody: document.getElementById('walletPnlAssetsBody'),
     });
   }
-  setHoldersTableView('holdings');
-  setWalletStatsView('holdings');
-  holdersTableViewSwitch?.addEventListener('change', () => {
-    setHoldersTableView(holdersTableViewSwitch.checked ? 'pnl' : 'holdings');
+  setHoldersTableView('defi');
+  setWalletStatsView('defi');
+  holdersTableViewSwitchRoot?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-view]');
+    if (!btn || btn.disabled) return;
+    const mode = btn.dataset.view;
+    if (!mode) return;
+    setHoldersTableView(mode);
   });
   walletStatsViewSwitchRoot?.addEventListener('click', (event) => {
     const btn = event.target.closest('[data-view]');
@@ -1839,7 +1870,7 @@ function initWalletPnlIntegration() {
 setChartsPlaceholder();
 renderWalletSummaryPlaceholder();
 renderHoldersTablePlaceholder();
-updateHoldersSectionMeta('holdings');
+updateHoldersSectionMeta('defi');
 hydrateHoldersSummaryLabelIcons();
 initLogoRepairSettings();
 initWalletPnlIntegration();

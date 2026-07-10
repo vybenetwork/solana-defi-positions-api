@@ -5915,6 +5915,36 @@ html {
   min-width: 17rem;
 }
 
+.holders-table-view-switch--triple .trades-fetch-switch-track {
+  min-width: 28rem;
+  --holders-table-view-index: 0;
+}
+
+.holders-table-view-switch--triple .trades-fetch-switch-track::after {
+  width: calc((100% - 0.5rem) / 3);
+  transform: translateX(calc(var(--holders-table-view-index) * 100%));
+}
+
+.holders-table-view-switch--triple .trades-fetch-switch-option {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0 0.5rem;
+}
+
+.holders-table-view-switch--triple .trades-fetch-switch-option.is-active {
+  color: #e4e4e7;
+}
+
+.holders-section-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .holders-table-view-switch .trades-fetch-switch-option {
   white-space: nowrap;
 }
@@ -6193,7 +6223,7 @@ html {
 }
 
 .defi-positions-section .section-header,
-#defiPositionsSection .section-header {
+#holdersSection .section-header {
   justify-content: flex-start;
 }
 

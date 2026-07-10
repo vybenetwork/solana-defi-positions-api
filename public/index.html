@@ -25,7 +25,7 @@
       content="Fetch Solana wallet token balances and DeFi positions with the Vybe API: on-chain holdings, LP pools, lending, staking, and yield farming."
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="app.css?v=117" />
+    <link rel="stylesheet" href="app.css?v=118" />
   </head>
   <body>
     <div class="container">
@@ -366,7 +366,7 @@
         <div class="section-header token-supply-period-header">
           <div class="section-header-left">
             <span class="section-header__marker" aria-hidden="true"></span>
-            <h2 class="section-header__title token-supply-period-title" id="walletStatsSectionTitle">Holdings Stats</h2>
+            <h2 class="section-header__title token-supply-period-title" id="walletStatsSectionTitle">DeFi Stats</h2>
             <div class="section-loading" id="defiStatsLoading" hidden aria-hidden="true">
               <span class="loading-spinner"></span>
               <span class="loading-text">Loading…</span>
@@ -388,12 +388,12 @@
               aria-label="Wallet stats view"
               title="Switch between DeFi stats, holdings charts, and 7d wallet PnL stats"
             >
-              <div class="trades-fetch-switch-track" id="walletStatsViewSwitchTrack" style="--wallet-stats-view-index: 1">
-                <button type="button" class="trades-fetch-switch-option" data-view="defi" role="tab" aria-selected="false">
+              <div class="trades-fetch-switch-track" id="walletStatsViewSwitchTrack" style="--wallet-stats-view-index: 0">
+                <button type="button" class="trades-fetch-switch-option is-active" data-view="defi" role="tab" aria-selected="true">
                   <svg class="view-switch-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                   DeFi Stats
                 </button>
-                <button type="button" class="trades-fetch-switch-option is-active" data-view="holdings" role="tab" aria-selected="true">
+                <button type="button" class="trades-fetch-switch-option" data-view="holdings" role="tab" aria-selected="false">
                   <svg class="view-switch-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 7H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Zm0 2v2H5V9h16Zm-3 5a2 2 0 1 1-2-2a2 2 0 0 1 2 2Z"/></svg>
                   Holdings Stats
                 </button>
@@ -406,7 +406,7 @@
           </div>
           <span class="section-error" id="walletPnlError" hidden aria-hidden="true"></span>
         </div>
-        <div id="defiStatsContent" class="wallet-stats-panel" hidden>
+        <div id="defiStatsContent" class="wallet-stats-panel">
           <div class="section-lede meta" id="defiStatsMeta">Load a wallet to see DeFi position categories and USD value band charts.</div>
           <div class="token-supply-grid token-supply-grid--trade-count-pie-row token-supply-grid--section-gap">
             <div class="token-supply-card token-supply-card--fullwidth token-supply-card--trade-tier-dash token-supply-card--holders-dashboard-merged">
@@ -446,7 +446,7 @@
             </div>
           </div>
         </div>
-        <div id="holdingsStatsContent" class="wallet-stats-panel">
+        <div id="holdingsStatsContent" class="wallet-stats-panel" hidden>
           <div class="section-lede meta" id="holdingsStatsMeta">Load a wallet to see portfolio profitability and USD value band charts.</div>
           <div class="token-supply-grid token-supply-grid--trade-count-pie-row token-supply-grid--section-gap">
             <div class="token-supply-card token-supply-card--fullwidth token-supply-card--trade-tier-dash token-supply-card--holders-dashboard-merged">
@@ -496,36 +496,63 @@
         <div class="section-header">
           <div class="section-header-left">
             <span class="section-header__marker" aria-hidden="true"></span>
-            <h2 class="section-header__title" id="holdersSectionTitle">Token Holdings</h2>
+            <h2 class="section-header__title" id="holdersSectionTitle">DeFi Positions</h2>
+            <div class="section-loading" id="defiLoading" hidden aria-hidden="true">
+              <span class="loading-spinner"></span>
+              <span class="loading-text">Loading…</span>
+            </div>
             <div class="section-loading" id="holdersLoading" hidden aria-hidden="true">
               <span class="loading-spinner"></span>
               <span class="loading-text">Loading…</span>
             </div>
           </div>
-          <div class="section-header-right">
+          <div class="section-header-right holders-section-header-actions">
             <label
-              class="trades-fetch-switch holders-table-view-switch"
-              id="holdersTableViewSwitchLabel"
-              title="Switch between token holdings and 7d PnL per-token table"
+              class="trades-fetch-switch defi-hide-dust-switch"
+              id="defiHideDustSwitchLabel"
+              title="Hide DeFi positions valued under $0.10"
             >
-              <input type="checkbox" id="holdersTableViewSwitch" class="trades-fetch-switch-input" />
+              <input type="checkbox" id="defiHideDust" class="trades-fetch-switch-input" checked />
               <span class="trades-fetch-switch-track">
-                <span class="trades-fetch-switch-option" data-value="single">
-                  <svg class="view-switch-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 7H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Zm0 2v2H5V9h16Zm-3 5a2 2 0 1 1-2-2a2 2 0 0 1 2 2Z"/></svg>
-                  Wallet Holdings
-                </span>
-                <span class="trades-fetch-switch-option" data-value="paged">
-                  <svg class="view-switch-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-6"/></svg>
-                  Wallet PnL
-                </span>
+                <span class="trades-fetch-switch-option" data-value="single">Show all</span>
+                <span class="trades-fetch-switch-option" data-value="paged">Hide &lt;$0.10</span>
               </span>
             </label>
+            <div
+              class="holders-table-view-switch trades-fetch-switch holders-table-view-switch--triple"
+              id="holdersTableViewSwitchRoot"
+              role="tablist"
+              aria-label="Holdings table view"
+              title="Switch between DeFi positions, wallet holdings, and 7d PnL per-token table"
+            >
+              <div class="trades-fetch-switch-track" id="holdersTableViewSwitchTrack" style="--holders-table-view-index: 0">
+                <button type="button" class="trades-fetch-switch-option is-active" data-view="defi" role="tab" aria-selected="true">
+                  <svg class="view-switch-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                  DeFi Positions
+                </button>
+                <button type="button" class="trades-fetch-switch-option" data-view="holdings" role="tab" aria-selected="false">
+                  <svg class="view-switch-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 7H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Zm0 2v2H5V9h16Zm-3 5a2 2 0 1 1-2-2a2 2 0 0 1 2 2Z"/></svg>
+                  Wallet Holdings
+                </button>
+                <button type="button" class="trades-fetch-switch-option" data-view="pnl" role="tab" aria-selected="false">
+                  <svg class="view-switch-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-6"/></svg>
+                  Wallet PnL
+                </button>
+              </div>
+            </div>
           </div>
+          <span class="section-error" id="defiError" hidden aria-hidden="true"></span>
           <span class="section-error" id="holdersError" hidden aria-hidden="true"></span>
         </div>
         <div class="holders-content" id="holdersContentWrap">
-          <div class="section-lede meta" id="holdersMeta">Load a wallet to see token balances ranked by USD value, with 1d/7d price change, market cap, and data source.</div>
-          <div class="holders-summary-grid" id="holdersSummary" aria-live="polite">
+          <div class="section-lede meta" id="holdersMeta" hidden>Load a wallet to see token balances ranked by USD value, with 1d/7d price change, market cap, and data source.</div>
+          <div class="holders-defi-panel" id="defiTableWrap">
+            <div class="section-lede meta" id="defiMeta">
+              Load a wallet to see DeFi positions from the Vybe API.
+            </div>
+            <div id="defiPlatforms" class="defi-platforms-grid"></div>
+          </div>
+          <div class="holders-summary-grid" id="holdersSummary" aria-live="polite" hidden>
             <div class="trades-summary-item trades-summary-item--count">
               <span class="trades-summary-label"><span class="trades-summary-label-icon field-icon icon-pages" aria-hidden="true"></span>Tokens loaded</span>
               <span class="trades-summary-value" id="holdersSummaryCount">0</span>
@@ -564,7 +591,7 @@
               <span class="trades-summary-value" id="holdersSummaryDead">0</span>
             </div>
           </div>
-          <div class="table-wrap table-wrap--scroll" id="holdersTableWrap">
+          <div class="table-wrap table-wrap--scroll" id="holdersTableWrap" hidden>
             <table id="holdersTable">
               <thead>
                 <tr>
@@ -634,39 +661,6 @@
         </div>
       </section>
 
-      <section class="section-card section-card--holders holders-section panel" id="defiPositionsSection">
-        <div class="section-header">
-          <div class="section-header-left">
-            <span class="section-header__marker" aria-hidden="true"></span>
-            <h2 class="section-header__title">DeFi Positions</h2>
-            <div class="section-loading" id="defiLoading" hidden aria-hidden="true">
-              <span class="loading-spinner"></span>
-              <span class="loading-text">Loading…</span>
-            </div>
-          </div>
-          <div class="section-header-right">
-            <label
-              class="trades-fetch-switch defi-hide-dust-switch"
-              id="defiHideDustSwitchLabel"
-              title="Hide DeFi positions valued under $0.10"
-            >
-              <input type="checkbox" id="defiHideDust" class="trades-fetch-switch-input" checked />
-              <span class="trades-fetch-switch-track">
-                <span class="trades-fetch-switch-option" data-value="single">Show all</span>
-                <span class="trades-fetch-switch-option" data-value="paged">Hide &lt;$0.10</span>
-              </span>
-            </label>
-          </div>
-          <span class="section-error" id="defiError" hidden aria-hidden="true"></span>
-        </div>
-        <div class="holders-content">
-          <div class="section-lede meta" id="defiMeta">
-            Load a wallet to see DeFi positions from the Vybe API.
-          </div>
-          <div id="defiPlatforms" class="defi-platforms-grid"></div>
-        </div>
-      </section>
-
       <section class="error panel" id="errorSection" hidden>
         <h2>Error</h2>
         <pre id="errorText"></pre>
@@ -675,7 +669,7 @@
     <script src="charts-pie.js?v=2"></script>
     <script src="wallet-pnl-section.js?v=6"></script>
     <script src="wallet-pnl-table.js?v=3"></script>
-    <script src="defi-positions.js?v=9"></script>
-    <script src="app.js?v=140"></script>
+    <script src="defi-positions.js?v=10"></script>
+    <script src="app.js?v=141"></script>
   </body>
 </html>
