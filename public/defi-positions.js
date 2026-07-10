@@ -183,6 +183,31 @@ function setBalanceMeta(tokens) {
   return balanceMetaByMint.size;
 }
 
+function formatDefiTableUsdFraction(abs) {
+  if (!Number.isFinite(abs) || abs <= 0) return '0';
+  if (abs >= 0.01) {
+    const rounded = Math.round(abs * 100) / 100;
+    return rounded.toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+      useGrouping: abs >= 1000,
+    });
+  }
+  const frac = abs.toFixed(20).split('.')[1] || '';
+  let firstNonZeroIdx = 0;
+  while (firstNonZeroIdx < frac.length && frac[firstNonZeroIdx] === '0') firstNonZeroIdx += 1;
+  if (firstNonZeroIdx >= frac.length) return '0';
+  return abs.toFixed(firstNonZeroIdx + 1);
+}
+
+function formatDefiTableUsd(value, { debt = false } = {}) {
+  const n = toNum(value);
+  if (n == null) return '—';
+  if (n === 0) return '$0';
+  const prefix = debt && n < 0 ? '−' : '';
+  return `${prefix}$${formatDefiTableUsdFraction(Math.abs(n))}`;
+}
+
 function formatUsd(value, { debt = false } = {}) {
   const n = toNum(value);
   if (n == null) return '—';
@@ -667,7 +692,7 @@ function renderStakeStatus(status) {
 function valueCell(row, { debt = false } = {}) {
   const usd = effectiveUsd(row);
   const cls = debt && usd < 0 ? 'num defi-value--debt' : usd < 0 ? 'num defi-value--debt' : 'num';
-  return `<td class="${cls}">${formatUsd(usd, { debt })}</td>`;
+  return `<td class="${cls}">${formatDefiTableUsd(usd, { debt })}</td>`;
 }
 
 function amountCell(row, { debt = false } = {}) {
@@ -682,7 +707,7 @@ function apyCell(row) {
 
 function priceCell(row) {
   if (isMultiAssetRow(row)) return '<td class="num">—</td>';
-  return `<td class="num">${formatUsd(row.price)}</td>`;
+  return `<td class="num">${formatDefiTableUsd(row.price)}</td>`;
 }
 
 function buildTableSchema(tableType) {
@@ -928,7 +953,7 @@ function renderPlatform(platform, index) {
           ${dustBtn}
           <div class="defi-platform-total">
             <span class="defi-platform-total-label">Platform value</span>
-            <span class="defi-platform-total-value">${formatUsd(platform.totalValueUsd)}</span>
+            <span class="defi-platform-total-value">${formatDefiTableUsd(platform.totalValueUsd)}</span>
           </div>
         </div>
       </header>
