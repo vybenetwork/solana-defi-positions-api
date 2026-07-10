@@ -1177,8 +1177,7 @@ function formatOverviewPositionCountHtml(count) {
   if (count == null) return escapeHtmlText('—');
   const n = Number(count);
   if (!Number.isFinite(n)) return escapeHtmlText('—');
-  const word = n === 1 ? 'Position' : 'Positions';
-  return `${escapeHtmlText(n.toLocaleString())} <span class="token-stat-count-suffix">${escapeHtmlText(word)}</span>`;
+  return `${escapeHtmlText(n.toLocaleString())} <span class="token-stat-count-suffix">${escapeHtmlText('pos')}</span>`;
 }
 
 function buildDefiSummarySections(data) {
