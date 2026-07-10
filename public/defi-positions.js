@@ -404,24 +404,25 @@ function defiCategoryBuckets(items) {
   }
 
   const finalSegments = segments.length > 0 ? segments : [{ title: '—', count: 0, usd: 0 }];
-  const totalCount = items.length || 1;
+  const totalUsd = finalSegments.reduce((sum, s) => sum + s.usd, 0) || 1;
   return {
     segments: finalSegments,
-    slicePcts: finalSegments.map((s) => (s.count / totalCount) * 100),
+    slicePcts: finalSegments.map((s) => (s.usd / totalUsd) * 100),
     usds: finalSegments.map((s) => s.usd),
     counts: finalSegments.map((s) => s.count),
+    totalUsd,
   };
 }
 
-function buildDefiCategoryPieInsight(bucket, totalPositions) {
-  if (totalPositions === 0) return 'No DeFi positions loaded.';
+function buildDefiCategoryPieInsight(bucket) {
+  if (!bucket.segments.length) return 'No DeFi positions loaded.';
   let topIdx = 0;
   for (let i = 1; i < bucket.segments.length; i += 1) {
-    if (bucket.segments[i].count > bucket.segments[topIdx].count) topIdx = i;
+    if (bucket.segments[i].usd > bucket.segments[topIdx].usd) topIdx = i;
   }
   const top = bucket.segments[topIdx];
-  if (!top || top.count === 0) return 'No categorized DeFi positions to chart.';
-  return `${formatPctSmart(bucket.slicePcts[topIdx])} of positions are in ${top.title}.`;
+  if (!top || top.usd <= 0) return 'No categorized DeFi value to chart.';
+  return `${formatPctSmart(bucket.slicePcts[topIdx])} of DeFi value is in ${top.title}.`;
 }
 
 function renderDefiUsdBars(items) {
@@ -458,9 +459,9 @@ function setDefiStatsPlaceholder() {
       .join('');
   }
   if (defiValueUsdBars) defiValueUsdBars.innerHTML = renderDefiUsdBarsPlaceholderHtml();
-  if (defiCategoryPieTitle) defiCategoryPieTitle.textContent = 'Positions by category';
-  if (defiCategoryPieLede) defiCategoryPieLede.textContent = 'Load a wallet to see DeFi category breakdown.';
-  if (defiCategoryPieInsight) defiCategoryPieInsight.textContent = 'Top categories by position count; remainder grouped as Everything Else.';
+  if (defiCategoryPieTitle) defiCategoryPieTitle.textContent = 'Categories ranked by USD value';
+  if (defiCategoryPieLede) defiCategoryPieLede.textContent = 'Load a wallet to see DeFi category value breakdown.';
+  if (defiCategoryPieInsight) defiCategoryPieInsight.textContent = 'Top categories by USD value; remainder grouped as Everything Else.';
   if (defiStatsMeta) {
     defiStatsMeta.textContent = 'Load a wallet to see DeFi position categories and USD value band charts (all positions, including dust).';
   }
@@ -501,7 +502,7 @@ function renderDefiStats(payload) {
           accent: DEFI_PIE_HEX[i],
           swatchColor: DEFI_PIE_HEX[i],
           slicePct: bucket.slicePcts[i],
-          shareLabel: ' of positions',
+          shareLabel: ' of value',
           usdLine: formatUsd(segment.usd),
           amountLine: `${segment.count} ${formatPositionCountWord(segment.count)}`,
         }),
@@ -509,12 +510,12 @@ function renderDefiStats(payload) {
       .join('');
   }
 
-  if (defiCategoryPieTitle) defiCategoryPieTitle.textContent = 'Positions by category';
+  if (defiCategoryPieTitle) defiCategoryPieTitle.textContent = 'Categories ranked by USD value';
   if (defiCategoryPieLede) {
     defiCategoryPieLede.textContent = `${items.length} positions · ${formatUsd(totalUsd)} total DeFi value`;
   }
   if (defiCategoryPieInsight) {
-    defiCategoryPieInsight.textContent = buildDefiCategoryPieInsight(bucket, items.length);
+    defiCategoryPieInsight.textContent = buildDefiCategoryPieInsight(bucket);
   }
   if (defiStatsMeta) {
     defiStatsMeta.textContent = `Wallet DeFi: ${items.length} position(s) · all positions including dust · category pie and USD value bands.`;
