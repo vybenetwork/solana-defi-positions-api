@@ -362,6 +362,32 @@
         </div>
       </section>
 
+      <section class="section-card section-card--token token-section panel" id="defiSummarySection">
+        <div class="section-header">
+          <div class="section-header-left">
+            <span class="section-header__marker" aria-hidden="true"></span>
+            <h2 class="section-header__title">DeFi Summary</h2>
+            <div class="section-loading" id="defiSummaryLoading" hidden aria-hidden="true">
+              <span class="loading-spinner"></span>
+              <span class="loading-text">Loading…</span>
+            </div>
+          </div>
+        </div>
+        <div class="token-section-content">
+          <div class="wallet-summary-intro-row">
+            <div class="section-lede meta wallet-summary-lede">
+              <span class="wallet-summary-address-icon field-icon icon-wallet" aria-hidden="true"></span>
+              <span id="defiSummaryLabel" class="mono">—</span>
+            </div>
+            <aside class="token-last-updated" aria-label="DeFi data last updated">
+              <span class="token-last-updated-label">Last updated</span>
+              <span class="token-last-updated-value" id="defiLastUpdatedValue">—</span>
+            </aside>
+          </div>
+          <div class="holders-summary-grid" id="defiSummaryStats" aria-live="polite"></div>
+        </div>
+      </section>
+
       <section class="section-card section-card--chart panel token-supply-panel" id="walletStatsSection" hidden>
         <div class="section-header token-supply-period-header">
           <div class="section-header-left">
@@ -632,32 +658,6 @@
               <tbody id="walletPnlAssetsBody"></tbody>
             </table>
           </div>
-        </div>
-      </section>
-
-      <section class="section-card section-card--token token-section panel" id="defiSummarySection">
-        <div class="section-header">
-          <div class="section-header-left">
-            <span class="section-header__marker" aria-hidden="true"></span>
-            <h2 class="section-header__title">DeFi Summary</h2>
-            <div class="section-loading" id="defiSummaryLoading" hidden aria-hidden="true">
-              <span class="loading-spinner"></span>
-              <span class="loading-text">Loading…</span>
-            </div>
-          </div>
-        </div>
-        <div class="token-section-content">
-          <div class="wallet-summary-intro-row">
-            <div class="section-lede meta wallet-summary-lede">
-              <span class="wallet-summary-address-icon field-icon icon-wallet" aria-hidden="true"></span>
-              <span id="defiSummaryLabel" class="mono">—</span>
-            </div>
-            <aside class="token-last-updated" aria-label="DeFi data last updated">
-              <span class="token-last-updated-label">Last updated</span>
-              <span class="token-last-updated-value" id="defiLastUpdatedValue">—</span>
-            </aside>
-          </div>
-          <div class="holders-summary-grid" id="defiSummaryStats" aria-live="polite"></div>
         </div>
       </section>
 
