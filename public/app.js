@@ -1173,11 +1173,12 @@ function buildWalletSummaryPlaceholderHtml() {
   });
 }
 
-function formatOverviewPositionCountHtml(count) {
+function formatOverviewPositionCountHtml(count, { short = false } = {}) {
   if (count == null) return escapeHtmlText('—');
   const n = Number(count);
   if (!Number.isFinite(n)) return escapeHtmlText('—');
-  return `${escapeHtmlText(n.toLocaleString())} <span class="token-stat-count-suffix">${escapeHtmlText('pos')}</span>`;
+  const word = short ? 'pos' : n === 1 ? 'Position' : 'Positions';
+  return `${escapeHtmlText(n.toLocaleString())} <span class="token-stat-count-suffix">${escapeHtmlText(word)}</span>`;
 }
 
 function buildDefiSummarySections(data) {
@@ -1201,12 +1202,12 @@ function buildDefiSummarySections(data) {
           {
             key: 'verified',
             label: 'Native',
-            valueHtml: formatOverviewPositionCountHtml(data.nativeCount),
+            valueHtml: formatOverviewPositionCountHtml(data.nativeCount, { short: true }),
           },
           {
             key: 'price1d',
             label: 'Dust',
-            valueHtml: formatOverviewPositionCountHtml(data.dustCount),
+            valueHtml: formatOverviewPositionCountHtml(data.dustCount, { short: true }),
           },
         ],
       },
