@@ -6170,46 +6170,53 @@ html {
 }
 
 .defi-positions-table .defi-col-index {
-  width: 4%;
+  width: 3%;
 }
 
 .defi-positions-table .defi-col-asset {
-  width: 24%;
+  width: 32%;
 }
 
 .defi-positions-table .defi-col-qty {
-  width: 14%;
+  width: 15%;
 }
 
 .defi-positions-table .defi-col-price {
-  width: 11%;
+  width: 12%;
 }
 
 .defi-positions-table .defi-col-value {
-  width: 11%;
+  width: 12%;
 }
 
 .defi-positions-table .defi-col-rate {
-  width: 10%;
+  width: 11%;
 }
 
 .defi-positions-table .defi-col-account {
-  width: 26%;
+  width: 15%;
 }
 
-.defi-positions-table--asset7 th:last-child,
-.defi-positions-table--asset7 td:last-child {
+.defi-positions-table--asset7 th:nth-child(n + 3),
+.defi-positions-table--asset7 td:nth-child(n + 3) {
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
-.defi-positions-table--asset7 .defi-account-links,
-.defi-positions-table--asset7 .holders-mint-link {
+.defi-positions-table--liquidity5 th:nth-child(n + 3),
+.defi-positions-table--liquidity5 td:nth-child(n + 3) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.defi-positions-table--asset7 .defi-account-links {
+  display: inline-flex;
   justify-content: flex-end;
+  width: 100%;
 }
 
 .defi-positions-table--asset7 td:last-child .holders-mint-link {
   display: inline-flex;
-  margin-left: auto;
 }
 
 .defi-positions-table td.defi-price-cell {
@@ -6218,7 +6225,7 @@ html {
 
 .defi-positions-table th,
 .defi-positions-table td {
-  padding: 0.55rem 0.65rem;
+  padding: 0.3rem 0.65rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   text-align: left;
   vertical-align: middle;
