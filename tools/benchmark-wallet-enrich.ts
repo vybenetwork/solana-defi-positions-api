@@ -11,7 +11,7 @@ import { listWalletTokenBalances } from '../src/api/wallet-balance.js';
 
 loadEnv();
 
-const wallet = (process.argv[2] ?? '7Tar8QZTrRPwoGY5Ke9Vfwf6CmpBfekrNofERxgReza').trim();
+const wallet = (process.argv[2] ?? 'tEsT1vjsJeKHw9GH5HpnQszn2LWmjR6q1AVCDCj51nd').trim();
 const limitRaw = Number(process.argv[3] ?? 1000);
 const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 1000;
 
