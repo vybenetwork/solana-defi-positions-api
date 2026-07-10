@@ -21,6 +21,8 @@ const STAKE_STATUS_LABELS = { 4: 'Active', 6: 'Inactive' };
 
 let lastPayload = null;
 const expandedDustSections = new Set();
+/** @type {Map<string, { symbol: string, name: string, logo: string }>} */
+let balanceMetaByMint = new Map();
 
 function toNum(value) {
   if (Array.isArray(value)) {
@@ -68,14 +70,73 @@ function asArray(value) {
   return Array.isArray(value) ? value : [value];
 }
 
+function cleanStr(value) {
+  if (value == null) return '';
+  return String(value).trim();
+}
+
+function looksLikeAddressOrMint(text, mint) {
+  const s = cleanStr(text);
+  if (!s) return true;
+  if (s.includes('…')) return true;
+  if (mint && s === mint) return true;
+  if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s)) return true;
+  return false;
+}
+
+function isValidLabel(text, mint) {
+  const s = cleanStr(text);
+  return s.length > 0 && !looksLikeAddressOrMint(s, mint);
+}
+
+/** Fill missing symbol/name/logo from wallet balances — never overwrite valid DeFi fields. */
+function resolveLegFields(symbol, name, logo, mint) {
+  const bal = mint ? balanceMetaByMint.get(mint) : null;
+  let sym = isValidLabel(symbol, mint) ? cleanStr(symbol) : '';
+  let nm = isValidLabel(name, mint) ? cleanStr(name) : '';
+  let lg = cleanStr(logo);
+
+  if (bal) {
+    if (!sym && isValidLabel(bal.symbol, mint)) sym = bal.symbol;
+    if (!nm && isValidLabel(bal.name, mint)) nm = bal.name;
+    if (!lg && bal.logo) lg = bal.logo;
+  }
+
+  const displayLabel = sym || nm || (mint ? shortAddress(mint) : 'Unknown');
+  let secondaryName = '';
+  if (sym && nm && nm !== sym) secondaryName = nm;
+  else if (sym && bal?.name && bal.name !== sym && isValidLabel(bal.name, mint) && !nm) secondaryName = bal.name;
+
+  return {
+    symbol: sym,
+    name: nm,
+    logo: lg || TOKEN_PLACEHOLDER,
+    displayLabel,
+    secondaryName,
+  };
+}
+
 function assetLabel(symbol, name, address) {
-  const sym = String(symbol ?? '').trim();
-  if (sym) return sym;
-  const nm = String(name ?? '').trim();
-  if (nm) return nm;
-  const addr = String(address ?? '').trim();
-  if (addr) return shortAddress(addr);
-  return 'Unknown';
+  return resolveLegFields(symbol, name, null, address).displayLabel;
+}
+
+function setBalanceMeta(tokens) {
+  balanceMetaByMint = new Map();
+  if (!Array.isArray(tokens)) {
+    if (lastPayload) renderPlatforms(lastPayload);
+    return 0;
+  }
+  for (const token of tokens) {
+    const mint = cleanStr(token.mintAddress || token.address);
+    if (!mint) continue;
+    balanceMetaByMint.set(mint, {
+      symbol: cleanStr(token.symbol),
+      name: cleanStr(token.name),
+      logo: cleanStr(token.logoUrl || token.logourl),
+    });
+  }
+  if (lastPayload) renderPlatforms(lastPayload);
+  return balanceMetaByMint.size;
 }
 
 function formatUsd(value, { debt = false } = {}) {
@@ -186,16 +247,14 @@ function renderMintLinks(addresses) {
 }
 
 function renderSingleTokenCell(row) {
-  const logos = asArray(row.logourl);
-  const logo = logos[0] || TOKEN_PLACEHOLDER;
-  const symbol = assetLabel(row.symbol, row.name, row.address);
-  const name = row.name && row.name !== row.symbol ? row.name : '';
+  const mint = asArray(row.address)[0] || row.address;
+  const leg = resolveLegFields(row.symbol, row.name, asArray(row.logourl)[0] ?? row.logourl, mint);
   return `
     <div class="defi-token-cell">
-      <img class="defi-token-logo" src="${escapeHtml(logo)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />
+      <img class="defi-token-logo" src="${escapeHtml(leg.logo)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />
       <div class="defi-token-text">
-        <span class="defi-token-symbol">${escapeHtml(symbol)}</span>
-        ${name ? `<span class="defi-token-name">${escapeHtml(name)}</span>` : ''}
+        <span class="defi-token-symbol">${escapeHtml(leg.displayLabel)}</span>
+        ${leg.secondaryName ? `<span class="defi-token-name">${escapeHtml(leg.secondaryName)}</span>` : ''}
       </div>
     </div>
   `;
@@ -207,17 +266,16 @@ function renderPairTokenCell(row) {
   const logos = asArray(row.logourl);
   const addresses = asArray(row.address);
   const legs = Math.max(symbols.length, names.length, logos.length, addresses.length, 1);
-  const labels = [];
+  const resolved = [];
   for (let i = 0; i < legs; i++) {
-    labels.push(assetLabel(symbols[i], names[i], addresses[i]));
+    resolved.push(resolveLegFields(symbols[i], names[i], logos[i], addresses[i]));
   }
-  const uniqueLabels = [...new Set(labels.filter((l) => l && l !== 'Unknown'))];
-  const title = uniqueLabels.length > 0 ? uniqueLabels.join(' / ') : 'LP position';
-  const logoHtml = logos
+  const labels = resolved.map((leg) => leg.displayLabel).filter((l) => l && l !== 'Unknown');
+  const title = labels.length > 0 ? [...new Set(labels)].join(' / ') : 'LP position';
+  const logoHtml = resolved
     .slice(0, 3)
-    .map((logo, i) => {
-      const src = logo || TOKEN_PLACEHOLDER;
-      return `<img class="defi-token-logo defi-token-logo--stacked" style="--stack-index:${i}" src="${escapeHtml(src)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />`;
+    .map((leg, i) => {
+      return `<img class="defi-token-logo defi-token-logo--stacked" style="--stack-index:${i}" src="${escapeHtml(leg.logo)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />`;
     })
     .join('');
   return `
@@ -242,8 +300,8 @@ function renderMultiAmounts(row) {
   const addresses = asArray(row.address);
   if (amounts.length === 0) return '—';
   const lines = amounts.map((amount, i) => {
-    const label = assetLabel(symbols[i], names[i], addresses[i]);
-    return `<span class="defi-amount-line"><span class="defi-amount-line__value">${formatAmount(amount)}</span> ${escapeHtml(label)}</span>`;
+    const leg = resolveLegFields(symbols[i], names[i], null, addresses[i]);
+    return `<span class="defi-amount-line"><span class="defi-amount-line__value">${formatAmount(amount)}</span> ${escapeHtml(leg.displayLabel)}</span>`;
   });
   return `<div class="defi-multi-amounts">${lines.join('')}</div>`;
 }
@@ -550,7 +608,8 @@ function renderPlatforms(payload) {
   renderSummary(payload, visible, hidden);
 
   const dustNote = hidden > 0 ? ` · ${hidden} under ${DUST_USD_LABEL} hidden` : '';
-  defiMeta.textContent = `${platforms.length} protocol${platforms.length === 1 ? '' : 's'} · ${visible} position${visible === 1 ? '' : 's'} shown${dustNote} · sorted by value · schema per position type (LP, lend, borrow, stake, perps).`;
+  const enrichNote = balanceMetaByMint.size > 0 ? ' · labels/logos enriched from wallet balances where missing' : '';
+  defiMeta.textContent = `${platforms.length} protocol${platforms.length === 1 ? '' : 's'} · ${visible} position${visible === 1 ? '' : 's'} shown${dustNote}${enrichNote} · sorted by value · schema per position type (LP, lend, borrow, stake, perps).`;
   defiPlatforms.innerHTML = platforms.map(renderPlatform).join('');
 }
 
@@ -573,6 +632,7 @@ function bindDefiUiEvents() {
 
 function resetDefiPlaceholder() {
   lastPayload = null;
+  balanceMetaByMint = new Map();
   expandedDustSections.clear();
   if (defiSummaryLabel) defiSummaryLabel.textContent = '—';
   if (defiLastUpdatedValue) defiLastUpdatedValue.textContent = '—';
@@ -612,5 +672,6 @@ bindDefiUiEvents();
 window.VybeDefiPositions = {
   load: loadDefiPositions,
   resetPlaceholder: resetDefiPlaceholder,
+  setBalanceMeta,
 };
 })();

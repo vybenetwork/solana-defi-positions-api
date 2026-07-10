@@ -1716,6 +1716,7 @@ async function fetchBalances() {
     recordVybeOriginLogos(tokens);
     lastTokens = tokens;
     applySuspiciousValueUsdMask(lastTokens);
+    window.VybeDefiPositions?.setBalanceMeta?.(lastTokens);
     const repairCandidates = prepareTopLogoRepairQueue(lastTokens);
     for (const item of repairCandidates) {
       logoPendingRepairMints.add(item.mintAddress);
