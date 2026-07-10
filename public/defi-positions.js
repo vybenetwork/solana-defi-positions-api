@@ -11,6 +11,49 @@ const defiPlatforms = document.getElementById('defiPlatforms');
 const defiLoading = document.getElementById('defiLoading');
 const defiError = document.getElementById('defiError');
 const defiHideDustInput = document.getElementById('defiHideDust');
+const defiCategoryPie = document.getElementById('defiCategoryPie');
+const defiCategoryLegend = document.getElementById('defiCategoryLegend');
+const defiCategoryPieTitle = document.getElementById('defiCategoryPieTitle');
+const defiCategoryPieLede = document.getElementById('defiCategoryPieLede');
+const defiCategoryPieInsight = document.getElementById('defiCategoryPieInsight');
+const defiValueUsdBars = document.getElementById('defiValueUsdBars');
+const defiStatsMeta = document.getElementById('defiStatsMeta');
+const defiStatsLoading = document.getElementById('defiStatsLoading');
+
+const DEFI_PIE_HEX = ['#4ade80', '#60a5fa', '#f87171', '#fb923c'];
+const DEFI_CATEGORY_LABELS = {
+  rewards: 'Rewards',
+  staked: 'Staked',
+  supplied: 'Lending',
+  liquidity: 'Liquidity',
+  nativeStaking: 'Native Staking',
+  borrowed: 'Borrowing',
+  vesting: 'Vesting',
+  deposit: 'Deposit',
+  leverage: 'Leverage',
+  default: 'Other',
+};
+const DEFI_TIER_LEGEND_SVG_VOLUME =
+  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12h12M4 9h8M6 6h4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+const USD_MAGNITUDE_BAR_COLORS = {
+  red: '#ef4444',
+  orange: '#fb923c',
+  yellow: '#facc15',
+  lightGreen: '#86efac',
+  green: '#22c55e',
+};
+const WALLET_USD_BAND_COLORS = [
+  USD_MAGNITUDE_BAR_COLORS.orange,
+  USD_MAGNITUDE_BAR_COLORS.yellow,
+  USD_MAGNITUDE_BAR_COLORS.lightGreen,
+  USD_MAGNITUDE_BAR_COLORS.green,
+  USD_MAGNITUDE_BAR_COLORS.green,
+  USD_MAGNITUDE_BAR_COLORS.green,
+  USD_MAGNITUDE_BAR_COLORS.green,
+  USD_MAGNITUDE_BAR_COLORS.green,
+];
+const HOLDERS_MONEY_BAG_SVG =
+  '<path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M38.14,21.15c-1.9-5.6-3.6-11.25-5.05-17c5.38-5.9,26.15-5.12,32.13-0.09l-5.53,13.15 c2.98-3.91,3.98-5.51,5.75-7.69c0.75,0.49,1.45,1.04,2.11,1.64c1.57,1.42,2.98,3,3.26,5.19c0.18,1.42-0.22,2.87-1.49,4.35 L56.63,35.48c-1.63-0.27-3.23-0.66-4.78-1.21c0.72-1.69,1.59-3.56,2.31-5.25L49.54,34c-4.81-1.02-8.69-0.41-12.29,1.5L24.37,20.05 c-0.76-0.92-1.11-1.84-1.11-2.76c0.01-3.73,5.57-6.96,8.5-8.18L38.14,21.15L38.14,21.15z M54.64,49.06l-2.51-11.49 c10.76,2,28.01,23.89,33.58,33.84c2.84,5.08,5.34,10.68,7.38,16.93c4.06,15.14,0.15,29.3-16.27,32.6 c-10.29,2.07-29.48,2.21-40.3,1.65c-11.63-0.6-29.64-0.58-34.34-12.53c-7.59-19.28,6.32-42.25,19-56.31 c1.67-1.85,3.39-3.57,5.18-5.17c4.61-4.06,9.59-8.87,15.52-10.88l-5.74,10.68l8.33-11.04h4.39L54.64,49.06L54.64,49.06z M49.29,58.49v2.03c2.15,0.23,4,0.67,5.54,1.33c1.54,0.67,2.88,1.67,4.03,3.02c0.91,1.03,1.61,2.09,2.1,3.17 c0.49,1.09,0.74,2.08,0.74,2.99c0,1.01-0.37,1.88-1.1,2.61c-0.74,0.73-1.63,1.1-2.68,1.1c-1.98,0-3.26-1.07-3.84-3.2 c-0.67-2.51-2.26-4.19-4.8-5.01v12.55c2.49,0.68,4.49,1.31,5.96,1.87c1.48,0.56,2.81,1.37,3.97,2.44c1.25,1.1,2.21,2.43,2.89,3.96 c0.67,1.54,1.01,3.22,1.01,5.05c0,2.29-0.53,4.44-1.62,6.43c-1.08,2.01-2.67,3.63-4.76,4.91c-2.1,1.27-4.58,2.02-7.46,2.25v2.05 c0,1.18-0.12,2.05-0.35,2.59c-0.23,0.54-0.73,0.81-1.52,0.81c-0.72,0-1.23-0.22-1.52-0.66c-0.29-0.44-0.43-1.13-0.43-2.06v-2.68 c-2.35-0.26-4.41-0.81-6.17-1.66c-1.76-0.84-3.23-1.89-4.41-3.15c-1.17-1.27-2.05-2.57-2.6-3.92c-0.57-1.36-0.84-2.7-0.84-4 c0-0.96,0.37-1.83,1.13-2.6c0.75-0.77,1.69-1.16,2.81-1.16c0.91,0,1.67,0.21,2.3,0.63c0.62,0.42,1.05,1.02,1.3,1.78 c0.54,1.65,1.01,2.91,1.41,3.79c0.41,0.87,1.02,1.68,1.83,2.4c0.81,0.72,1.89,1.28,3.24,1.66V85.79c-2.7-0.75-4.94-1.57-6.75-2.49 c-1.81-0.92-3.28-2.21-4.4-3.9c-1.12-1.69-1.69-3.86-1.69-6.51c0-3.46,1.1-6.3,3.3-8.5c2.2-2.21,5.38-3.5,9.54-3.86v-1.97 c0-1.69,0.64-2.53,1.9-2.53C48.65,56.02,49.29,56.84,49.29,58.49L49.29,58.49z M45.46,77.95V66.4c-1.69,0.5-3.01,1.16-3.95,1.99 c-0.95,0.82-1.42,2.08-1.42,3.75c0,1.58,0.44,2.79,1.33,3.6C42.3,76.55,43.65,77.29,45.46,77.95L45.46,77.95z M49.29,86.9v13.22 c2.03-0.4,3.59-1.21,4.7-2.44c1.1-1.24,1.66-2.66,1.66-4.29c0-1.75-0.54-3.1-1.62-4.06C52.96,88.37,51.38,87.56,49.29,86.9 L49.29,86.9z"/>';
 
 const SOLSCAN_TOKEN = 'https://solscan.io/token/';
 const TOKEN_PLACEHOLDER = '/token-placeholder.png';
@@ -181,9 +224,301 @@ function shortAddress(value) {
   return `${s.slice(0, 4)}…${s.slice(-4)}`;
 }
 
+function formatPctSmart(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num) || num === 0) return '0%';
+  const abs = Math.abs(num);
+  if (abs < 0.01) return '<0.01%';
+  if (abs >= 10) return `${Math.round(num)}%`;
+  return `${num.toLocaleString(undefined, { maximumFractionDigits: 2 })}%`;
+}
+
+function formatRoundedValue(n) {
+  const num = Number(n);
+  if (!Number.isFinite(num)) return '0';
+  if (num > 0 && num < 0.01) return '0.01';
+  if (num < 0 && num > -0.01) return '-0.01';
+  const abs = Math.abs(num);
+  if (abs < 1) return num.toFixed(2);
+  return String(Math.round(num));
+}
+
+function formatBandTotalUsd(n) {
+  const num = toNum(n);
+  if (!Number.isFinite(num) || num <= 0) return '$0';
+  return `$${formatRoundedValue(num)}`;
+}
+
+function defiCategoryLabel(key) {
+  const clean = String(key || '').trim();
+  if (!clean) return DEFI_CATEGORY_LABELS.default;
+  return DEFI_CATEGORY_LABELS[clean] || clean.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (s) => s.toUpperCase());
+}
+
+function walletUsdBands() {
+  return [
+    { label: '$0.01', contains: (v) => v > 0 && v < 0.01 },
+    { label: '$0.01-$0.10', contains: (v) => v >= 0.01 && v < 0.1 },
+    { label: '$0.10-$1', contains: (v) => v >= 0.1 && v < 1 },
+    { label: '$1-$10', contains: (v) => v >= 1 && v < 10 },
+    { label: '$10-$100', contains: (v) => v >= 10 && v < 100 },
+    { label: '$100-$1,000', contains: (v) => v >= 100 && v < 1000 },
+    { label: '$1,000-$10,000', contains: (v) => v >= 1000 && v < 10000 },
+    { label: '$10,000+', contains: (v) => v >= 10000 },
+  ];
+}
+
+function walletUsdBandColor(i) {
+  return WALLET_USD_BAND_COLORS[i] ?? USD_MAGNITUDE_BAR_COLORS.green;
+}
+
+function holdersMoneyBagIconHtml(bandLabel, color) {
+  const tip = bandLabel ? `USD band ${bandLabel}` : 'USD value band';
+  const style = color ? ` style="color:${escapeHtml(color)}"` : '';
+  return `<span class="holders-value-usd-bag"${style} title="${escapeHtml(tip)}" aria-label="${escapeHtml(tip)}"><svg class="holders-value-usd-bag__svg" viewBox="0 0 94.56 122.88" aria-hidden="true">${HOLDERS_MONEY_BAG_SVG}</svg></span>`;
+}
+
+function formatPositionCountWord(count) {
+  return Number(count) === 1 ? 'position' : 'positions';
+}
+
+function setDefiLegendGrid(el, sliceCount) {
+  if (!el) return;
+  el.classList.remove('token-supply-legend--cols2', 'token-supply-legend--cols3', 'token-supply-legend--cols6');
+  if (sliceCount <= 3) el.classList.add('token-supply-legend--cols3');
+  else if (sliceCount === 4) el.classList.add('token-supply-legend--cols2');
+  else el.classList.add('token-supply-legend--cols6');
+}
+
+function renderDefiTierCard(args) {
+  return `<div class="token-supply-legend-item token-supply-legend-item--tier-dashboard">
+    <article class="token-tier-card" style="--tier-accent:${args.accent};--tier-swatch:${args.swatchColor}">
+      <h4 class="token-tier-card__title"><span class="token-tier-card__title-text">${escapeHtml(args.title)}</span></h4>
+      <ul class="token-tier-card__metrics">
+        <li class="token-tier-metric">
+          <span class="token-tier-metric__ico token-tier-metric__ico--share-swatch" style="--tier-swatch:${args.swatchColor}" aria-hidden="true"></span>
+          <div class="token-tier-metric__body"><span class="token-tier-metric__slice-pct">${formatPctSmart(args.slicePct)}</span><span class="token-tier-metric__muted">${escapeHtml(args.shareLabel ?? ' of positions')}</span></div>
+        </li>
+        <li class="token-tier-metric">
+          <span class="token-tier-metric__ico token-tier-metric__ico--usd" aria-hidden="true">$</span>
+          <div class="token-tier-metric__body"><span class="token-tier-metric__accent-usd">${args.usdLine}</span></div>
+        </li>
+        <li class="token-tier-metric">
+          <span class="token-tier-metric__ico token-tier-metric__ico--volume" aria-hidden="true">${DEFI_TIER_LEGEND_SVG_VOLUME}</span>
+          <div class="token-tier-metric__body"><span class="token-tier-metric__accent-volume">${escapeHtml(args.amountLine)}</span></div>
+        </li>
+      </ul>
+    </article>
+  </div>`;
+}
+
+function renderDefiTierCardPlaceholder(title, accent, swatch) {
+  return renderDefiTierCard({
+    title,
+    accent,
+    swatchColor: swatch,
+    slicePct: 0,
+    usdLine: '—',
+    amountLine: '—',
+  });
+}
+
+function renderDefiUsdBarRow(d, i, count, total, maxC, sumUsd) {
+  const pct = total > 0 ? (count / total) * 100 : 0;
+  const w = Math.min(100, (count / maxC) * 100);
+  const color = walletUsdBandColor(i);
+  const safe = escapeHtml(d.label);
+  const icon = holdersMoneyBagIconHtml(d.label, color);
+  const pctLabel = formatPctSmart(pct);
+  const positionMeta =
+    count > 0
+      ? `<span class="holders-value-usd" style="color:${escapeHtml(color)}">${count.toLocaleString()} ${formatPositionCountWord(count)} (Total: ${escapeHtml(formatBandTotalUsd(sumUsd))})</span> `
+      : '';
+  return `<div class="holders-hbar-row">
+    <span class="holders-hbar-name" style="color:${escapeHtml(color)}" title="${safe}">${icon}${safe}</span>
+    <div class="holders-hbar-track"><div class="holders-hbar-fill" style="width:${w}%;background:${color}"></div></div>
+    <span class="holders-hbar-meta">${positionMeta}${pctLabel}</span>
+  </div>`;
+}
+
+function renderDefiUsdBarsPlaceholderHtml() {
+  return walletUsdBands().map((d, i) => renderDefiUsdBarRow(d, i, 0, 0, 1, 0)).join('');
+}
+
+function collectVisiblePositionRows(platforms) {
+  const rows = [];
+  for (const [pIndex, platform] of platforms.entries()) {
+    const pid = platformId(platform, pIndex);
+    const platformExpanded = isPlatformDustExpanded(pid);
+    for (const section of platform.sections || []) {
+      for (const row of section.rows || []) {
+        if (hideDustEnabled() && !platformExpanded && isDustRow(row)) continue;
+        rows.push({
+          row,
+          section,
+          category: resolveTableType(section, row),
+        });
+      }
+    }
+  }
+  return rows;
+}
+
+function defiCategoryBuckets(items) {
+  const raw = new Map();
+  for (const { category, row } of items) {
+    const key = category || 'default';
+    if (!raw.has(key)) raw.set(key, { key, count: 0, usd: 0 });
+    const bucket = raw.get(key);
+    bucket.count += 1;
+    bucket.usd += absUsd(row);
+  }
+
+  const sorted = [...raw.values()].sort((a, b) => b.usd - a.usd);
+  const top3 = sorted.slice(0, 3);
+  const rest = sorted.slice(3);
+  const everythingElse = rest.reduce(
+    (acc, item) => ({ count: acc.count + item.count, usd: acc.usd + item.usd }),
+    { count: 0, usd: 0 },
+  );
+
+  const segments = top3.map((item) => ({
+    title: defiCategoryLabel(item.key),
+    count: item.count,
+    usd: item.usd,
+  }));
+  if (everythingElse.count > 0) {
+    segments.push({
+      title: 'Everything Else',
+      count: everythingElse.count,
+      usd: everythingElse.usd,
+    });
+  }
+
+  const finalSegments = segments.length > 0 ? segments : [{ title: '—', count: 0, usd: 0 }];
+  const totalCount = items.length || 1;
+  return {
+    segments: finalSegments,
+    slicePcts: finalSegments.map((s) => (s.count / totalCount) * 100),
+    usds: finalSegments.map((s) => s.usd),
+    counts: finalSegments.map((s) => s.count),
+  };
+}
+
+function buildDefiCategoryPieInsight(bucket, totalPositions) {
+  if (totalPositions === 0) return 'No DeFi positions loaded.';
+  let topIdx = 0;
+  for (let i = 1; i < bucket.segments.length; i += 1) {
+    if (bucket.segments[i].count > bucket.segments[topIdx].count) topIdx = i;
+  }
+  const top = bucket.segments[topIdx];
+  if (!top || top.count === 0) return 'No categorized DeFi positions to chart.';
+  return `${formatPctSmart(bucket.slicePcts[topIdx])} of positions are in ${top.title}.`;
+}
+
+function renderDefiUsdBars(items) {
+  if (!defiValueUsdBars) return;
+  const defs = walletUsdBands();
+  const counts = defs.map(() => 0);
+  const sums = defs.map(() => 0);
+  let pricedCount = 0;
+  for (const { row } of items) {
+    const v = absUsd(row);
+    const idx = defs.findIndex((d) => d.contains(v));
+    if (idx >= 0) {
+      counts[idx] += 1;
+      sums[idx] += v;
+      pricedCount += 1;
+    }
+  }
+  const maxC = Math.max(1, ...counts);
+  const total = pricedCount || 1;
+  defiValueUsdBars.innerHTML = defs.map((d, i) => renderDefiUsdBarRow(d, i, counts[i], total, maxC, sums[i])).join('');
+}
+
+function setDefiStatsPlaceholder() {
+  if (!defiCategoryPie && !defiValueUsdBars) return;
+  const empty4 = buildPieGradientWithGaps([0, 0, 0, 0], DEFI_PIE_HEX);
+  if (defiCategoryPie) {
+    defiCategoryPie.style.background = empty4;
+    mountDonutPieOverlays(defiCategoryPie, [0, 0, 0, 0], DEFI_PIE_HEX, { mock: true, hubSubline: '—' });
+  }
+  setDefiLegendGrid(defiCategoryLegend, 4);
+  if (defiCategoryLegend) {
+    defiCategoryLegend.innerHTML = ['Rewards', 'Staked', 'Lending', 'Everything Else']
+      .map((title, i) => renderDefiTierCardPlaceholder(title, DEFI_PIE_HEX[i], DEFI_PIE_HEX[i]))
+      .join('');
+  }
+  if (defiValueUsdBars) defiValueUsdBars.innerHTML = renderDefiUsdBarsPlaceholderHtml();
+  if (defiCategoryPieTitle) defiCategoryPieTitle.textContent = 'Positions by category';
+  if (defiCategoryPieLede) defiCategoryPieLede.textContent = 'Load a wallet to see DeFi category breakdown.';
+  if (defiCategoryPieInsight) defiCategoryPieInsight.textContent = 'Top categories by position count; remainder grouped as Everything Else.';
+  if (defiStatsMeta) {
+    defiStatsMeta.textContent = 'Load a wallet to see DeFi position categories and USD value band charts.';
+  }
+}
+
+function renderDefiStats(payload) {
+  if (!defiCategoryPie && !defiValueUsdBars) return;
+  const platforms = Array.isArray(payload?.platforms) ? payload.platforms : [];
+  const items = collectVisiblePositionRows(platforms);
+  const totalUsd = toNum(payload?.totalDefiValueUsd) ?? items.reduce((sum, item) => sum + absUsd(item.row), 0);
+
+  if (items.length === 0) {
+    setDefiStatsPlaceholder();
+    if (defiStatsMeta) {
+      defiStatsMeta.textContent = platforms.length
+        ? 'No visible DeFi positions to chart (all hidden as dust or no row data returned).'
+        : 'No DeFi positions were returned for this wallet.';
+    }
+    return;
+  }
+
+  const bucket = defiCategoryBuckets(items);
+  const display = applyMinVisibleSlices(bucket.slicePcts);
+  if (defiCategoryPie) {
+    defiCategoryPie.style.background = buildPieGradientWithGaps(display, DEFI_PIE_HEX);
+    mountDonutPieOverlays(defiCategoryPie, display, DEFI_PIE_HEX, {
+      mock: false,
+      hubSubline: `${formatUsd(totalUsd)} · ${items.length} positions`,
+    });
+  }
+
+  setDefiLegendGrid(defiCategoryLegend, bucket.segments.length);
+  if (defiCategoryLegend) {
+    defiCategoryLegend.innerHTML = bucket.segments
+      .map((segment, i) =>
+        renderDefiTierCard({
+          title: segment.title,
+          accent: DEFI_PIE_HEX[i],
+          swatchColor: DEFI_PIE_HEX[i],
+          slicePct: bucket.slicePcts[i],
+          shareLabel: ' of positions',
+          usdLine: formatUsd(segment.usd),
+          amountLine: `${segment.count} ${formatPositionCountWord(segment.count)}`,
+        }),
+      )
+      .join('');
+  }
+
+  if (defiCategoryPieTitle) defiCategoryPieTitle.textContent = 'Positions by category';
+  if (defiCategoryPieLede) {
+    defiCategoryPieLede.textContent = `${items.length} positions · ${formatUsd(totalUsd)} total DeFi value`;
+  }
+  if (defiCategoryPieInsight) {
+    defiCategoryPieInsight.textContent = buildDefiCategoryPieInsight(bucket, items.length);
+  }
+  if (defiStatsMeta) {
+    defiStatsMeta.textContent = `Wallet DeFi: ${items.length} position(s) · category pie and USD value bands.`;
+  }
+
+  renderDefiUsdBars(items);
+}
+
 function setLoading(active) {
   if (defiSummaryLoading) defiSummaryLoading.hidden = !active;
   if (defiLoading) defiLoading.hidden = !active;
+  if (defiStatsLoading) defiStatsLoading.hidden = !active;
 }
 
 function showDefiError(message) {
@@ -523,6 +858,14 @@ function sortSections(platform) {
   });
 }
 
+function platformEmptySectionsMessage(platform) {
+  const total = toNum(platform.totalValueUsd);
+  if (total != null && total > 0) {
+    return `Vybe reports ${formatUsd(total)} total for this protocol but returned no position rows to display.`;
+  }
+  return 'No sections returned for this platform.';
+}
+
 function renderPlatform(platform, index) {
   const sections = sortSections(platform);
   const pid = platformId(platform, index);
@@ -580,7 +923,7 @@ function renderPlatform(platform, index) {
           </div>
         </div>
       </header>
-      <div class="defi-platform-sections">${sectionsHtml || '<p class="defi-empty-section">No sections returned for this platform.</p>'}</div>
+      <div class="defi-platform-sections">${sectionsHtml || `<p class="defi-empty-section">${escapeHtml(platformEmptySectionsMessage(platform))}</p>`}</div>
     </article>
   `;
 }
@@ -610,6 +953,7 @@ function renderPlatforms(payload) {
     defiMeta.textContent = 'No DeFi positions were returned for this wallet.';
     defiPlatforms.innerHTML = '<p class="defi-empty-state">Try another wallet with LP, lending, staking, or rewards positions.</p>';
     renderSummary(payload, 0, 0);
+    renderDefiStats(payload);
     return;
   }
 
@@ -620,6 +964,7 @@ function renderPlatforms(payload) {
   const enrichNote = balanceMetaByMint.size > 0 ? ' · labels/logos enriched from wallet balances where missing' : '';
   defiMeta.textContent = `${platforms.length} protocol${platforms.length === 1 ? '' : 's'} · ${visible} position${visible === 1 ? '' : 's'} shown${dustNote}${enrichNote} · sorted by value · schema per position type (LP, lend, borrow, stake, perps).`;
   defiPlatforms.innerHTML = platforms.map(renderPlatform).join('');
+  renderDefiStats(payload);
 }
 
 function bindDefiUiEvents() {
@@ -648,6 +993,7 @@ function resetDefiPlaceholder() {
   if (defiSummaryStats) defiSummaryStats.innerHTML = '';
   if (defiMeta) defiMeta.textContent = DEFI_META_PLACEHOLDER;
   if (defiPlatforms) defiPlatforms.innerHTML = '';
+  setDefiStatsPlaceholder();
 }
 
 async function loadDefiPositions() {
@@ -677,6 +1023,7 @@ async function loadDefiPositions() {
 }
 
 bindDefiUiEvents();
+setDefiStatsPlaceholder();
 
 window.VybeDefiPositions = {
   load: loadDefiPositions,

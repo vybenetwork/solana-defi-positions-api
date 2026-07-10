@@ -40,9 +40,11 @@ const walletSummaryStats = document.getElementById('walletSummaryStats');
 const walletStatsSection = document.getElementById('walletStatsSection');
 const walletStatsSectionTitle = document.getElementById('walletStatsSectionTitle');
 const holdingsStatsContent = document.getElementById('holdingsStatsContent');
+const defiStatsContent = document.getElementById('defiStatsContent');
 const holdingsStatsMeta = document.getElementById('holdingsStatsMeta');
 const pnlStatsContent = document.getElementById('pnlStatsContent');
-const walletStatsViewSwitch = document.getElementById('walletStatsViewSwitch');
+const walletStatsViewSwitchRoot = document.getElementById('walletStatsViewSwitchRoot');
+const walletStatsViewSwitchTrack = document.getElementById('walletStatsViewSwitchTrack');
 const portfolioPie = document.getElementById('portfolioPie');
 const portfolioLegend = document.getElementById('portfolioLegend');
 const portfolioPieTitle = document.getElementById('portfolioPieTitle');
@@ -52,6 +54,7 @@ const holdingsUsdBars = document.getElementById('holdingsUsdBars');
 const holdersLoading = document.getElementById('holdersLoading');
 const walletSummaryLoading = document.getElementById('walletSummaryLoading');
 const holdingsStatsLoading = document.getElementById('holdingsStatsLoading');
+const defiStatsLoading = document.getElementById('defiStatsLoading');
 const holdersError = document.getElementById('holdersError');
 const holdersMeta = document.getElementById('holdersMeta');
 const holdersSummaryCount = document.getElementById('holdersSummaryCount');
@@ -66,7 +69,7 @@ const holdersBody = document.getElementById('holdersBody');
 const holdersSectionTitle = document.getElementById('holdersSectionTitle');
 const holdersTableViewSwitch = document.getElementById('holdersTableViewSwitch');
 const holdersTableViewSwitchLabel = document.getElementById('holdersTableViewSwitchLabel');
-const walletStatsViewSwitchLabel = document.getElementById('walletStatsViewSwitchLabel');
+const walletStatsViewSwitchLabel = document.getElementById('walletStatsViewSwitchRoot');
 const holdersTableWrap = document.getElementById('holdersTableWrap');
 const walletPnlTableWrap = document.getElementById('walletPnlTableWrap');
 const holdersSummaryGrid = document.getElementById('holdersSummary');
@@ -1177,7 +1180,9 @@ function setSectionViewSwitchersLocked(locked) {
     label.setAttribute('aria-disabled', locked ? 'true' : 'false');
   }
   if (holdersTableViewSwitch) holdersTableViewSwitch.disabled = locked;
-  if (walletStatsViewSwitch) walletStatsViewSwitch.disabled = locked;
+  walletStatsViewSwitchRoot?.querySelectorAll('[data-view]').forEach((btn) => {
+    btn.disabled = locked;
+  });
 }
 
 function setWalletBalancesLoading(isLoading) {
@@ -1425,12 +1430,29 @@ function buildPriceChangePieInsight(bucket, totalTokens) {
 }
 
 function setWalletStatsView(mode) {
+  const showDefi = mode === 'defi';
   const showHoldings = mode === 'holdings';
+  const showPnl = mode === 'pnl';
+  if (defiStatsContent) defiStatsContent.hidden = !showDefi;
   if (holdingsStatsContent) holdingsStatsContent.hidden = !showHoldings;
-  if (pnlStatsContent) pnlStatsContent.hidden = showHoldings;
+  if (pnlStatsContent) pnlStatsContent.hidden = !showPnl;
   if (walletStatsSectionTitle) {
-    walletStatsSectionTitle.textContent = showHoldings ? 'Holdings Stats' : 'PnL Stats (7 days)';
+    const titles = {
+      defi: 'DeFi Stats',
+      holdings: 'Holdings Stats',
+      pnl: 'PnL Stats (7 days)',
+    };
+    walletStatsSectionTitle.textContent = titles[mode] || titles.holdings;
   }
+  const indexMap = { defi: 0, holdings: 1, pnl: 2 };
+  if (walletStatsViewSwitchTrack) {
+    walletStatsViewSwitchTrack.style.setProperty('--wallet-stats-view-index', String(indexMap[mode] ?? 1));
+  }
+  walletStatsViewSwitchRoot?.querySelectorAll('[data-view]').forEach((btn) => {
+    const active = btn.dataset.view === mode;
+    btn.classList.toggle('is-active', active);
+    btn.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
 }
 
 function setChartsPlaceholder() {
@@ -1805,8 +1827,12 @@ function initWalletPnlIntegration() {
   holdersTableViewSwitch?.addEventListener('change', () => {
     setHoldersTableView(holdersTableViewSwitch.checked ? 'pnl' : 'holdings');
   });
-  walletStatsViewSwitch?.addEventListener('change', () => {
-    setWalletStatsView(walletStatsViewSwitch.checked ? 'pnl' : 'holdings');
+  walletStatsViewSwitchRoot?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-view]');
+    if (!btn || btn.disabled) return;
+    const mode = btn.dataset.view;
+    if (!mode) return;
+    setWalletStatsView(mode);
   });
 }
 

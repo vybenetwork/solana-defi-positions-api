@@ -5924,6 +5924,33 @@ html {
   min-width: 17rem;
 }
 
+.wallet-stats-view-switch--triple .trades-fetch-switch-track {
+  min-width: 26rem;
+  --wallet-stats-view-index: 1;
+}
+
+.wallet-stats-view-switch--triple .trades-fetch-switch-track::after {
+  width: calc((100% - 0.5rem) / 3);
+  transform: translateX(calc(var(--wallet-stats-view-index) * 100%));
+}
+
+.wallet-stats-view-switch--triple .trades-fetch-switch-option {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0 0.5rem;
+}
+
+.wallet-stats-view-switch--triple .trades-fetch-switch-option.is-active {
+  color: #e4e4e7;
+}
+
+.wallet-stats-view-switch--triple.trades-fetch-switch--locked {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .wallet-stats-view-switch .trades-fetch-switch-option {
   white-space: nowrap;
 }
