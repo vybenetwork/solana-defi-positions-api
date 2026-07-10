@@ -710,11 +710,73 @@ function priceCell(row) {
   return `<td class="num">${formatDefiTableUsd(row.price)}</td>`;
 }
 
+function buildAssetTableSchema(tableType, { amountHeader = 'Amount', rateHeader = 'APY', debt = false } = {}) {
+  return {
+    tableType,
+    layout: 'asset7',
+    columns: ['#', 'Asset', amountHeader, 'Price', 'Value', rateHeader, 'Account'],
+    renderRow(row, index) {
+      return `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${renderAssetCell(row)}</td>
+          ${amountCell(row, { debt })}
+          ${priceCell(row)}
+          ${valueCell(row, { debt })}
+          ${apyCell(row)}
+          <td>${renderMintLink(asArray(row.address)[0] || row.address)}</td>
+        </tr>
+      `;
+    },
+  };
+}
+
+function isNumericHeaderColumn(layout, colIndex) {
+  if (layout === 'asset7') return colIndex >= 2 && colIndex <= 5;
+  if (layout === 'liquidity5') return colIndex === 2 || colIndex === 3;
+  return false;
+}
+
+function renderTableColgroup(layout) {
+  if (layout === 'liquidity5') {
+    return `<colgroup>
+      <col class="defi-col-index" />
+      <col class="defi-col-asset" />
+      <col class="defi-col-qty" />
+      <col class="defi-col-value" />
+      <col class="defi-col-account" />
+    </colgroup>`;
+  }
+  if (layout === 'asset7') {
+    return `<colgroup>
+      <col class="defi-col-index" />
+      <col class="defi-col-asset" />
+      <col class="defi-col-qty" />
+      <col class="defi-col-price" />
+      <col class="defi-col-value" />
+      <col class="defi-col-rate" />
+      <col class="defi-col-account" />
+    </colgroup>`;
+  }
+  return '';
+}
+
+function renderTableHeader(schema) {
+  const layout = schema.layout || 'default';
+  return schema.columns
+    .map((col, index) => {
+      const cls = isNumericHeaderColumn(layout, index) ? ' class="num"' : '';
+      return `<th${cls}>${escapeHtml(col)}</th>`;
+    })
+    .join('');
+}
+
 function buildTableSchema(tableType) {
   switch (tableType) {
     case 'liquidity':
       return {
         tableType,
+        layout: 'liquidity5',
         columns: ['#', 'Pool / assets', 'Amounts', 'Value (USD)', 'Accounts'],
         renderRow(row, index) {
           return `
@@ -729,44 +791,18 @@ function buildTableSchema(tableType) {
         },
       };
     case 'borrowed':
-      return {
-        tableType,
-        columns: ['#', 'Asset', 'Debt', 'Price', 'Value', 'Rate', 'Account'],
-        renderRow(row, index) {
-          return `
-            <tr>
-              <td>${index + 1}</td>
-              <td>${renderAssetCell(row)}</td>
-              ${amountCell(row, { debt: true })}
-              ${priceCell(row)}
-              ${valueCell(row, { debt: true })}
-              ${apyCell(row)}
-              <td>${renderMintLink(asArray(row.address)[0] || row.address)}</td>
-            </tr>
-          `;
-        },
-      };
+      return buildAssetTableSchema('borrowed', { amountHeader: 'Debt', rateHeader: 'Rate', debt: true });
     case 'supplied':
-      return {
-        tableType,
-        columns: ['#', 'Asset', 'Amount', 'Price', 'Value', 'APY', 'Account'],
-        renderRow(row, index) {
-          return `
-            <tr>
-              <td>${index + 1}</td>
-              <td>${renderAssetCell(row)}</td>
-              ${amountCell(row)}
-              ${priceCell(row)}
-              ${valueCell(row)}
-              ${apyCell(row)}
-              <td>${renderMintLink(asArray(row.address)[0] || row.address)}</td>
-            </tr>
-          `;
-        },
-      };
+      return buildAssetTableSchema('supplied');
+    case 'staked':
+    case 'rewards':
+    case 'vesting':
+    case 'deposit':
+      return buildAssetTableSchema(tableType);
     case 'nativeStaking':
       return {
         tableType,
+        layout: 'nativeStaking',
         columns: ['#', 'Validator', 'Stake', 'Price', 'Value', 'APY', 'MEV', 'Status', 'Account'],
         renderRow(row, index) {
           return `
@@ -787,6 +823,7 @@ function buildTableSchema(tableType) {
     case 'leverage':
       return {
         tableType,
+        layout: 'leverage',
         columns: ['#', 'Market', 'Side', 'Size', 'Notional', 'Collateral', 'PnL', 'Leverage'],
         renderRow(row, index) {
           return `
@@ -804,22 +841,7 @@ function buildTableSchema(tableType) {
         },
       };
     default:
-      return {
-        tableType: 'default',
-        columns: ['#', 'Asset', 'Amount', 'Price', 'Value', 'Account'],
-        renderRow(row, index) {
-          return `
-            <tr>
-              <td>${index + 1}</td>
-              <td>${renderAssetCell(row)}</td>
-              ${amountCell(row)}
-              ${priceCell(row)}
-              ${valueCell(row)}
-              <td>${renderMintLinks(row.address)}</td>
-            </tr>
-          `;
-        },
-      };
+      return buildAssetTableSchema('default');
   }
 }
 
@@ -874,8 +896,9 @@ function renderSectionTable(section, platformExpanded) {
   return `
     <div class="table-wrap table-wrap--scroll">
       <table class="defi-positions-table defi-positions-table--${escapeHtml(schema.tableType)}">
+        ${renderTableColgroup(schema.layout)}
         <thead>
-          <tr>${schema.columns.map((col) => `<th>${escapeHtml(col)}</th>`).join('')}</tr>
+          <tr>${renderTableHeader(schema)}</tr>
         </thead>
         <tbody>${body}</tbody>
       </table>

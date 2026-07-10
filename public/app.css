@@ -6152,6 +6152,35 @@ html {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.82rem;
+  table-layout: fixed;
+}
+
+.defi-positions-table .defi-col-index {
+  width: 2.5rem;
+}
+
+.defi-positions-table .defi-col-asset {
+  width: 30%;
+}
+
+.defi-positions-table .defi-col-qty {
+  width: 14%;
+}
+
+.defi-positions-table .defi-col-price {
+  width: 9%;
+}
+
+.defi-positions-table .defi-col-value {
+  width: 9%;
+}
+
+.defi-positions-table .defi-col-rate {
+  width: 8%;
+}
+
+.defi-positions-table .defi-col-account {
+  width: auto;
 }
 
 .defi-positions-table th,
@@ -6168,6 +6197,7 @@ html {
   white-space: nowrap;
 }
 
+.defi-positions-table th.num,
 .defi-positions-table td.num {
   text-align: right;
   font-variant-numeric: tabular-nums;
