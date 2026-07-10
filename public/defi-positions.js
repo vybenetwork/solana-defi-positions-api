@@ -20,7 +20,8 @@ const DUST_USD_LABEL = '$0.10';
 const STAKE_STATUS_LABELS = { 4: 'Active', 6: 'Inactive' };
 
 let lastPayload = null;
-const expandedDustSections = new Set();
+/** @type {Set<string>} Platform ids with dust expanded */
+const expandedDustPlatforms = new Set();
 /** @type {Map<string, { symbol: string, name: string, logo: string }>} */
 let balanceMetaByMint = new Map();
 
@@ -453,10 +454,6 @@ function buildTableSchema(tableType) {
   }
 }
 
-function sectionKey(platform, section, index) {
-  return `${platform.platformId || platform.platform || 'p'}-${section.label || section.tableType || index}`;
-}
-
 function sumSectionUsd(rows) {
   return rows.reduce((sum, row) => sum + absUsd(row), 0);
 }
@@ -465,49 +462,45 @@ function sortRows(rows) {
   return [...rows].sort((a, b) => absUsd(b) - absUsd(a));
 }
 
-function partitionRows(rows, sectionId) {
-  const sorted = sortRows(rows);
-  if (!hideDustEnabled()) {
-    return { visible: sorted, hidden: [], expanded: true };
-  }
-  const visible = [];
-  const hidden = [];
-  for (const row of sorted) {
-    if (isDustRow(row)) hidden.push(row);
-    else visible.push(row);
-  }
-  const expanded = expandedDustSections.has(sectionId);
-  return { visible, hidden, expanded };
+function platformId(platform, index) {
+  return String(platform.platformId || platform.platform || `platform-${index}`).trim();
 }
 
-function renderSectionTable(section, platform, sectionIndex) {
+function isPlatformDustExpanded(id) {
+  return expandedDustPlatforms.has(id);
+}
+
+function platformHiddenDustCount(platform) {
+  let count = 0;
+  for (const section of platform.sections || []) {
+    for (const row of section.rows || []) {
+      if (isDustRow(row)) count++;
+    }
+  }
+  return count;
+}
+
+function rowsForDisplay(rows, platformExpanded) {
+  const sorted = sortRows(rows);
+  if (!hideDustEnabled() || platformExpanded) return sorted;
+  return sorted.filter((row) => !isDustRow(row));
+}
+
+function sectionHasVisibleRows(section, platformExpanded) {
   const rows = Array.isArray(section.rows) ? section.rows : [];
-  if (rows.length === 0) {
-    return '<p class="defi-empty-section">No rows in this section.</p>';
+  return rowsForDisplay(rows, platformExpanded).length > 0;
+}
+
+function renderSectionTable(section, platformExpanded) {
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+  const rowsToRender = rowsForDisplay(rows, platformExpanded);
+  if (rowsToRender.length === 0) {
+    return '';
   }
 
-  const tableType = resolveTableType(section, rows[0]);
+  const tableType = resolveTableType(section, rowsToRender[0]);
   const schema = buildTableSchema(tableType);
-  const secId = sectionKey(platform, section, sectionIndex);
-  const { visible, hidden, expanded } = partitionRows(rows, secId);
-  const rowsToRender = expanded ? sortRows(rows) : visible;
-
-  if (rowsToRender.length === 0 && hidden.length > 0) {
-    return `
-      <div class="defi-dust-only">
-        <p class="defi-empty-section">${hidden.length} position${hidden.length === 1 ? '' : 's'} under ${DUST_USD_LABEL} hidden.</p>
-        <button type="button" class="defi-dust-toggle" data-defi-dust-section="${escapeHtml(secId)}">Show ${hidden.length} dust position${hidden.length === 1 ? '' : 's'}</button>
-      </div>
-    `;
-  }
-
   const body = rowsToRender.map((row, index) => schema.renderRow(row, index)).join('');
-  const dustToggle =
-    hidden.length > 0 && !expanded
-      ? `<button type="button" class="defi-dust-toggle" data-defi-dust-section="${escapeHtml(secId)}">Show ${hidden.length} more under ${DUST_USD_LABEL}</button>`
-      : hidden.length > 0 && expanded
-        ? `<button type="button" class="defi-dust-toggle defi-dust-toggle--active" data-defi-dust-section="${escapeHtml(secId)}">Hide ${hidden.length} dust position${hidden.length === 1 ? '' : 's'}</button>`
-        : '';
 
   return `
     <div class="table-wrap table-wrap--scroll">
@@ -518,7 +511,6 @@ function renderSectionTable(section, platform, sectionIndex) {
         <tbody>${body}</tbody>
       </table>
     </div>
-    ${dustToggle}
   `;
 }
 
@@ -533,27 +525,40 @@ function sortSections(platform) {
 
 function renderPlatform(platform, index) {
   const sections = sortSections(platform);
+  const pid = platformId(platform, index);
+  const platformExpanded = isPlatformDustExpanded(pid);
+  const hiddenDustCount = hideDustEnabled() && !platformExpanded ? platformHiddenDustCount(platform) : 0;
   const logo = platform.platformLogourl || TOKEN_PLACEHOLDER;
   const website = String(platform.platformWebsite || '').trim();
   const title = platform.platform || platform.platformId || `Platform ${index + 1}`;
   const labels = Array.isArray(platform.platformLabels) ? platform.platformLabels.filter(Boolean) : [];
 
   const sectionsHtml = sections
-    .map((section, sectionIndex) => {
+    .filter((section) => sectionHasVisibleRows(section, platformExpanded))
+    .map((section) => {
       const heading = section.label || section.name || section.tableType || section.type || 'Positions';
-      const sectionUsd = sumSectionUsd(Array.isArray(section.rows) ? section.rows : []);
-      const rowCount = Array.isArray(section.rows) ? section.rows.length : 0;
+      const allRows = Array.isArray(section.rows) ? section.rows : [];
+      const displayRows = rowsForDisplay(allRows, platformExpanded);
+      const sectionUsd = sumSectionUsd(displayRows);
+      const rowCount = displayRows.length;
       return `
         <div class="defi-section-block">
           <h3 class="defi-section-title">
             ${escapeHtml(heading)}
             <span class="defi-section-meta">${rowCount} row${rowCount === 1 ? '' : 's'} · ${formatUsd(sectionUsd)}</span>
           </h3>
-          ${renderSectionTable(section, platform, sectionIndex)}
+          ${renderSectionTable(section, platformExpanded)}
         </div>
       `;
     })
     .join('');
+
+  const dustBtn =
+    hiddenDustCount > 0
+      ? `<button type="button" class="defi-platform-dust-btn" data-defi-dust-platform="${escapeHtml(pid)}">Show dust (${hiddenDustCount})</button>`
+      : hideDustEnabled() && platformExpanded && platformHiddenDustCount(platform) > 0
+        ? `<button type="button" class="defi-platform-dust-btn defi-platform-dust-btn--active" data-defi-dust-platform="${escapeHtml(pid)}">Hide dust</button>`
+        : '';
 
   return `
     <article class="defi-platform-card">
@@ -567,9 +572,12 @@ function renderPlatform(platform, index) {
             ${website ? `<a class="defi-platform-link" href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">Website</a>` : ''}
           </div>
         </div>
-        <div class="defi-platform-total">
-          <span class="defi-platform-total-label">Platform value</span>
-          <span class="defi-platform-total-value">${formatUsd(platform.totalValueUsd)}</span>
+        <div class="defi-platform-header-actions">
+          ${dustBtn}
+          <div class="defi-platform-total">
+            <span class="defi-platform-total-label">Platform value</span>
+            <span class="defi-platform-total-value">${formatUsd(platform.totalValueUsd)}</span>
+          </div>
         </div>
       </header>
       <div class="defi-platform-sections">${sectionsHtml || '<p class="defi-empty-section">No sections returned for this platform.</p>'}</div>
@@ -580,10 +588,11 @@ function renderPlatform(platform, index) {
 function countVisibleHidden(platforms) {
   let visible = 0;
   let hidden = 0;
-  for (const platform of platforms) {
+  for (const [pIndex, platform] of platforms.entries()) {
+    const platformExpanded = isPlatformDustExpanded(platformId(platform, pIndex));
     for (const section of platform.sections || []) {
       for (const row of section.rows || []) {
-        if (hideDustEnabled() && isDustRow(row)) hidden++;
+        if (hideDustEnabled() && isDustRow(row) && !platformExpanded) hidden++;
         else visible++;
       }
     }
@@ -615,17 +624,17 @@ function renderPlatforms(payload) {
 
 function bindDefiUiEvents() {
   defiHideDustInput?.addEventListener('change', () => {
-    expandedDustSections.clear();
+    expandedDustPlatforms.clear();
     if (lastPayload) renderPlatforms(lastPayload);
   });
 
   defiPlatforms?.addEventListener('click', (event) => {
-    const btn = event.target.closest('[data-defi-dust-section]');
+    const btn = event.target.closest('[data-defi-dust-platform]');
     if (!btn) return;
-    const id = btn.getAttribute('data-defi-dust-section');
+    const id = btn.getAttribute('data-defi-dust-platform');
     if (!id) return;
-    if (expandedDustSections.has(id)) expandedDustSections.delete(id);
-    else expandedDustSections.add(id);
+    if (expandedDustPlatforms.has(id)) expandedDustPlatforms.delete(id);
+    else expandedDustPlatforms.add(id);
     if (lastPayload) renderPlatforms(lastPayload);
   });
 }
@@ -633,7 +642,7 @@ function bindDefiUiEvents() {
 function resetDefiPlaceholder() {
   lastPayload = null;
   balanceMetaByMint = new Map();
-  expandedDustSections.clear();
+  expandedDustPlatforms.clear();
   if (defiSummaryLabel) defiSummaryLabel.textContent = '—';
   if (defiLastUpdatedValue) defiLastUpdatedValue.textContent = '—';
   if (defiSummaryStats) defiSummaryStats.innerHTML = '';
