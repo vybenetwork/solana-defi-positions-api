@@ -6132,3 +6132,129 @@ html {
 .defi-summary-item--total .trades-summary-value {
   color: #86efac;
 }
+
+.defi-positions-section .section-header,
+#defiPositionsSection .section-header {
+  justify-content: flex-start;
+}
+
+.defi-hide-dust-switch.trades-fetch-switch {
+  min-width: fit-content;
+}
+
+.defi-hide-dust-switch .trades-fetch-switch-track {
+  height: 2.2rem;
+  min-width: 14rem;
+}
+
+.defi-section-meta {
+  margin-left: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #71717a;
+}
+
+.defi-value--debt {
+  color: #f87171;
+}
+
+.defi-token-cell--pair .defi-token-logo-stack {
+  position: relative;
+  width: 34px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.defi-token-logo--stacked {
+  position: absolute;
+  top: 0;
+  left: calc(var(--stack-index, 0) * 10px);
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(15, 15, 18, 0.95);
+}
+
+.defi-multi-amounts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  align-items: flex-end;
+}
+
+.defi-amount-line {
+  display: block;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.defi-amount-line__value {
+  font-weight: 600;
+  color: #e4e4e7;
+}
+
+.defi-account-links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.defi-side-badge {
+  display: inline-flex;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.defi-side-badge--long {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+}
+
+.defi-side-badge--short {
+  background: rgba(248, 113, 113, 0.15);
+  color: #fca5a5;
+}
+
+.defi-side-badge--neutral {
+  background: rgba(161, 161, 170, 0.15);
+  color: #d4d4d8;
+}
+
+.defi-stake-status {
+  font-size: 0.78rem;
+  color: #a1a1aa;
+}
+
+.defi-dust-toggle {
+  margin-top: 0.55rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #a1a1aa;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.defi-dust-toggle:hover {
+  color: #e4e4e7;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.defi-dust-toggle--active {
+  color: #fde68a;
+  border-color: rgba(234, 179, 8, 0.35);
+}
+
+.defi-dust-only {
+  padding: 0.35rem 0 0.5rem;
+}
+
+.defi-positions-table--leverage td:nth-child(3),
+.defi-positions-table--borrowed td:nth-child(3),
+.defi-positions-table--borrowed td:nth-child(5) {
+  color: #f87171;
+}

@@ -25,7 +25,7 @@
       content="Fetch Solana wallet token balances and DeFi positions with the Vybe API: on-chain holdings, LP pools, lending, staking, and yield farming."
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="app.css?v=114" />
+    <link rel="stylesheet" href="app.css?v=115" />
   </head>
   <body>
     <div class="container">
@@ -595,6 +595,19 @@
               <span class="loading-text">Loading…</span>
             </div>
           </div>
+          <div class="section-header-right">
+            <label
+              class="trades-fetch-switch defi-hide-dust-switch"
+              id="defiHideDustSwitchLabel"
+              title="Hide DeFi positions valued under $1"
+            >
+              <input type="checkbox" id="defiHideDust" class="trades-fetch-switch-input" checked />
+              <span class="trades-fetch-switch-track">
+                <span class="trades-fetch-switch-option" data-value="single">Show all</span>
+                <span class="trades-fetch-switch-option" data-value="paged">Hide &lt;$1</span>
+              </span>
+            </label>
+          </div>
           <span class="section-error" id="defiError" hidden aria-hidden="true"></span>
         </div>
         <div class="holders-content">
@@ -613,7 +626,7 @@
     <script src="charts-pie.js?v=2"></script>
     <script src="wallet-pnl-section.js?v=6"></script>
     <script src="wallet-pnl-table.js?v=3"></script>
-    <script src="defi-positions.js?v=3"></script>
+    <script src="defi-positions.js?v=4"></script>
     <script src="app.js?v=138"></script>
   </body>
 </html>
