@@ -345,14 +345,14 @@ function renderDefiUsdBarsPlaceholderHtml() {
   return walletUsdBands().map((d, i) => renderDefiUsdBarRow(d, i, 0, 0, 1, 0)).join('');
 }
 
-function collectVisiblePositionRows(platforms) {
+function collectPositionRows(platforms, { includeDust = false } = {}) {
   const rows = [];
   for (const [pIndex, platform] of platforms.entries()) {
     const pid = platformId(platform, pIndex);
     const platformExpanded = isPlatformDustExpanded(pid);
     for (const section of platform.sections || []) {
       for (const row of section.rows || []) {
-        if (hideDustEnabled() && !platformExpanded && isDustRow(row)) continue;
+        if (!includeDust && hideDustEnabled() && !platformExpanded && isDustRow(row)) continue;
         rows.push({
           row,
           section,
@@ -362,6 +362,14 @@ function collectVisiblePositionRows(platforms) {
     }
   }
   return rows;
+}
+
+function collectVisiblePositionRows(platforms) {
+  return collectPositionRows(platforms, { includeDust: false });
+}
+
+function collectAllPositionRows(platforms) {
+  return collectPositionRows(platforms, { includeDust: true });
 }
 
 function defiCategoryBuckets(items) {
@@ -454,21 +462,21 @@ function setDefiStatsPlaceholder() {
   if (defiCategoryPieLede) defiCategoryPieLede.textContent = 'Load a wallet to see DeFi category breakdown.';
   if (defiCategoryPieInsight) defiCategoryPieInsight.textContent = 'Top categories by position count; remainder grouped as Everything Else.';
   if (defiStatsMeta) {
-    defiStatsMeta.textContent = 'Load a wallet to see DeFi position categories and USD value band charts.';
+    defiStatsMeta.textContent = 'Load a wallet to see DeFi position categories and USD value band charts (all positions, including dust).';
   }
 }
 
 function renderDefiStats(payload) {
   if (!defiCategoryPie && !defiValueUsdBars) return;
   const platforms = Array.isArray(payload?.platforms) ? payload.platforms : [];
-  const items = collectVisiblePositionRows(platforms);
+  const items = collectAllPositionRows(platforms);
   const totalUsd = toNum(payload?.totalDefiValueUsd) ?? items.reduce((sum, item) => sum + absUsd(item.row), 0);
 
   if (items.length === 0) {
     setDefiStatsPlaceholder();
     if (defiStatsMeta) {
       defiStatsMeta.textContent = platforms.length
-        ? 'No visible DeFi positions to chart (all hidden as dust or no row data returned).'
+        ? 'No DeFi position rows returned to chart.'
         : 'No DeFi positions were returned for this wallet.';
     }
     return;
@@ -509,7 +517,7 @@ function renderDefiStats(payload) {
     defiCategoryPieInsight.textContent = buildDefiCategoryPieInsight(bucket, items.length);
   }
   if (defiStatsMeta) {
-    defiStatsMeta.textContent = `Wallet DeFi: ${items.length} position(s) · category pie and USD value bands.`;
+    defiStatsMeta.textContent = `Wallet DeFi: ${items.length} position(s) · all positions including dust · category pie and USD value bands.`;
   }
 
   renderDefiUsdBars(items);
