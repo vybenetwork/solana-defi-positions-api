@@ -37,12 +37,19 @@ const loadingIndicator = document.getElementById('loadingIndicator');
 const walletSummaryLabel = document.getElementById('walletSummaryLabel');
 const walletLastUpdatedValue = document.getElementById('walletLastUpdatedValue');
 const walletSummaryStats = document.getElementById('walletSummaryStats');
+const summarySectionTitle = document.getElementById('summarySectionTitle');
+const summaryViewSwitchRoot = document.getElementById('summaryViewSwitchRoot');
+const summaryViewSwitchTrack = document.getElementById('summaryViewSwitchTrack');
+const defiSummaryPanel = document.getElementById('defiSummaryPanel');
+const nonDefiSummaryPanel = document.getElementById('nonDefiSummaryPanel');
+const defiSummaryStats = document.getElementById('defiSummaryStats');
+const defiSummaryLabel = document.getElementById('defiSummaryLabel');
+const defiLastUpdatedValue = document.getElementById('defiLastUpdatedValue');
 const walletStatsSection = document.getElementById('walletStatsSection');
 const walletStatsSectionTitle = document.getElementById('walletStatsSectionTitle');
 const holdingsStatsContent = document.getElementById('holdingsStatsContent');
 const defiStatsContent = document.getElementById('defiStatsContent');
 const holdingsStatsMeta = document.getElementById('holdingsStatsMeta');
-const pnlStatsContent = document.getElementById('pnlStatsContent');
 const walletStatsViewSwitchRoot = document.getElementById('walletStatsViewSwitchRoot');
 const walletStatsViewSwitchTrack = document.getElementById('walletStatsViewSwitchTrack');
 const portfolioPie = document.getElementById('portfolioPie');
@@ -55,6 +62,8 @@ const holdersLoading = document.getElementById('holdersLoading');
 const walletSummaryLoading = document.getElementById('walletSummaryLoading');
 const holdingsStatsLoading = document.getElementById('holdingsStatsLoading');
 const defiStatsLoading = document.getElementById('defiStatsLoading');
+const defiSummaryLoading = document.getElementById('defiSummaryLoading');
+const defiLoading = document.getElementById('defiLoading');
 const holdersError = document.getElementById('holdersError');
 const holdersMeta = document.getElementById('holdersMeta');
 const holdersSummaryCount = document.getElementById('holdersSummaryCount');
@@ -74,7 +83,6 @@ const defiTableWrap = document.getElementById('defiTableWrap');
 const defiHideDustSwitchLabel = document.getElementById('defiHideDustSwitchLabel');
 const walletStatsViewSwitchLabel = document.getElementById('walletStatsViewSwitchRoot');
 const holdersTableWrap = document.getElementById('holdersTableWrap');
-const walletPnlTableWrap = document.getElementById('walletPnlTableWrap');
 const holdersSummaryGrid = document.getElementById('holdersSummary');
 const errorSection = document.getElementById('errorSection');
 const errorText = document.getElementById('errorText');
@@ -1177,9 +1185,47 @@ function formatWalletUpdateTime() {
 }
 
 let holdersTableViewMode = 'defi';
+let walletStatsViewMode = 'defi';
+let summaryViewMode = 'defi';
+let walletBalancesLoadingActive = false;
+let defiPositionsLoadingActive = false;
+
+function syncVisibleLoaders() {
+  const anyLoading = walletBalancesLoadingActive || defiPositionsLoadingActive;
+  const defiPanelsLoading = defiPositionsLoadingActive || walletBalancesLoadingActive;
+  if (loadingIndicator) {
+    loadingIndicator.hidden = !walletBalancesLoadingActive;
+    loadingIndicator.setAttribute('aria-hidden', walletBalancesLoadingActive ? 'false' : 'true');
+  }
+  if (holdingsStatsLoading) {
+    holdingsStatsLoading.hidden = !(walletBalancesLoadingActive && walletStatsViewMode === 'holdings');
+    holdingsStatsLoading.setAttribute('aria-hidden', holdingsStatsLoading.hidden ? 'true' : 'false');
+  }
+  if (defiStatsLoading) {
+    defiStatsLoading.hidden = !(defiPanelsLoading && walletStatsViewMode === 'defi');
+    defiStatsLoading.setAttribute('aria-hidden', defiStatsLoading.hidden ? 'true' : 'false');
+  }
+  if (walletSummaryLoading) {
+    walletSummaryLoading.hidden = !(walletBalancesLoadingActive && summaryViewMode === 'nondefi');
+    walletSummaryLoading.setAttribute('aria-hidden', walletSummaryLoading.hidden ? 'true' : 'false');
+  }
+  if (defiSummaryLoading) {
+    defiSummaryLoading.hidden = !(defiPanelsLoading && summaryViewMode === 'defi');
+    defiSummaryLoading.setAttribute('aria-hidden', defiSummaryLoading.hidden ? 'true' : 'false');
+  }
+  if (holdersLoading) {
+    holdersLoading.hidden = !(walletBalancesLoadingActive && holdersTableViewMode === 'holdings');
+    holdersLoading.setAttribute('aria-hidden', holdersLoading.hidden ? 'true' : 'false');
+  }
+  if (defiLoading) {
+    defiLoading.hidden = !(defiPanelsLoading && holdersTableViewMode === 'defi');
+    defiLoading.setAttribute('aria-hidden', defiLoading.hidden ? 'true' : 'false');
+  }
+  setSectionViewSwitchersLocked(anyLoading);
+}
 
 function setSectionViewSwitchersLocked(locked) {
-  for (const label of [holdersTableViewSwitchLabel, walletStatsViewSwitchLabel]) {
+  for (const label of [holdersTableViewSwitchLabel, walletStatsViewSwitchLabel, summaryViewSwitchRoot]) {
     if (!label) continue;
     label.classList.toggle('trades-fetch-switch--locked', locked);
     label.setAttribute('aria-disabled', locked ? 'true' : 'false');
@@ -1190,15 +1236,25 @@ function setSectionViewSwitchersLocked(locked) {
   walletStatsViewSwitchRoot?.querySelectorAll('[data-view]').forEach((btn) => {
     btn.disabled = locked;
   });
+  summaryViewSwitchRoot?.querySelectorAll('[data-view]').forEach((btn) => {
+    btn.disabled = locked;
+  });
 }
 
 function setWalletBalancesLoading(isLoading) {
-  for (const el of [loadingIndicator, holdersLoading, walletSummaryLoading, holdingsStatsLoading]) {
-    if (!el) continue;
-    el.hidden = !isLoading;
-    el.setAttribute('aria-hidden', isLoading ? 'false' : 'true');
-  }
-  setSectionViewSwitchersLocked(isLoading);
+  walletBalancesLoadingActive = isLoading;
+  syncVisibleLoaders();
+}
+
+function setDefiPositionsLoading(isLoading) {
+  defiPositionsLoadingActive = isLoading;
+  syncVisibleLoaders();
+}
+
+function renderDefiSummaryPlaceholder() {
+  if (defiSummaryLabel) defiSummaryLabel.textContent = '—';
+  if (defiLastUpdatedValue) defiLastUpdatedValue.textContent = '—';
+  if (defiSummaryStats) defiSummaryStats.innerHTML = buildWalletSummaryPlaceholderHtml();
 }
 
 function renderWalletSummaryPlaceholder() {
@@ -1436,30 +1492,49 @@ function buildPriceChangePieInsight(bucket, totalTokens) {
   return `${formatPctSmart(bucket.slices[topIdx])} of tokens are ${labels[topKey]}.`;
 }
 
+function setSummaryView(mode) {
+  summaryViewMode = mode;
+  const showDefi = mode === 'defi';
+  if (defiSummaryPanel) defiSummaryPanel.hidden = !showDefi;
+  if (nonDefiSummaryPanel) nonDefiSummaryPanel.hidden = showDefi;
+  if (summarySectionTitle) {
+    summarySectionTitle.textContent = showDefi ? 'DeFi Summary' : 'Non-DeFi Summary';
+  }
+  const indexMap = { defi: 0, nondefi: 1 };
+  if (summaryViewSwitchTrack) {
+    summaryViewSwitchTrack.style.setProperty('--summary-view-index', String(indexMap[mode] ?? 0));
+  }
+  summaryViewSwitchRoot?.querySelectorAll('[data-view]').forEach((btn) => {
+    const active = btn.dataset.view === mode;
+    btn.classList.toggle('is-active', active);
+    btn.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  syncVisibleLoaders();
+}
+
 function setWalletStatsView(mode) {
+  walletStatsViewMode = mode;
   const showDefi = mode === 'defi';
   const showHoldings = mode === 'holdings';
-  const showPnl = mode === 'pnl';
   if (defiStatsContent) defiStatsContent.hidden = !showDefi;
   if (holdingsStatsContent) holdingsStatsContent.hidden = !showHoldings;
-  if (pnlStatsContent) pnlStatsContent.hidden = !showPnl;
   if (walletStatsSectionTitle) {
     const titles = {
       defi: 'DeFi Stats',
       holdings: 'Holdings Stats',
-      pnl: 'PnL Stats (7 days)',
     };
-    walletStatsSectionTitle.textContent = titles[mode] || titles.holdings;
+    walletStatsSectionTitle.textContent = titles[mode] || titles.defi;
   }
-  const indexMap = { defi: 0, holdings: 1, pnl: 2 };
+  const indexMap = { defi: 0, holdings: 1 };
   if (walletStatsViewSwitchTrack) {
-    walletStatsViewSwitchTrack.style.setProperty('--wallet-stats-view-index', String(indexMap[mode] ?? 1));
+    walletStatsViewSwitchTrack.style.setProperty('--wallet-stats-view-index', String(indexMap[mode] ?? 0));
   }
   walletStatsViewSwitchRoot?.querySelectorAll('[data-view]').forEach((btn) => {
     const active = btn.dataset.view === mode;
     btn.classList.toggle('is-active', active);
     btn.setAttribute('aria-selected', active ? 'true' : 'false');
   });
+  syncVisibleLoaders();
 }
 
 function setChartsPlaceholder() {
@@ -1718,13 +1793,6 @@ async function fetchBalances() {
     const limit = limitSelect.value || '1000';
     const enrichLimit = getTopLogoRepairN();
     const url = `/api/wallets/${encodeURIComponent(wallet)}/token-balances?enrich=1&limit=${limit}&enrichLimit=${enrichLimit}`;
-    let walletPnlPromise = null;
-    if (window.WalletPnlSection?.isEnabled?.()) {
-      walletPnlPromise = window.WalletPnlSection.fetchForWallet(wallet);
-    } else {
-      window.WalletPnlSection?.resetPlaceholder?.();
-      window.WalletPnlTable?.resetPlaceholder?.();
-    }
 
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) {
@@ -1761,10 +1829,6 @@ async function fetchBalances() {
       holdersMeta.textContent = formatHoldersMetaLoadedText(lastTokens.length);
     }
 
-    if (walletPnlPromise) await walletPnlPromise;
-    if (holdersTableViewMode === 'pnl') {
-      updateHoldersSectionMeta('pnl');
-    }
     await defiPromise.catch(() => {});
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err));
@@ -1775,26 +1839,14 @@ async function fetchBalances() {
 }
 
 const HOLDERS_META_PLACEHOLDER = 'Load a wallet to see token balances ranked by USD value, with 1d/7d price change, market cap, and data source.';
-const HOLDERS_PNL_META_PLACEHOLDER = 'Load a wallet with 7d PnL enabled to see per-token realized and unrealized PnL, buys/sells, and volumes.';
 
 function formatHoldersMetaLoadedText(tokensCount) {
   return `${tokensCount} tokens · RPC amounts + Vybe merge · Vybe token-details for category, supply, volume, and 1d/7d price change.`;
 }
 
-function formatHoldersPnlMetaLoadedText(metricsCount) {
-  return `Wallet PnL: ${metricsCount} per-token row(s) for the 7d window.`;
-}
-
 function updateHoldersSectionMeta(view = holdersTableViewMode) {
   if (!holdersMeta) return;
   if (view === 'defi') return;
-  if (view === 'pnl') {
-    const metrics = window.WalletPnlSection?.getLastTokenMetrics?.() ?? [];
-    holdersMeta.textContent = metrics.length
-      ? formatHoldersPnlMetaLoadedText(metrics.length)
-      : HOLDERS_PNL_META_PLACEHOLDER;
-    return;
-  }
   holdersMeta.textContent = lastTokens.length
     ? formatHoldersMetaLoadedText(lastTokens.length)
     : HOLDERS_META_PLACEHOLDER;
@@ -1804,22 +1856,19 @@ function setHoldersTableView(mode) {
   holdersTableViewMode = mode;
   const showDefi = mode === 'defi';
   const showHoldings = mode === 'holdings';
-  const showPnl = mode === 'pnl';
   if (defiTableWrap) defiTableWrap.hidden = !showDefi;
   if (holdersMeta) holdersMeta.hidden = showDefi;
   if (holdersTableWrap) holdersTableWrap.hidden = !showHoldings;
-  if (walletPnlTableWrap) walletPnlTableWrap.hidden = !showPnl;
   if (holdersSummaryGrid) holdersSummaryGrid.hidden = !showHoldings;
-  if (defiHideDustSwitchLabel) defiHideDustSwitchLabel.hidden = !showDefi;
+  if (defiHideDustSwitchLabel) defiHideDustSwitchLabel.hidden = true;
   if (holdersSectionTitle) {
     const titles = {
       defi: 'DeFi Positions',
       holdings: 'Token Holdings',
-      pnl: 'Wallet PnL (7d)',
     };
     holdersSectionTitle.textContent = titles[mode] || titles.defi;
   }
-  const indexMap = { defi: 0, holdings: 1, pnl: 2 };
+  const indexMap = { defi: 0, holdings: 1 };
   if (holdersTableViewSwitchTrack) {
     holdersTableViewSwitchTrack.style.setProperty('--holders-table-view-index', String(indexMap[mode] ?? 0));
   }
@@ -1829,26 +1878,10 @@ function setHoldersTableView(mode) {
     btn.setAttribute('aria-selected', active ? 'true' : 'false');
   });
   updateHoldersSectionMeta(mode);
-  if (showPnl && window.WalletPnlTable) {
-    window.WalletPnlTable.onMetricsUpdated();
-  }
+  syncVisibleLoaders();
 }
 
-function initWalletPnlIntegration() {
-  if (window.WalletPnlSection) {
-    window.WalletPnlSection.init({
-      walletPnlDetails: document.getElementById('walletPnlDetails'),
-      walletPnlMeta: document.getElementById('walletPnlMeta'),
-      walletPnlLoading: document.getElementById('walletPnlLoading'),
-      walletPnlError: document.getElementById('walletPnlError'),
-      walletPnl7dEnabled: document.getElementById('walletPnl7dEnabled'),
-    });
-  }
-  if (window.WalletPnlTable) {
-    window.WalletPnlTable.init({
-      walletPnlAssetsBody: document.getElementById('walletPnlAssetsBody'),
-    });
-  }
+function initViewSwitchers() {
   setHoldersTableView('defi');
   setWalletStatsView('defi');
   holdersTableViewSwitchRoot?.addEventListener('click', (event) => {
@@ -1865,15 +1898,24 @@ function initWalletPnlIntegration() {
     if (!mode) return;
     setWalletStatsView(mode);
   });
+  summaryViewSwitchRoot?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-view]');
+    if (!btn || btn.disabled) return;
+    const mode = btn.dataset.view;
+    if (!mode) return;
+    setSummaryView(mode);
+  });
 }
 
 setChartsPlaceholder();
+renderDefiSummaryPlaceholder();
 renderWalletSummaryPlaceholder();
 renderHoldersTablePlaceholder();
 updateHoldersSectionMeta('defi');
+setSummaryView('defi');
 hydrateHoldersSummaryLabelIcons();
 initLogoRepairSettings();
-initWalletPnlIntegration();
+initViewSwitchers();
 fetchAllBtn.addEventListener('click', () => fetchBalances());
 walletInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') fetchBalances();
@@ -1881,3 +1923,10 @@ walletInput.addEventListener('keydown', (e) => {
 
 window.__walletBalancesIconError = handleTokenIconError;
 window.__walletBalancesIconLoad = handleTokenIconLoad;
+window.WalletSummaryUi = {
+  buildPlaceholderHtml: buildWalletSummaryPlaceholderHtml,
+  buildSectionsHtml: buildWalletSummarySections,
+};
+window.VybeAppUi = {
+  setDefiPositionsLoading,
+};
