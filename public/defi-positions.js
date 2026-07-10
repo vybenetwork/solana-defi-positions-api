@@ -57,6 +57,7 @@ const TOKEN_PLACEHOLDER = '/token-placeholder.png';
 const DEFI_META_PLACEHOLDER = 'Load a wallet to see DeFi positions from the Vybe API.';
 const DUST_USD_THRESHOLD = 0.1;
 const DUST_USD_LABEL = '$0.10';
+const SYMBOL_ENRICH_LIMIT = 20;
 const STAKE_STATUS_LABELS = { 4: 'Active', 6: 'Inactive' };
 
 let lastPayload = null;
@@ -64,6 +65,13 @@ let lastPayload = null;
 const expandedDustPlatforms = new Set();
 /** @type {Map<string, { symbol: string, name: string, logo: string }>} */
 let balanceMetaByMint = new Map();
+/** @type {Map<string, string>} mint → resolved symbol (wallet + DeFi harvest) */
+let symbolCacheByMint = new Map();
+/** True after wallet balance fetch applies meta (optional enrich for logos). */
+let balancesFetched = false;
+let symbolEnrichGeneration = 0;
+/** @type {Set<string>} mints already attempted this wallet session */
+const symbolEnrichAttempted = new Set();
 
 function toNum(value) {
   if (Array.isArray(value)) {
@@ -191,17 +199,90 @@ function isValidLabel(text, mint) {
   return s.length > 0 && !looksLikeAddressOrMint(s, mint);
 }
 
-/** Fill missing symbol/name/logo from wallet balances — never overwrite valid DeFi fields. */
+function looksTruncatedLabel(label) {
+  const s = String(label ?? '');
+  return s.includes('…') || s.includes('...');
+}
+
+/** Parse Description like "wSOL/bSOL" into symbol parts when it looks like a valid pair. */
+function parseDescriptionPairParts(sectionName) {
+  const s = cleanStr(sectionName);
+  if (!s || s === '—') return null;
+  const parts = s
+    .split('/')
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (parts.length < 2) return null;
+  if (parts.some((p) => looksTruncatedLabel(p) || looksLikeAddressOrMint(p) || p.length > 24)) return null;
+  return parts;
+}
+
+function cacheSymbolForMint(mint, symbol) {
+  const m = cleanStr(mint);
+  const s = cleanStr(symbol);
+  if (!m || !isValidLabel(s, m) || looksTruncatedLabel(s)) return false;
+  const prev = symbolCacheByMint.get(m);
+  if (!prev || looksTruncatedLabel(prev)) {
+    symbolCacheByMint.set(m, s);
+    return true;
+  }
+  return false;
+}
+
+function getCachedSymbol(mint) {
+  const m = cleanStr(mint);
+  if (!m) return '';
+  const cached = symbolCacheByMint.get(m);
+  return cached && isValidLabel(cached, m) && !looksTruncatedLabel(cached) ? cached : '';
+}
+
+function harvestSymbolsFromRow(row) {
+  const symbols = asArray(row.symbol);
+  const addresses = asArray(row.address);
+  const n = Math.max(symbols.length, addresses.length);
+  for (let i = 0; i < n; i++) {
+    const mint = cleanStr(addresses[i]);
+    if (!mint) continue;
+    if (isValidLabel(symbols[i], mint) && !looksTruncatedLabel(symbols[i])) {
+      cacheSymbolForMint(mint, symbols[i]);
+    }
+  }
+  const pairParts = parseDescriptionPairParts(row.sectionName);
+  if (!pairParts) return;
+  for (let i = 0; i < Math.min(pairParts.length, addresses.length); i++) {
+    const mint = cleanStr(addresses[i]);
+    if (!mint) continue;
+    cacheSymbolForMint(mint, pairParts[i]);
+  }
+}
+
+function harvestSymbolsFromPayload(payload) {
+  const platforms = Array.isArray(payload?.platforms) ? payload.platforms : [];
+  for (const platform of platforms) {
+    for (const section of platform.sections || []) {
+      for (const row of section.rows || []) {
+        harvestSymbolsFromRow(row);
+      }
+    }
+  }
+}
+
+/** Fill missing symbol/name/logo from wallet balances + shared symbol cache. */
 function resolveLegFields(symbol, name, logo, mint) {
   const bal = mint ? balanceMetaByMint.get(mint) : null;
-  let sym = isValidLabel(symbol, mint) ? cleanStr(symbol) : '';
+  let sym = isValidLabel(symbol, mint) && !looksTruncatedLabel(symbol) ? cleanStr(symbol) : '';
   let nm = isValidLabel(name, mint) ? cleanStr(name) : '';
   let lg = cleanStr(logo);
 
   if (bal) {
-    if (!sym && isValidLabel(bal.symbol, mint)) sym = bal.symbol;
+    if (!sym && isValidLabel(bal.symbol, mint) && !looksTruncatedLabel(bal.symbol)) sym = bal.symbol;
     if (!nm && isValidLabel(bal.name, mint)) nm = bal.name;
     if (!lg && bal.logo) lg = bal.logo;
+  }
+
+  if (!sym) {
+    const cached = getCachedSymbol(mint);
+    if (cached) sym = cached;
   }
 
   const displayLabel = sym || nm || (mint ? shortAddress(mint) : 'Unknown');
@@ -225,20 +306,186 @@ function assetLabel(symbol, name, address) {
 function setBalanceMeta(tokens) {
   balanceMetaByMint = new Map();
   if (!Array.isArray(tokens)) {
+    balancesFetched = true;
     if (lastPayload) renderPlatforms(lastPayload);
     return 0;
   }
   for (const token of tokens) {
     const mint = cleanStr(token.mintAddress || token.address);
     if (!mint) continue;
-    balanceMetaByMint.set(mint, {
-      symbol: cleanStr(token.symbol),
-      name: cleanStr(token.name),
-      logo: cleanStr(token.logoUrl || token.logourl),
-    });
+    const symbol = cleanStr(token.symbol);
+    const name = cleanStr(token.name);
+    const logo = cleanStr(token.logoUrl || token.logourl);
+    balanceMetaByMint.set(mint, { symbol, name, logo });
+    cacheSymbolForMint(mint, symbol);
   }
+  balancesFetched = true;
   if (lastPayload) renderPlatforms(lastPayload);
   return balanceMetaByMint.size;
+}
+
+function legUsdValue(row, index) {
+  if (Array.isArray(row?.usdValue)) {
+    return Math.abs(toNum(row.usdValue[index]) ?? 0);
+  }
+  return absUsd(row);
+}
+
+function mintNeedsSymbol(mint, symbolHint) {
+  const m = cleanStr(mint);
+  if (!m) return false;
+  if (getCachedSymbol(m)) return false;
+  const bal = balanceMetaByMint.get(m);
+  if (bal && isValidLabel(bal.symbol, m) && !looksTruncatedLabel(bal.symbol)) return false;
+  if (isValidLabel(symbolHint, m) && !looksTruncatedLabel(symbolHint)) return false;
+  return true;
+}
+
+/** Collect uncached missing-symbol mints: non-dust first (by USD), then top dust until SYMBOL_ENRICH_LIMIT.
+ * Mints already in symbolCacheByMint / balance meta are excluded and do not count toward the 20. */
+function collectMissingSymbolCandidates(payload) {
+  /** @type {Map<string, { mint: string, usd: number, isDust: boolean }>} */
+  const byMint = new Map();
+  const platforms = Array.isArray(payload?.platforms) ? payload.platforms : [];
+  for (const platform of platforms) {
+    for (const section of platform.sections || []) {
+      for (const row of section.rows || []) {
+        const addresses = asArray(row.address);
+        const symbols = asArray(row.symbol);
+        const dust = isDustRow(row);
+        const n = Math.max(addresses.length, 1);
+        for (let i = 0; i < n; i++) {
+          const mint = cleanStr(addresses[i]);
+          if (!mint || !mintNeedsSymbol(mint, symbols[i])) continue;
+          if (symbolEnrichAttempted.has(mint)) continue;
+          const usd = legUsdValue(row, i);
+          const prev = byMint.get(mint);
+          if (!prev) {
+            byMint.set(mint, { mint, usd, isDust: dust });
+            continue;
+          }
+          prev.usd = Math.max(prev.usd, usd);
+          if (!dust) prev.isDust = false;
+        }
+      }
+    }
+  }
+  const all = [...byMint.values()];
+  const nonDust = all.filter((c) => !c.isDust).sort((a, b) => b.usd - a.usd);
+  const dust = all.filter((c) => c.isDust).sort((a, b) => b.usd - a.usd);
+  const picked = nonDust.slice(0, SYMBOL_ENRICH_LIMIT);
+  if (picked.length < SYMBOL_ENRICH_LIMIT) {
+    picked.push(...dust.slice(0, SYMBOL_ENRICH_LIMIT - picked.length));
+  }
+  return picked;
+}
+
+function applyFetchedTokenMeta(mint, data) {
+  const m = cleanStr(mint);
+  if (!m || !data || typeof data !== 'object') return false;
+  const symbol = cleanStr(data.symbol);
+  const name = cleanStr(data.name);
+  const logo = cleanStr(data.logoUrl || data.logourl);
+  const cached = cacheSymbolForMint(m, symbol);
+  const prev = balanceMetaByMint.get(m) || { symbol: '', name: '', logo: '' };
+  const next = {
+    symbol: isValidLabel(symbol, m) && !looksTruncatedLabel(symbol) ? symbol : prev.symbol,
+    name: isValidLabel(name, m) ? name : prev.name,
+    logo: logo || prev.logo,
+  };
+  balanceMetaByMint.set(m, next);
+  return cached || Boolean(next.symbol && next.symbol !== prev.symbol);
+}
+
+/** Backend: Vybe token-details → Jupiter via rotating proxy, sequential. Streams NDJSON updates. */
+async function fetchSymbolsFromBackend(mints, onToken) {
+  const res = await fetch('/api/tokens/enrich-symbols?stream=1', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' },
+    body: JSON.stringify({ mints }),
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `symbol enrich HTTP ${res.status}`);
+  }
+
+  if (!res.body || typeof res.body.getReader !== 'function') {
+    const data = await res.json().catch(() => null);
+    const tokens = Array.isArray(data?.tokens) ? data.tokens : [];
+    for (const token of tokens) onToken(token);
+    return;
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let nl;
+    while ((nl = buffer.indexOf('\n')) >= 0) {
+      const line = buffer.slice(0, nl).trim();
+      buffer = buffer.slice(nl + 1);
+      if (!line) continue;
+      let event;
+      try {
+        event = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      if (event?.event === 'token' && event.token) onToken(event.token);
+    }
+  }
+  const tail = buffer.trim();
+  if (tail) {
+    try {
+      const event = JSON.parse(tail);
+      if (event?.event === 'token' && event.token) onToken(event.token);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+async function runMissingSymbolEnrichment(generation) {
+  if (!lastPayload) return;
+  harvestSymbolsFromPayload(lastPayload);
+
+  const pendingFromServer = Array.isArray(lastPayload.symbolEnrichPending)
+    ? lastPayload.symbolEnrichPending.map((m) => cleanStr(m)).filter(Boolean)
+    : [];
+  let mints;
+  if (pendingFromServer.length > 0) {
+    mints = pendingFromServer
+      .filter((mint) => !symbolEnrichAttempted.has(mint) && mintNeedsSymbol(mint, ''))
+      .slice(0, SYMBOL_ENRICH_LIMIT);
+  } else {
+    mints = collectMissingSymbolCandidates(lastPayload).map((item) => item.mint);
+  }
+  if (mints.length === 0) return;
+
+  for (const mint of mints) symbolEnrichAttempted.add(mint);
+
+  try {
+    await fetchSymbolsFromBackend(mints, (token) => {
+      if (generation !== symbolEnrichGeneration) return;
+      const mint = cleanStr(token.mint);
+      if (!mint) return;
+      if (applyFetchedTokenMeta(mint, token) && lastPayload && generation === symbolEnrichGeneration) {
+        renderPlatforms(lastPayload);
+      }
+    });
+  } catch (err) {
+    console.warn('[defi-symbol-enrich]', err instanceof Error ? err.message : err);
+  }
+}
+
+function queueMissingSymbolEnrichment() {
+  if (!lastPayload) return;
+  const generation = ++symbolEnrichGeneration;
+  void runMissingSymbolEnrichment(generation);
 }
 
 function formatDefiTableUsdFraction(abs) {
@@ -800,6 +1047,17 @@ function renderSingleTokenCell(row) {
   `;
 }
 
+function resolvePairDisplayLabels(row, resolvedLegs) {
+  const labels = resolvedLegs.map((leg) => leg.displayLabel);
+  if (!labels.some((label) => looksTruncatedLabel(label))) return labels;
+  const pairParts = parseDescriptionPairParts(row.sectionName);
+  if (!pairParts) return labels;
+  return labels.map((label, i) => {
+    if (looksTruncatedLabel(label) && pairParts[i]) return pairParts[i];
+    return label;
+  });
+}
+
 function renderPairTokenCell(row) {
   const symbols = asArray(row.symbol);
   const names = asArray(row.name);
@@ -810,8 +1068,14 @@ function renderPairTokenCell(row) {
   for (let i = 0; i < legs; i++) {
     resolved.push(resolveLegFields(symbols[i], names[i], logos[i], addresses[i]));
   }
-  const labels = resolved.map((leg) => leg.displayLabel).filter((l) => l && l !== 'Unknown');
-  const title = labels.length > 0 ? [...new Set(labels)].join(' / ') : 'LP position';
+  const hasTruncated = resolved.some((leg) => looksTruncatedLabel(leg.displayLabel));
+  const pairParts = hasTruncated ? parseDescriptionPairParts(row.sectionName) : null;
+  const labels = resolvePairDisplayLabels(row, resolved).filter((l) => l && l !== 'Unknown');
+  const title = pairParts
+    ? pairParts.join(' / ')
+    : labels.length > 0
+      ? [...new Set(labels)].join(' / ')
+      : 'LP position';
   const logoHtml = resolved
     .slice(0, 3)
     .map((leg, i) => {
@@ -839,9 +1103,11 @@ function renderMultiAmounts(row) {
   const names = asArray(row.name);
   const addresses = asArray(row.address);
   if (amounts.length === 0) return '—';
+  const resolved = amounts.map((_, i) => resolveLegFields(symbols[i], names[i], null, addresses[i]));
+  const labels = resolvePairDisplayLabels(row, resolved);
   const lines = amounts.map((amount, i) => {
-    const leg = resolveLegFields(symbols[i], names[i], null, addresses[i]);
-    return `<span class="defi-amount-line"><span class="defi-amount-line__value">${formatAmount(amount)}</span> ${escapeHtml(leg.displayLabel)}</span>`;
+    const label = labels[i] || resolved[i]?.displayLabel || '—';
+    return `<span class="defi-amount-line"><span class="defi-amount-line__value">${formatAmount(amount)}</span> ${escapeHtml(label)}</span>`;
   });
   return `<div class="defi-multi-amounts">${lines.join('')}</div>`;
 }
@@ -1249,7 +1515,8 @@ function countVisibleHidden(platforms) {
   return { visible, hidden };
 }
 
-function renderPlatforms(payload) {
+function renderPlatforms(payload, options = {}) {
+  harvestSymbolsFromPayload(payload);
   const platforms = Array.isArray(payload.platforms)
     ? [...payload.platforms].sort((a, b) => (toNum(b.totalValueUsd) ?? 0) - (toNum(a.totalValueUsd) ?? 0))
     : [];
@@ -1267,7 +1534,10 @@ function renderPlatforms(payload) {
   renderSummary(payload, visible, hidden);
 
   const dustNote = hidden > 0 ? ` · ${hidden} under ${DUST_USD_LABEL} hidden` : '';
-  const enrichNote = balanceMetaByMint.size > 0 ? ' · labels/logos enriched from wallet balances where missing' : '';
+  const enrichNote =
+    balanceMetaByMint.size > 0 || symbolCacheByMint.size > 0
+      ? ' · labels/logos enriched from wallet balances and cached pair symbols where missing'
+      : '';
   defiMeta.textContent = `${platforms.length} protocol${platforms.length === 1 ? '' : 's'} · ${visible} position${visible === 1 ? '' : 's'} shown${dustNote}${enrichNote} · sorted by value · schema per position type (LP, lend, borrow, stake, perps).`;
   defiPlatforms.innerHTML = platforms.map(renderPlatform).join('');
   renderDefiStats(payload);
@@ -1293,6 +1563,10 @@ function bindDefiUiEvents() {
 function resetDefiPlaceholder() {
   lastPayload = null;
   balanceMetaByMint = new Map();
+  symbolCacheByMint = new Map();
+  balancesFetched = false;
+  symbolEnrichGeneration += 1;
+  symbolEnrichAttempted.clear();
   expandedDustPlatforms.clear();
   if (defiSummaryLabel) defiSummaryLabel.textContent = '—';
   if (defiLastUpdatedValue) defiLastUpdatedValue.textContent = '—';
@@ -1319,7 +1593,9 @@ async function loadDefiPositions() {
       throw new Error(payload.error || `DeFi request failed (${res.status})`);
     }
     lastPayload = payload;
+    harvestSymbolsFromPayload(payload);
     renderPlatforms(payload);
+    queueMissingSymbolEnrichment();
   } catch (err) {
     resetDefiPlaceholder();
     showDefiError(err instanceof Error ? err.message : String(err));
@@ -1335,5 +1611,6 @@ window.VybeDefiPositions = {
   load: loadDefiPositions,
   resetPlaceholder: resetDefiPlaceholder,
   setBalanceMeta,
+  queueMissingSymbolEnrichment,
 };
 })();

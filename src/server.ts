@@ -24,6 +24,11 @@ import { resolveTokenMeta } from './api/resolve-token-meta.js';
 import { repairTokenIcon } from './api/repair-token-icon.js';
 import { getWalletDefiPositions, sumDefiPositionsUsd } from './api/wallet-defi-positions.js';
 import { cachedMetaToApiResponse } from './api/token-meta-api.js';
+import {
+  DEFI_SYMBOL_ENRICH_LIMIT,
+  enrichDefiSymbolsSequential,
+} from './api/enrich-defi-symbols.js';
+import { hydrateDefiPlatformsFromDiskCache } from './api/hydrate-defi-symbols.js';
 import { warmupHttpProxyPool } from './api/http-proxy-fetch.js';
 import { getRuntimeIconDir } from './token-icon-cache.js';
 
@@ -36,6 +41,7 @@ const port = Number(process.env.PORT ?? 3001);
 
 const app = express();
 app.disable('x-powered-by');
+app.use(express.json({ limit: '64kb' }));
 
 app.use(
   express.static(PUBLIC_DIR, {
@@ -147,7 +153,7 @@ app.get('/api/token/:mint/logo', async (req: Request, res: Response) => {
   }
 });
 
-/** GET /api/token/:mint — resolve metadata and USD price (Jupiter → pump.fun → Vybe). */
+/** GET /api/token/:mint — resolve metadata and USD price (Jupiter → pump.fun → Vybe; ?preferVybe=1 → Vybe → Jupiter). */
 app.get('/api/token/:mint', async (req: Request, res: Response) => {
   try {
     const rawMint = req.params.mint;
@@ -155,7 +161,8 @@ app.get('/api/token/:mint', async (req: Request, res: Response) => {
     if (!mint) return res.status(400).json({ error: 'Mint address required' });
 
     const skipVybe = qBool(req, 'skipVybe');
-    const resolved = await resolveTokenMeta(dataHttp, mint, { skipVybe });
+    const preferVybe = qBool(req, 'preferVybe');
+    const resolved = await resolveTokenMeta(dataHttp, mint, { skipVybe, preferVybe });
     if (!resolved) {
       return res.status(404).json({ error: `No metadata found for mint ${mint}` });
     }
@@ -163,6 +170,47 @@ app.get('/api/token/:mint', async (req: Request, res: Response) => {
   } catch (err) {
     const status = (err as { response?: { status?: number } })?.response?.status ?? 500;
     res.status(status).json({ error: toHumanReadableError(err) });
+  }
+});
+
+/**
+ * POST /api/tokens/enrich-symbols
+ * Body: { mints: string[] } (max 20).
+ * Resolves Vybe token-details → Jupiter (rotating proxy) one-by-one on the server.
+ * ?stream=1 (default) emits NDJSON {event:"token",token} then {event:"done"}.
+ */
+app.post('/api/tokens/enrich-symbols', async (req: Request, res: Response) => {
+  try {
+    const mints = Array.isArray(req.body?.mints) ? req.body.mints : [];
+    if (mints.length === 0) {
+      return res.status(400).json({ error: 'mints array required (max 20)' });
+    }
+    const useStream = qBool(req, 'stream', true);
+
+    if (useStream) {
+      res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      await enrichDefiSymbolsSequential(dataHttp, mints, (token) => {
+        if (!res.writableEnded) {
+          res.write(`${JSON.stringify({ event: 'token', token })}\n`);
+        }
+      });
+      if (!res.writableEnded) {
+        res.write(`${JSON.stringify({ event: 'done', limit: DEFI_SYMBOL_ENRICH_LIMIT })}\n`);
+        res.end();
+      }
+      return;
+    }
+
+    const tokens = await enrichDefiSymbolsSequential(dataHttp, mints);
+    res.json({ tokens, limit: DEFI_SYMBOL_ENRICH_LIMIT });
+  } catch (err) {
+    if (!res.headersSent) {
+      const status = (err as { response?: { status?: number } })?.response?.status ?? 500;
+      res.status(status).json({ error: toHumanReadableError(err) });
+    } else {
+      res.end();
+    }
   }
 });
 
@@ -174,17 +222,21 @@ app.get('/api/wallets/:ownerAddress/defi-positions', async (req: Request, res: R
     if (!ownerAddress) return res.status(400).json({ error: 'Wallet address required' });
 
     const payload = await getWalletDefiPositions(dataHttp, ownerAddress);
-    const platforms = Array.isArray(payload.data) ? payload.data : [];
+    const platformsRaw = Array.isArray(payload.data) ? payload.data : [];
+    const { platforms, hydrated, stillMissing } = hydrateDefiPlatformsFromDiskCache(platformsRaw);
     const totalDefiValueUsd =
       payload.totalDefiValueUsd != null && String(payload.totalDefiValueUsd).trim() !== ''
         ? Number(payload.totalDefiValueUsd)
-        : sumDefiPositionsUsd(platforms);
+        : sumDefiPositionsUsd(platforms as Parameters<typeof sumDefiPositionsUsd>[0]);
 
     res.json({
       ownerAddress,
       platforms,
       totalDefiValueUsd: Number.isFinite(totalDefiValueUsd) ? totalDefiValueUsd : 0,
       platformCount: platforms.length,
+      symbolCacheHydrated: hydrated,
+      // stillMissing is already capped to 20 uncached mints (cache hits excluded)
+      symbolEnrichPending: stillMissing,
     });
   } catch (err) {
     const status = (err as { response?: { status?: number } })?.response?.status ?? 500;
