@@ -6372,15 +6372,25 @@ html {
   text-align: right;
 }
 
+.defi-positions-table--nativeStaking th:nth-child(n + 4),
+.defi-positions-table--nativeStaking td:nth-child(n + 4) {
+  text-align: right;
+}
+
 .defi-positions-table td.defi-amounts-col {
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
 }
 
-.defi-positions-table td.defi-apy-col {
+.defi-positions-table td.defi-apy-col,
+.defi-positions-table td.defi-status-col {
   overflow: visible;
   text-overflow: clip;
+}
+
+.defi-positions-table td.defi-status-col {
+  text-align: right;
 }
 
 .defi-section-meta-col {
@@ -6600,7 +6610,8 @@ html {
   gap: 0.35rem;
 }
 
-.defi-positions-table td.num .swap-pair-chg {
+.defi-positions-table td.num .swap-pair-chg,
+.defi-positions-table td.defi-status-col .swap-pair-chg {
   display: inline-flex;
   align-items: center;
   justify-content: center;

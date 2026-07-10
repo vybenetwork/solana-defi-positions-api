@@ -282,9 +282,25 @@ function formatUsd(value, { debt = false } = {}) {
 function formatAmount(value) {
   const n = toNum(value);
   if (n == null) return '—';
-  if (Math.abs(n) >= 1000) return n.toLocaleString(undefined, { maximumFractionDigits: 4 });
-  if (Math.abs(n) >= 1) return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 });
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+  if (n === 0) return '0';
+  const sign = n < 0 ? '−' : '';
+  const abs = Math.abs(n);
+
+  if (abs >= 0.0001) {
+    return `${sign}${abs.toLocaleString(undefined, {
+      maximumFractionDigits: 4,
+      minimumFractionDigits: 0,
+      useGrouping: abs >= 1000,
+    })}`;
+  }
+
+  // Below 0.0001: keep leading zeros, then show the first 2 non-zero decimal digits.
+  const frac = abs.toFixed(20).split('.')[1] || '';
+  let firstNonZeroIdx = 0;
+  while (firstNonZeroIdx < frac.length && frac[firstNonZeroIdx] === '0') firstNonZeroIdx += 1;
+  if (firstNonZeroIdx >= frac.length) return `${sign}0`;
+  const decimals = firstNonZeroIdx + 2;
+  return `${sign}${abs.toFixed(decimals)}`;
 }
 
 function formatPct(value) {
@@ -439,6 +455,7 @@ function collectPositionRows(platforms, { includeDust = false } = {}) {
         rows.push({
           row,
           section,
+          platformId: pid,
           category: resolveTableType(section, row),
         });
       }
@@ -453,6 +470,26 @@ function collectVisiblePositionRows(platforms) {
 
 function collectAllPositionRows(platforms) {
   return collectPositionRows(platforms, { includeDust: true });
+}
+
+/** Summary Overview: always exclude dust when hide-dust is on (ignore per-platform expand). */
+function collectSummaryPositionRows(platforms) {
+  const rows = [];
+  for (const [pIndex, platform] of platforms.entries()) {
+    const pid = platformId(platform, pIndex);
+    for (const section of platform.sections || []) {
+      for (const row of section.rows || []) {
+        if (hideDustEnabled() && isDustRow(row)) continue;
+        rows.push({
+          row,
+          section,
+          platformId: pid,
+          category: resolveTableType(section, row),
+        });
+      }
+    }
+  }
+  return rows;
 }
 
 function defiCategoryBuckets(items) {
@@ -625,11 +662,51 @@ function clearDefiError() {
   }
 }
 
-function buildDefiSummaryCloneHtml() {
-  if (window.WalletSummaryUi?.buildPlaceholderHtml) {
-    return window.WalletSummaryUi.buildPlaceholderHtml();
+function isNativeStakingItem(item) {
+  const platformKey = String(item.platformId || '').toLowerCase();
+  const tableType = String(item.category || item.row?.tableType || '').toLowerCase();
+  return (
+    platformKey === 'solana_native_stake' ||
+    platformKey.includes('solana_native') ||
+    tableType === 'nativestaking'
+  );
+}
+
+function buildDefiSummaryHtml(payload) {
+  const platforms = Array.isArray(payload?.platforms) ? payload.platforms : [];
+  const allItems = collectAllPositionRows(platforms);
+  let nativeCount = 0;
+  let dustCount = 0;
+  let totalUsd = 0;
+  for (const item of allItems) {
+    if (isDustRow(item.row)) {
+      dustCount += 1;
+      continue;
+    }
+    if (isNativeStakingItem(item)) nativeCount += 1;
+    totalUsd += absUsd(item.row);
   }
-  return '';
+  const positionsCount = allItems.length - dustCount;
+  if (window.WalletSummaryUi?.buildDefiSectionsHtml) {
+    return window.WalletSummaryUi.buildDefiSectionsHtml({
+      positionsCount,
+      nativeCount,
+      dustCount,
+      totalUsd,
+      verifiedUsd: null,
+      unverifiedUsd: null,
+      unpricedUsd: null,
+      uniqueCategories: null,
+      uniqueSubcategories: null,
+      topCategory: null,
+      topSubcategory: null,
+    });
+  }
+  return window.WalletSummaryUi?.buildDefiPlaceholderHtml?.() || '';
+}
+
+function buildDefiSummaryPlaceholderHtml() {
+  return window.WalletSummaryUi?.buildDefiPlaceholderHtml?.() || '';
 }
 
 function renderSummary(payload, visibleCount, hiddenCount) {
@@ -644,7 +721,7 @@ function renderSummary(payload, visibleCount, hiddenCount) {
     });
   }
   if (defiSummaryStats) {
-    defiSummaryStats.innerHTML = buildDefiSummaryCloneHtml();
+    defiSummaryStats.innerHTML = buildDefiSummaryHtml(payload);
   }
 }
 
@@ -779,7 +856,14 @@ function renderSideBadge(side) {
 function renderStakeStatus(status) {
   if (status == null) return '—';
   const label = STAKE_STATUS_LABELS[status] ?? `Status ${status}`;
-  return `<span class="defi-stake-status">${escapeHtml(label)}</span>`;
+  const normalized = String(label).toLowerCase();
+  const chipClass =
+    normalized === 'active'
+      ? 'swap-pair-chg swap-pair-chg--up'
+      : normalized === 'inactive'
+        ? 'swap-pair-chg swap-pair-chg--down'
+        : 'swap-pair-chg swap-pair-chg--breaking-even';
+  return `<span class="${chipClass}">${escapeHtml(label)}</span>`;
 }
 
 function valueCell(row, { debt = false } = {}) {
@@ -811,9 +895,32 @@ function apyCell(row) {
   return `<td class="num defi-apy-col"><span class="${badgeClass}">${escapeHtml(label)}</span></td>`;
 }
 
+function formatDefiPriceUsd(value) {
+  const n = toNum(value);
+  if (n == null) return '—';
+  if (n === 0) return '$0.00';
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '−' : '';
+  if (abs > 999.99) {
+    if (abs >= 1_000_000) {
+      const millions = abs / 1_000_000;
+      if (millions > 9.99) {
+        return `${sign}$${Math.round(millions).toLocaleString(undefined, { maximumFractionDigits: 0 })}M`;
+      }
+      return `${sign}$${millions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
+    }
+    const thousands = abs / 1000;
+    if (thousands > 9.99) {
+      return `${sign}$${Math.round(thousands).toLocaleString(undefined, { maximumFractionDigits: 0 })}k`;
+    }
+    return `${sign}$${thousands.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}k`;
+  }
+  return `${sign}$${formatDefiTableUsdFraction(abs)}`;
+}
+
 function priceCell(row) {
   if (isMultiAssetRow(row)) return '<td class="num">—</td>';
-  return `<td class="num defi-price-cell">${formatDefiTableUsd(row.price)}</td>`;
+  return `<td class="num defi-price-cell">${formatDefiPriceUsd(row.price)}</td>`;
 }
 
 function buildAssetTableSchema(tableType, { amountHeader = 'Amount', rateHeader = 'APY', debt = false } = {}) {
@@ -841,6 +948,8 @@ function buildAssetTableSchema(tableType, { amountHeader = 'Amount', rateHeader 
 
 function isNumericHeaderColumn(layout, colIndex) {
   if (layout === 'asset9') return colIndex >= 4 && colIndex <= 7;
+  // Stake…MEV numeric; Status + Account right-aligned to match cell content
+  if (layout === 'nativeStaking') return colIndex >= 3;
   return false;
 }
 
@@ -863,7 +972,6 @@ function renderTableColgroup(layout) {
       <col class="defi-col-index" />
       <col class="defi-col-asset" />
       <col class="defi-col-section-name" />
-      <col class="defi-col-section-type" />
       <col class="defi-col-qty" />
       <col class="defi-col-price" />
       <col class="defi-col-value" />
@@ -936,20 +1044,19 @@ function buildTableSchema(tableType) {
       return {
         tableType,
         layout: 'nativeStaking',
-        columns: ['#', 'Validator', 'Description', 'Position type', 'Stake', 'Price', 'Value', 'APY', 'MEV', 'Status', 'Account'],
+        columns: ['#', 'Validator', 'Description', 'Stake', 'Price', 'Value', 'APY', 'MEV', 'Status', 'Account'],
         renderRow(row, index) {
           return `
             <tr>
               <td>${index + 1}</td>
               <td>${renderAssetCell(row)}</td>
               ${sectionNameCell(row)}
-              ${sectionTypeCell(row)}
               ${amountCell(row)}
               ${priceCell(row)}
               ${valueCell(row)}
               ${apyCell(row)}
               <td class="num">${row.mevValueUsd == null ? '—' : formatUsd(row.mevValueUsd)}</td>
-              <td>${renderStakeStatus(row.stakeStatus)}</td>
+              <td class="defi-status-col">${renderStakeStatus(row.stakeStatus)}</td>
               ${accountCell(row)}
             </tr>
           `;
@@ -1189,7 +1296,7 @@ function resetDefiPlaceholder() {
   expandedDustPlatforms.clear();
   if (defiSummaryLabel) defiSummaryLabel.textContent = '—';
   if (defiLastUpdatedValue) defiLastUpdatedValue.textContent = '—';
-  if (defiSummaryStats) defiSummaryStats.innerHTML = buildDefiSummaryCloneHtml();
+  if (defiSummaryStats) defiSummaryStats.innerHTML = buildDefiSummaryPlaceholderHtml();
   if (defiMeta) defiMeta.textContent = DEFI_META_PLACEHOLDER;
   if (defiPlatforms) defiPlatforms.innerHTML = '';
   setDefiStatsPlaceholder();

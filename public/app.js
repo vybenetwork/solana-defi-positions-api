@@ -1173,6 +1173,118 @@ function buildWalletSummaryPlaceholderHtml() {
   });
 }
 
+function formatOverviewPositionCountHtml(count) {
+  if (count == null) return escapeHtmlText('—');
+  const n = Number(count);
+  if (!Number.isFinite(n)) return escapeHtmlText('—');
+  const word = n === 1 ? 'Position' : 'Positions';
+  return `${escapeHtmlText(n.toLocaleString())} <span class="token-stat-count-suffix">${escapeHtmlText(word)}</span>`;
+}
+
+function buildDefiSummarySections(data) {
+  const overview = {
+    icon: WALLET_SECTION_ICONS.overview,
+    title: 'Overview',
+    theme: 'overview',
+    rowGroups: [
+      {
+        rows: [
+          {
+            key: 'category',
+            label: 'Total DeFi Positions Loaded',
+            valueHtml: formatOverviewPositionCountHtml(data.positionsCount),
+          },
+        ],
+      },
+      {
+        rowsLayout: '2col',
+        rows: [
+          {
+            key: 'verified',
+            label: 'Native',
+            valueHtml: formatOverviewPositionCountHtml(data.nativeCount),
+          },
+          {
+            key: 'price1d',
+            label: 'Dust',
+            valueHtml: formatOverviewPositionCountHtml(data.dustCount),
+          },
+        ],
+      },
+    ],
+  };
+  const portfolio = {
+    icon: WALLET_SECTION_ICONS.portfolio,
+    title: 'Portfolio Value',
+    theme: 'price',
+    rowsLayout: '2col',
+    rows: [
+      { key: 'priceUsd', label: 'Estimated USD', valueHtml: walletStatUsdWithTotalHtml(data.totalUsd) },
+      { key: 'marketCap', label: 'Verified USD', valueHtml: walletStatUsdWithTotalHtml(data.verifiedUsd) },
+      { key: 'price1d', label: 'Unverified USD', valueHtml: walletStatUsdWithTotalHtml(data.unverifiedUsd) },
+      {
+        key: 'price7d',
+        label: 'Unpriced USD',
+        valueHtml: walletStatUsdWithTotalHtml(data.unpricedUsd),
+      },
+    ],
+  };
+  const taxonomy = {
+    icon: WALLET_SECTION_ICONS.holdings,
+    title: 'Categories & Labels',
+    theme: 'supply',
+    rowGroups: [
+      {
+        rowsLayout: '2col',
+        rows: [
+          {
+            key: 'supply',
+            label: 'Unique categories',
+            valueHtml: formatOverviewCountSuffixHtml(data.uniqueCategories, 'Categories'),
+          },
+          {
+            key: 'usdVol24h',
+            label: 'Unique subcategories',
+            valueHtml: formatOverviewCountSuffixHtml(data.uniqueSubcategories, 'Subcategories'),
+          },
+        ],
+      },
+      {
+        rowsLayout: '2col',
+        rows: [
+          {
+            key: 'tokenVol24h',
+            label: 'Top category',
+            valueHtml: formatTopTaxonomyStatHtml(data.topCategory),
+          },
+          {
+            key: 'topPnlCohortVol',
+            label: 'Top subcategory',
+            valueHtml: formatTopTaxonomyStatHtml(data.topSubcategory),
+          },
+        ],
+      },
+    ],
+  };
+  return `<div class="token-stats-row token-stats-row--split-overview"><div class="token-stats-col token-stats-col--overview">${walletStatSectionHtml(overview)}</div><div class="token-stats-col token-stats-col--pair"><div class="token-stats-pair-grid">${walletStatSectionHtml(portfolio)}${walletStatSectionHtml(taxonomy)}</div></div></div>`;
+}
+
+function buildDefiSummaryPlaceholderHtml() {
+  return buildDefiSummarySections({
+    positionsCount: null,
+    nativeCount: null,
+    dustCount: null,
+    totalUsd: null,
+    verifiedUsd: null,
+    unverifiedUsd: null,
+    unpricedUsd: null,
+    uniqueCategories: null,
+    uniqueSubcategories: null,
+    topCategory: null,
+    topSubcategory: null,
+  });
+}
+
 function formatWalletUpdateTime() {
   return new Date().toLocaleString(undefined, {
     month: 'short',
@@ -1254,7 +1366,7 @@ function setDefiPositionsLoading(isLoading) {
 function renderDefiSummaryPlaceholder() {
   if (defiSummaryLabel) defiSummaryLabel.textContent = '—';
   if (defiLastUpdatedValue) defiLastUpdatedValue.textContent = '—';
-  if (defiSummaryStats) defiSummaryStats.innerHTML = buildWalletSummaryPlaceholderHtml();
+  if (defiSummaryStats) defiSummaryStats.innerHTML = buildDefiSummaryPlaceholderHtml();
 }
 
 function renderWalletSummaryPlaceholder() {
@@ -1926,6 +2038,8 @@ window.__walletBalancesIconLoad = handleTokenIconLoad;
 window.WalletSummaryUi = {
   buildPlaceholderHtml: buildWalletSummaryPlaceholderHtml,
   buildSectionsHtml: buildWalletSummarySections,
+  buildDefiPlaceholderHtml: buildDefiSummaryPlaceholderHtml,
+  buildDefiSectionsHtml: buildDefiSummarySections,
 };
 window.VybeAppUi = {
   setDefiPositionsLoading,
