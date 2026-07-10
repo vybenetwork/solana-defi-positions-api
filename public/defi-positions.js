@@ -184,11 +184,11 @@ function setBalanceMeta(tokens) {
 }
 
 function formatDefiTableUsdFraction(abs) {
-  if (!Number.isFinite(abs) || abs <= 0) return '0';
+  if (!Number.isFinite(abs) || abs <= 0) return '0.00';
   if (abs >= 0.01) {
     const rounded = Math.round(abs * 100) / 100;
     return rounded.toLocaleString(undefined, {
-      minimumFractionDigits: 0,
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       useGrouping: abs >= 1000,
     });
@@ -196,14 +196,14 @@ function formatDefiTableUsdFraction(abs) {
   const frac = abs.toFixed(20).split('.')[1] || '';
   let firstNonZeroIdx = 0;
   while (firstNonZeroIdx < frac.length && frac[firstNonZeroIdx] === '0') firstNonZeroIdx += 1;
-  if (firstNonZeroIdx >= frac.length) return '0';
+  if (firstNonZeroIdx >= frac.length) return '0.00';
   return abs.toFixed(firstNonZeroIdx + 1);
 }
 
 function formatDefiTableUsd(value, { debt = false } = {}) {
   const n = toNum(value);
   if (n == null) return '—';
-  if (n === 0) return '$0';
+  if (n === 0) return '$0.00';
   const prefix = debt && n < 0 ? '−' : '';
   return `${prefix}$${formatDefiTableUsdFraction(Math.abs(n))}`;
 }
@@ -707,7 +707,7 @@ function apyCell(row) {
 
 function priceCell(row) {
   if (isMultiAssetRow(row)) return '<td class="num">—</td>';
-  return `<td class="num">${formatDefiTableUsd(row.price)}</td>`;
+  return `<td class="num defi-price-cell">${formatDefiTableUsd(row.price)}</td>`;
 }
 
 function buildAssetTableSchema(tableType, { amountHeader = 'Amount', rateHeader = 'APY', debt = false } = {}) {
@@ -893,9 +893,10 @@ function renderSectionTable(section, platformExpanded) {
   const schema = buildTableSchema(tableType);
   const body = rowsToRender.map((row, index) => schema.renderRow(row, index)).join('');
 
+  const layoutClass = schema.layout ? ` defi-positions-table--${escapeHtml(schema.layout)}` : '';
   return `
-    <div class="table-wrap table-wrap--scroll">
-      <table class="defi-positions-table defi-positions-table--${escapeHtml(schema.tableType)}">
+    <div class="table-wrap table-wrap--defi-section">
+      <table class="defi-positions-table defi-positions-table--${escapeHtml(schema.tableType)}${layoutClass}">
         ${renderTableColgroup(schema.layout)}
         <thead>
           <tr>${renderTableHeader(schema)}</tr>
