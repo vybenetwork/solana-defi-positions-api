@@ -15,7 +15,8 @@ const defiHideDustInput = document.getElementById('defiHideDust');
 const SOLSCAN_TOKEN = 'https://solscan.io/token/';
 const TOKEN_PLACEHOLDER = '/token-placeholder.png';
 const DEFI_META_PLACEHOLDER = 'Load a wallet to see DeFi positions from the Vybe API.';
-const DUST_USD_THRESHOLD = 1;
+const DUST_USD_THRESHOLD = 0.1;
+const DUST_USD_LABEL = '$0.10';
 const STAKE_STATUS_LABELS = { 4: 'Active', 6: 'Inactive' };
 
 let lastPayload = null;
@@ -436,7 +437,7 @@ function renderSectionTable(section, platform, sectionIndex) {
   if (rowsToRender.length === 0 && hidden.length > 0) {
     return `
       <div class="defi-dust-only">
-        <p class="defi-empty-section">${hidden.length} position${hidden.length === 1 ? '' : 's'} under $${DUST_USD_THRESHOLD} hidden.</p>
+        <p class="defi-empty-section">${hidden.length} position${hidden.length === 1 ? '' : 's'} under ${DUST_USD_LABEL} hidden.</p>
         <button type="button" class="defi-dust-toggle" data-defi-dust-section="${escapeHtml(secId)}">Show ${hidden.length} dust position${hidden.length === 1 ? '' : 's'}</button>
       </div>
     `;
@@ -445,7 +446,7 @@ function renderSectionTable(section, platform, sectionIndex) {
   const body = rowsToRender.map((row, index) => schema.renderRow(row, index)).join('');
   const dustToggle =
     hidden.length > 0 && !expanded
-      ? `<button type="button" class="defi-dust-toggle" data-defi-dust-section="${escapeHtml(secId)}">Show ${hidden.length} more under $${DUST_USD_THRESHOLD}</button>`
+      ? `<button type="button" class="defi-dust-toggle" data-defi-dust-section="${escapeHtml(secId)}">Show ${hidden.length} more under ${DUST_USD_LABEL}</button>`
       : hidden.length > 0 && expanded
         ? `<button type="button" class="defi-dust-toggle defi-dust-toggle--active" data-defi-dust-section="${escapeHtml(secId)}">Hide ${hidden.length} dust position${hidden.length === 1 ? '' : 's'}</button>`
         : '';
@@ -548,7 +549,7 @@ function renderPlatforms(payload) {
   const { visible, hidden } = countVisibleHidden(platforms);
   renderSummary(payload, visible, hidden);
 
-  const dustNote = hidden > 0 ? ` · ${hidden} under $${DUST_USD_THRESHOLD} hidden` : '';
+  const dustNote = hidden > 0 ? ` · ${hidden} under ${DUST_USD_LABEL} hidden` : '';
   defiMeta.textContent = `${platforms.length} protocol${platforms.length === 1 ? '' : 's'} · ${visible} position${visible === 1 ? '' : 's'} shown${dustNote} · sorted by value · schema per position type (LP, lend, borrow, stake, perps).`;
   defiPlatforms.innerHTML = platforms.map(renderPlatform).join('');
 }
