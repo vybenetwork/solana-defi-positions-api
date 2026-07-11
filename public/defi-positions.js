@@ -529,8 +529,10 @@ function queueMissingSymbolEnrichment() {
   void runMissingSymbolEnrichment(generation);
 }
 
-/** Above this absolute value, all token columns use exactly 2 decimal places. */
+/** Above this absolute value (and below k/M/B), use exactly 2 decimal places. */
 const TWO_DECIMAL_THRESHOLD = 9.999;
+/** Above this absolute value, hide decimals until k / M / B activates. */
+const NO_DECIMAL_THRESHOLD = 99.99;
 /** Above this, use compact k / M / B notation. */
 const COMPACT_MAGNITUDE_THRESHOLD = 999.99;
 
@@ -538,6 +540,14 @@ function formatTwoDecimals(abs, { useGrouping = true } = {}) {
   return abs.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
+    useGrouping,
+  });
+}
+
+function formatWholeNumber(abs, { useGrouping = true } = {}) {
+  return Math.round(abs).toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
     useGrouping,
   });
 }
@@ -573,6 +583,9 @@ function formatDefiTableUsdFraction(abs, { compact = true } = {}) {
   if (compact) {
     const compactMag = formatCompactMagnitude(abs);
     if (compactMag) return compactMag;
+  }
+  if (abs > NO_DECIMAL_THRESHOLD) {
+    return formatWholeNumber(abs, { useGrouping: true });
   }
   if (abs > TWO_DECIMAL_THRESHOLD) {
     return formatTwoDecimals(abs, { useGrouping: true });
@@ -658,6 +671,7 @@ function formatUsd(value, { debt = false, compact = true } = {}) {
     const compactMag = formatCompactMagnitude(abs);
     if (compactMag) return `${prefix}$${compactMag}`;
   }
+  if (abs > NO_DECIMAL_THRESHOLD) return `${prefix}$${formatWholeNumber(abs, { useGrouping: true })}`;
   if (abs > TWO_DECIMAL_THRESHOLD) return `${prefix}$${formatTwoDecimals(abs, { useGrouping: true })}`;
   if (abs >= 1) return `${prefix}$${formatTwoDecimals(abs, { useGrouping: false })}`;
   if (abs >= 0.01) {
@@ -679,7 +693,12 @@ function formatAmount(value, { stable = false, html = false } = {}) {
   const compactMag = formatCompactMagnitude(abs);
   if (compactMag) return `${sign}${compactMag}`;
 
-  // Above 9.999 and ≤ 999.99 → exactly 2 decimal places.
+  // Above 99.99 until k/M/B → whole numbers only.
+  if (abs > NO_DECIMAL_THRESHOLD) {
+    return `${sign}${formatWholeNumber(abs, { useGrouping: true })}`;
+  }
+
+  // Above 9.999 and ≤ 99.99 → exactly 2 decimal places.
   if (abs > TWO_DECIMAL_THRESHOLD) {
     return `${sign}${formatTwoDecimals(abs, { useGrouping: true })}`;
   }
@@ -1567,6 +1586,9 @@ function formatDefiPriceUsd(value) {
   const sign = n < 0 ? '−' : '';
   const compactMag = formatCompactMagnitude(abs);
   if (compactMag) return `${sign}$${compactMag}`;
+  if (abs > NO_DECIMAL_THRESHOLD) {
+    return `${sign}$${formatWholeNumber(abs, { useGrouping: true })}`;
+  }
   if (abs > TWO_DECIMAL_THRESHOLD) {
     return `${sign}$${formatTwoDecimals(abs, { useGrouping: true })}`;
   }
