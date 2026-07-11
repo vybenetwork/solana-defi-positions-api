@@ -965,22 +965,9 @@ function renderDefiStats(payload) {
     });
   }
 
-  setDefiLegendGrid(defiCategoryLegend, bucket.segments.length);
+  setDefiLegendGrid(defiCategoryLegend, DEFI_CATEGORY_LEGEND_SLOTS);
   if (defiCategoryLegend) {
-    defiCategoryLegend.innerHTML = bucket.segments
-      .map((segment, i) =>
-        renderDefiTierCard({
-          title: segment.title,
-          iconKey: segment.iconKey,
-          accent: DEFI_PIE_HEX[i],
-          swatchColor: DEFI_PIE_HEX[i],
-          slicePct: bucket.slicePcts[i],
-          shareLabel: ' of value',
-          usdLine: formatUsd(segment.usd),
-          amountLine: `${segment.count} ${formatPositionCountWord(segment.count)}`,
-        }),
-      )
-      .join('');
+    defiCategoryLegend.innerHTML = renderDefiCategoryLegendHtml(bucket.segments, bucket.slicePcts);
   }
 
   if (defiCategoryPieTitle) defiCategoryPieTitle.textContent = 'Categories ranked by USD value';
