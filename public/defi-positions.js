@@ -562,11 +562,20 @@ function formatAmount(value) {
   const sign = n < 0 ? '−' : '';
   const abs = Math.abs(n);
 
+  // Amount / Amounts / Debt: no decimals once past 999.
+  if (abs > 999) {
+    return `${sign}${Math.round(abs).toLocaleString(undefined, {
+      maximumFractionDigits: 0,
+      minimumFractionDigits: 0,
+      useGrouping: true,
+    })}`;
+  }
+
   if (abs >= 0.0001) {
     return `${sign}${abs.toLocaleString(undefined, {
       maximumFractionDigits: 4,
       minimumFractionDigits: 0,
-      useGrouping: abs >= 1000,
+      useGrouping: false,
     })}`;
   }
 
