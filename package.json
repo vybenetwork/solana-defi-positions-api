@@ -1,5 +1,5 @@
 {
-  "name": "solana-wallet-balances-api",
+  "name": "solana-defi-positions-api",
   "version": "1.0.0",
   "description": "Solana DeFi positions API for LPs, lending, staking & yield farming across 50+ protocols. SonarWatch alternative wallet tracker powered by the Vybe API.",
   "type": "module",
