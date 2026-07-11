@@ -690,8 +690,9 @@ function setDefiLegendGrid(el, sliceCount) {
 
 function renderDefiTierCard(args) {
   const iconHtml = renderDefiCategoryTitleIconHtml(args.iconKey, args.accent);
+  const placeholderClass = args.placeholder ? ' token-tier-card--placeholder' : '';
   return `<div class="token-supply-legend-item token-supply-legend-item--tier-dashboard">
-    <article class="token-tier-card" style="--tier-accent:${args.accent};--tier-swatch:${args.swatchColor}">
+    <article class="token-tier-card${placeholderClass}" style="--tier-accent:${args.accent};--tier-swatch:${args.swatchColor}">
       <h4 class="token-tier-card__title">${iconHtml}<span class="token-tier-card__title-text">${escapeHtml(args.title)}</span></h4>
       <ul class="token-tier-card__metrics">
         <li class="token-tier-metric">
@@ -711,6 +712,14 @@ function renderDefiTierCard(args) {
   </div>`;
 }
 
+const DEFI_CATEGORY_LEGEND_SLOTS = 4;
+const DEFI_CATEGORY_PLACEHOLDER_SLOTS = [
+  { title: 'Rewards', iconKey: 'rewards' },
+  { title: 'Staked', iconKey: 'staked' },
+  { title: 'Lending', iconKey: 'lending' },
+  { title: 'Everything Else', iconKey: 'everythingElse' },
+];
+
 function renderDefiTierCardPlaceholder(title, accent, swatch, iconKey) {
   return renderDefiTierCard({
     title,
@@ -718,9 +727,48 @@ function renderDefiTierCardPlaceholder(title, accent, swatch, iconKey) {
     swatchColor: swatch,
     iconKey: iconKey || defiCategoryIconKey(title),
     slicePct: 0,
+    shareLabel: ' of value',
     usdLine: '—',
     amountLine: '—',
+    placeholder: true,
   });
+}
+
+function renderDefiCategoryLegendHtml(segments, slicePcts) {
+  const usedTitles = new Set(
+    (segments || []).map((segment) => cleanStr(segment.title).toLowerCase()).filter(Boolean),
+  );
+  const cards = [];
+
+  for (let i = 0; i < (segments || []).length && cards.length < DEFI_CATEGORY_LEGEND_SLOTS; i++) {
+    const segment = segments[i];
+    cards.push(
+      renderDefiTierCard({
+        title: segment.title,
+        iconKey: segment.iconKey,
+        accent: DEFI_PIE_HEX[i % DEFI_PIE_HEX.length],
+        swatchColor: DEFI_PIE_HEX[i % DEFI_PIE_HEX.length],
+        slicePct: slicePcts?.[i] ?? 0,
+        shareLabel: ' of value',
+        usdLine: formatUsd(segment.usd),
+        amountLine: `${segment.count} ${formatPositionCountWord(segment.count)}`,
+      }),
+    );
+  }
+
+  for (const slot of DEFI_CATEGORY_PLACEHOLDER_SLOTS) {
+    if (cards.length >= DEFI_CATEGORY_LEGEND_SLOTS) break;
+    if (usedTitles.has(slot.title.toLowerCase())) continue;
+    const color = DEFI_PIE_HEX[cards.length % DEFI_PIE_HEX.length];
+    cards.push(renderDefiTierCardPlaceholder(slot.title, color, color, slot.iconKey));
+  }
+
+  while (cards.length < DEFI_CATEGORY_LEGEND_SLOTS) {
+    const color = DEFI_PIE_HEX[cards.length % DEFI_PIE_HEX.length];
+    cards.push(renderDefiTierCardPlaceholder('—', color, color, 'everythingElse'));
+  }
+
+  return cards.join('');
 }
 
 function renderDefiUsdBarRow(d, i, count, total, maxC, sumUsd) {
@@ -878,14 +926,9 @@ function setDefiStatsPlaceholder() {
   }
   setDefiLegendGrid(defiCategoryLegend, 4);
   if (defiCategoryLegend) {
-    defiCategoryLegend.innerHTML = [
-      ['Rewards', 'rewards'],
-      ['Staked', 'staked'],
-      ['Lending', 'lending'],
-      ['Everything Else', 'everythingElse'],
-    ]
-      .map(([title, iconKey], i) => renderDefiTierCardPlaceholder(title, DEFI_PIE_HEX[i], DEFI_PIE_HEX[i], iconKey))
-      .join('');
+    defiCategoryLegend.innerHTML = DEFI_CATEGORY_PLACEHOLDER_SLOTS.map((slot, i) =>
+      renderDefiTierCardPlaceholder(slot.title, DEFI_PIE_HEX[i], DEFI_PIE_HEX[i], slot.iconKey),
+    ).join('');
   }
   if (defiValueUsdBars) defiValueUsdBars.innerHTML = renderDefiUsdBarsPlaceholderHtml();
   if (defiCategoryPieTitle) defiCategoryPieTitle.textContent = 'Categories ranked by USD value';
@@ -1817,7 +1860,7 @@ function renderPlatform(platform, index) {
           ${dustBtn}
         </div>
       </header>
-      <div class="defi-platform-sections">${sectionsHtml || `<p class="defi-empty-section">${escapeHtml(platformEmptySectionsMessage(platform))}</p>`}</div>
+      <div class="defi-platform-sections">${sectionsHtml || `<p class="defi-empty-section">${escapeHtml(platformEmptySectionsMessage(platform, { hiddenDustCount }))}</p>`}</div>
     </article>
   `;
 }
