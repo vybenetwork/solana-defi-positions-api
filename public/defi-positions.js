@@ -59,6 +59,7 @@ const STABLECOIN_MINTS = new Set([
   'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
   'USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB',
   '2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo',
+  '2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH', // USDG
   'JEFFSQ3s8T3wKsvp4tnRAsUBW7Cqgnf8ukBZC4C8XBm1',
   'Dn4noZ5jgGfkntzcQSUZ8czkreiZ1ForXYoV2H8Dm7S1',
   '7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT',
@@ -67,8 +68,8 @@ const STABLECOIN_MINTS = new Set([
   'A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6',
   'DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT',
 ]);
-const STABLE_SYMBOLS = new Set(['USD', 'USDC', 'USDT', 'PYUSD', 'USD1', 'USDE', 'USDH', 'UXD', 'USDY', 'DAI', 'EURC', 'USDS', 'FDUSD']);
-const STABLE_SYMBOL_NEEDLES = ['USDC', 'USDT', 'PYUSD', 'USD1', 'USDE', 'USDH', 'UXD', 'USDY', 'DAI', 'EURC', 'USDS', 'FDUSD'];
+const STABLE_SYMBOLS = new Set(['USD', 'USDC', 'USDT', 'PYUSD', 'USD1', 'USDG', 'USDE', 'USDH', 'UXD', 'USDY', 'DAI', 'EURC', 'USDS', 'FDUSD']);
+const STABLE_SYMBOL_NEEDLES = ['USDC', 'USDT', 'PYUSD', 'USD1', 'USDG', 'USDE', 'USDH', 'UXD', 'USDY', 'DAI', 'EURC', 'USDS', 'FDUSD'];
 
 let lastPayload = null;
 /** @type {Set<string>} Platform ids with dust expanded */
@@ -546,11 +547,48 @@ function formatDefiTableUsdFraction(abs) {
       useGrouping: false,
     });
   }
+  const compact = formatLeadingZeroCompact(abs, { html: false });
+  if (compact) return compact;
   const frac = abs.toFixed(20).split('.')[1] || '';
   let firstNonZeroIdx = 0;
   while (firstNonZeroIdx < frac.length && frac[firstNonZeroIdx] === '0') firstNonZeroIdx += 1;
   if (firstNonZeroIdx >= frac.length) return '0.00';
   return abs.toFixed(firstNonZeroIdx + 1);
+}
+
+const SUPERSCRIPT_DIGITS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+
+function toSuperscriptDigits(n) {
+  return String(Math.max(0, Math.floor(n))).replace(/\d/g, (d) => SUPERSCRIPT_DIGITS[Number(d)] ?? d);
+}
+
+/**
+ * Compact micro notation: 0.000006297 → 0.0⁵6297 (3+ leading zeros after decimal).
+ * @returns {{ zeroRun: number, mantissa: string } | null}
+ */
+function parseLeadingZeroCompact(abs) {
+  if (!Number.isFinite(abs) || abs <= 0 || abs >= 0.001) return null;
+  const s = abs.toFixed(24).replace(/\.?0+$/, '');
+  const m = s.match(/^0\.(\d+)$/);
+  if (!m) return null;
+  const frac = m[1] ?? '';
+  let zeroRun = 0;
+  while (zeroRun < frac.length && frac[zeroRun] === '0') zeroRun += 1;
+  if (zeroRun < 3 || zeroRun >= frac.length) return null;
+  const mantissa = frac.slice(zeroRun, zeroRun + 4);
+  if (!mantissa) return null;
+  return { zeroRun, mantissa };
+}
+
+/** @param {{ html?: boolean }} [opts] */
+function formatLeadingZeroCompact(abs, opts = {}) {
+  const parsed = parseLeadingZeroCompact(abs);
+  if (!parsed) return null;
+  const { zeroRun, mantissa } = parsed;
+  if (opts.html) {
+    return `0.0<sup class="defi-price-zero-run">${zeroRun}</sup>${mantissa}`;
+  }
+  return `0.0${toSuperscriptDigits(zeroRun)}${mantissa}`;
 }
 
 function formatDefiTableUsd(value, { debt = false } = {}) {
@@ -570,10 +608,12 @@ function formatUsd(value, { debt = false } = {}) {
   if (abs >= 1) return `${prefix}$${abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   if (abs >= 0.01) return `${prefix}$${abs.toFixed(4)}`;
   if (n === 0) return '$0.00';
+  const compact = formatLeadingZeroCompact(abs, { html: false });
+  if (compact) return `${prefix}$${compact}`;
   return `${prefix}$${abs.toFixed(6)}`;
 }
 
-function formatAmount(value) {
+function formatAmount(value, { stable = false, html = false } = {}) {
   const n = toNum(value);
   if (n == null) return '—';
   if (n === 0) return '0';
@@ -588,6 +628,18 @@ function formatAmount(value) {
       useGrouping: true,
     })}`;
   }
+
+  // Stablecoins: at most 2 decimal places.
+  if (stable) {
+    return `${sign}${abs.toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+      useGrouping: false,
+    })}`;
+  }
+
+  const compact = formatLeadingZeroCompact(abs, { html });
+  if (compact) return `${sign}${compact}`;
 
   if (abs >= 0.0001) {
     return `${sign}${abs.toLocaleString(undefined, {
@@ -1251,7 +1303,8 @@ function amountTokenToneClass(mint, symbol) {
 function renderAmountLineHtml(amount, label, logo, mint) {
   const tone = amountTokenToneClass(mint, label);
   const logoSrc = cleanStr(logo) || TOKEN_PLACEHOLDER;
-  return `<span class="defi-amount-line ${tone}"><span class="defi-amount-line__value">${formatAmount(amount)}</span> <span class="defi-amount-line__symbol">${escapeHtml(label)}</span><img class="defi-amount-line__logo" src="${escapeHtml(logoSrc)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" /></span>`;
+  const amountText = formatAmount(amount, { stable: isStableToken(mint, label), html: true });
+  return `<span class="defi-amount-line ${tone}"><span class="defi-amount-line__value">${amountText}</span> <span class="defi-amount-line__symbol">${escapeHtml(label)}</span><img class="defi-amount-line__logo" src="${escapeHtml(logoSrc)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" /></span>`;
 }
 
 function renderMultiAmounts(row) {
@@ -1410,7 +1463,11 @@ function amountCell(row, { debt = false } = {}) {
     mint,
   );
   if (!leg.displayLabel || leg.displayLabel === 'Unknown') {
-    return `<td class="${cls}">${formatAmount(row.amount)}</td>`;
+    const amountText = formatAmount(row.amount, {
+      stable: isStableToken(mint, asArray(row.symbol)[0] ?? row.symbol),
+      html: true,
+    });
+    return `<td class="${cls}">${amountText}</td>`;
   }
   return `<td class="${cls}">${renderAmountLineHtml(row.amount, leg.displayLabel, leg.logo, mint)}</td>`;
 }
@@ -1462,6 +1519,10 @@ function formatDefiPriceUsd(value) {
       return `${sign}$${Math.round(thousands).toLocaleString(undefined, { maximumFractionDigits: 0 })}k`;
     }
     return `${sign}$${thousands.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}k`;
+  }
+  const compactHtml = formatLeadingZeroCompact(abs, { html: true });
+  if (compactHtml) {
+    return `${sign}$${compactHtml}`;
   }
   return `${sign}$${formatDefiTableUsdFraction(abs)}`;
 }
