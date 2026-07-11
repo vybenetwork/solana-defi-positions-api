@@ -2981,6 +2981,14 @@ button:not(.vybe-action-btn):disabled {
   opacity: 0.72;
 }
 
+.defi-positions-table tbody tr.defi-row--placeholder {
+  opacity: 0.72;
+}
+
+.defi-platform-card--placeholder {
+  pointer-events: none;
+}
+
 #holdersTable tbody tr.holders-row--profitable {
   background: rgba(74, 222, 128, 0.04);
 }

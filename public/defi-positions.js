@@ -42,7 +42,7 @@ const USD_MAGNITUDE_BAR_COLORS = {
 const SOLSCAN_TOKEN = 'https://solscan.io/token/';
 const TOKEN_PLACEHOLDER = '/token-placeholder.png';
 const DEFI_META_PLACEHOLDER = 'Load a wallet to see DeFi positions from the Vybe API.';
-const DEFI_MOCK_DATA_URL = '/data/defi-positions-default-wallet-raw.json';
+const DEFI_PLACEHOLDER_ROW_COUNT = 8;
 const DUST_USD_THRESHOLD = 0.1;
 const DUST_USD_LABEL = '$0.10';
 const SYMBOL_ENRICH_LIMIT = 20;
@@ -66,8 +66,6 @@ const STABLE_SYMBOLS = new Set(['USD', 'USDC', 'USDT', 'PYUSD', 'USD1', 'USDE', 
 const STABLE_SYMBOL_NEEDLES = ['USDC', 'USDT', 'PYUSD', 'USD1', 'USDE', 'USDH', 'UXD', 'USDY', 'DAI', 'EURC', 'USDS', 'FDUSD'];
 
 let lastPayload = null;
-/** True while the table shows the bundled default-wallet sample (not a live fetch). */
-let lastPayloadIsMock = false;
 /** @type {Set<string>} Platform ids with dust expanded */
 const expandedDustPlatforms = new Set();
 /** @type {Map<string, { symbol: string, name: string, logo: string }>} */
@@ -992,15 +990,13 @@ function buildDefiSummaryPlaceholderHtml() {
 function renderSummary(payload, visibleCount, hiddenCount) {
   if (defiSummaryLabel) defiSummaryLabel.textContent = payload.ownerAddress || '—';
   if (defiLastUpdatedValue) {
-    defiLastUpdatedValue.textContent = lastPayloadIsMock
-      ? 'Sample'
-      : new Date().toLocaleString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit',
-        });
+    defiLastUpdatedValue.textContent = new Date().toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
   }
   if (defiSummaryStats) {
     defiSummaryStats.innerHTML = buildDefiSummaryHtml(payload);
@@ -1809,11 +1805,7 @@ function renderPlatforms(payload, options = {}) {
   const dustNote = hidden > 0 ? ` · ${hidden.toLocaleString()} under ${DUST_USD_LABEL} hidden` : '';
   const protocolWord = platforms.length === 1 ? 'protocol' : 'protocols';
   const positionWord = visible === 1 ? 'position' : 'positions';
-  if (lastPayloadIsMock) {
-    defiMeta.textContent = `Sample DeFi positions for the default wallet · ${visible.toLocaleString()} ${positionWord} across ${platforms.length.toLocaleString()} ${protocolWord}${dustNote}. Click Load to fetch live data.`;
-  } else {
-    defiMeta.textContent = `Showing ${visible.toLocaleString()} ${positionWord} across ${platforms.length.toLocaleString()} ${protocolWord}${dustNote}`;
-  }
+  defiMeta.textContent = `Showing ${visible.toLocaleString()} ${positionWord} across ${platforms.length.toLocaleString()} ${protocolWord}${dustNote}`;
   defiPlatforms.innerHTML = platforms.map(renderPlatform).join('');
   renderDefiStats(payload);
 }
@@ -1835,9 +1827,70 @@ function bindDefiUiEvents() {
   });
 }
 
+function buildDefiPlaceholderRows(count = DEFI_PLACEHOLDER_ROW_COUNT) {
+  const dash = '—';
+  const logo = `<span class="token-logo-slot token-logo-slot--pending" aria-hidden="true"></span>`;
+  return Array.from({ length: count }, (_, i) => `<tr class="defi-row defi-row--placeholder">
+    <td>${i + 1}</td>
+    <td><div class="token-header">${logo}<div class="token-header-text"><div class="symbol">${dash}</div><div class="name">${dash}</div></div></div></td>
+    <td>${dash}</td>
+    <td>${dash}</td>
+    <td class="num">${dash}</td>
+    <td class="num">${dash}</td>
+    <td class="num">${dash}</td>
+    <td class="num">${dash}</td>
+    <td class="meta">${dash}</td>
+  </tr>`).join('');
+}
+
+function renderDefiTablePlaceholder() {
+  if (!defiPlatforms) return;
+  if (defiMeta) defiMeta.textContent = DEFI_META_PLACEHOLDER;
+  const schema = buildAssetTableSchema('default');
+  defiPlatforms.innerHTML = `
+    <article class="defi-platform-card defi-platform-card--placeholder" aria-hidden="true">
+      <header class="defi-platform-header">
+        <span class="defi-platform-logo token-logo-slot token-logo-slot--pending" aria-hidden="true"></span>
+        <div class="defi-platform-heading">
+          <div class="defi-platform-title-row">
+            <h2 class="defi-platform-title">—</h2>
+          </div>
+          <div class="defi-platform-meta">
+            <span class="defi-platform-id mono">—</span>
+          </div>
+        </div>
+        <div class="defi-platform-header-actions">
+          <div class="defi-platform-total">
+            <span class="defi-platform-total-label">Platform value</span>
+            <span class="defi-platform-total-value">—</span>
+          </div>
+        </div>
+      </header>
+      <div class="defi-platform-sections">
+        <div class="defi-section-block">
+          <h3 class="defi-section-title">
+            <span class="defi-section-title__lead">
+              <span class="defi-section-title__text">—</span>
+            </span>
+            <span class="defi-section-meta">—</span>
+          </h3>
+          <div class="table-wrap table-wrap--defi-section">
+            <table class="defi-positions-table defi-positions-table--default defi-positions-table--asset9">
+              ${renderTableColgroup(schema.layout)}
+              <thead>
+                <tr>${renderTableHeader(schema)}</tr>
+              </thead>
+              <tbody>${buildDefiPlaceholderRows()}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
 function resetDefiPlaceholder() {
   lastPayload = null;
-  lastPayloadIsMock = false;
   balanceMetaByMint = new Map();
   symbolCacheByMint = new Map();
   balancesFetched = false;
@@ -1848,25 +1901,8 @@ function resetDefiPlaceholder() {
   if (defiLastUpdatedValue) defiLastUpdatedValue.textContent = '—';
   if (defiSummaryStats) defiSummaryStats.innerHTML = buildDefiSummaryPlaceholderHtml();
   if (defiMeta) defiMeta.textContent = DEFI_META_PLACEHOLDER;
-  if (defiPlatforms) defiPlatforms.innerHTML = '';
+  renderDefiTablePlaceholder();
   setDefiStatsPlaceholder();
-}
-
-async function loadMockDefiPositions() {
-  try {
-    const res = await fetch(DEFI_MOCK_DATA_URL, { cache: 'force-cache' });
-    if (!res.ok) return;
-    const payload = await res.json().catch(() => null);
-    if (!payload || !Array.isArray(payload.platforms) || payload.platforms.length === 0) return;
-    // Do not overwrite a live fetch that finished first.
-    if (lastPayload && !lastPayloadIsMock) return;
-    lastPayload = payload;
-    lastPayloadIsMock = true;
-    harvestSymbolsFromPayload(payload);
-    renderPlatforms(payload);
-  } catch {
-    // Keep empty placeholder if sample file is missing.
-  }
 }
 
 async function loadDefiPositions() {
@@ -1886,7 +1922,6 @@ async function loadDefiPositions() {
       throw new Error(payload.error || `DeFi request failed (${res.status})`);
     }
     lastPayload = payload;
-    lastPayloadIsMock = false;
     harvestSymbolsFromPayload(payload);
     renderPlatforms(payload);
     queueMissingSymbolEnrichment();
@@ -1900,11 +1935,10 @@ async function loadDefiPositions() {
 
 bindDefiUiEvents();
 setDefiStatsPlaceholder();
-loadMockDefiPositions();
+renderDefiTablePlaceholder();
 
 window.VybeDefiPositions = {
   load: loadDefiPositions,
-  loadMock: loadMockDefiPositions,
   resetPlaceholder: resetDefiPlaceholder,
   setBalanceMeta,
   queueMissingSymbolEnrichment,
