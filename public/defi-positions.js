@@ -229,6 +229,13 @@ function looksTruncatedLabel(label) {
   return s.includes('…') || s.includes('...');
 }
 
+/** Drop marketing suffix from validator / stake labels (e.g. "BONK - Powered by Jito"). */
+function stripPoweredByJito(label) {
+  const s = cleanStr(label);
+  if (!s) return '';
+  return s.replace(/\s*[-–—]\s*Powered by Jito\b/gi, '').trim();
+}
+
 /** Parse Description like "wSOL/bSOL" into symbol parts when it looks like a valid pair. */
 function parseDescriptionPairParts(sectionName) {
   const s = cleanStr(sectionName);
@@ -295,25 +302,29 @@ function harvestSymbolsFromPayload(payload) {
 /** Fill missing symbol/name/logo from wallet balances + shared symbol cache. */
 function resolveLegFields(symbol, name, logo, mint) {
   const bal = mint ? balanceMetaByMint.get(mint) : null;
-  let sym = isValidLabel(symbol, mint) && !looksTruncatedLabel(symbol) ? cleanStr(symbol) : '';
-  let nm = isValidLabel(name, mint) ? cleanStr(name) : '';
+  let sym = isValidLabel(symbol, mint) && !looksTruncatedLabel(symbol) ? stripPoweredByJito(symbol) : '';
+  let nm = isValidLabel(name, mint) ? stripPoweredByJito(name) : '';
   let lg = cleanStr(logo);
 
   if (bal) {
-    if (!sym && isValidLabel(bal.symbol, mint) && !looksTruncatedLabel(bal.symbol)) sym = bal.symbol;
-    if (!nm && isValidLabel(bal.name, mint)) nm = bal.name;
+    if (!sym && isValidLabel(bal.symbol, mint) && !looksTruncatedLabel(bal.symbol)) {
+      sym = stripPoweredByJito(bal.symbol);
+    }
+    if (!nm && isValidLabel(bal.name, mint)) nm = stripPoweredByJito(bal.name);
     if (!lg && bal.logo) lg = bal.logo;
   }
 
   if (!sym) {
     const cached = getCachedSymbol(mint);
-    if (cached) sym = cached;
+    if (cached) sym = stripPoweredByJito(cached);
   }
 
-  const displayLabel = sym || nm || (mint ? shortAddress(mint) : 'Unknown');
+  const displayLabel = stripPoweredByJito(sym || nm || (mint ? shortAddress(mint) : 'Unknown'));
   let secondaryName = '';
   if (sym && nm && nm !== sym) secondaryName = nm;
-  else if (sym && bal?.name && bal.name !== sym && isValidLabel(bal.name, mint) && !nm) secondaryName = bal.name;
+  else if (sym && bal?.name && bal.name !== sym && isValidLabel(bal.name, mint) && !nm) {
+    secondaryName = stripPoweredByJito(bal.name);
+  }
 
   return {
     symbol: sym,
