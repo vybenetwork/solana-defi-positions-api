@@ -670,16 +670,19 @@ function formatDefiTableUsd(
   return `${prefix}$${formatDefiTableUsdFraction(Math.abs(n), { compact, noDecimalAbove, compactNoDecimalAbove })}`;
 }
 
-function formatUsd(value, { debt = false, compact = true } = {}) {
+function formatUsd(
+  value,
+  { debt = false, compact = true, noDecimalAbove = NO_DECIMAL_THRESHOLD, compactNoDecimalAbove = 100 } = {},
+) {
   const n = toNum(value);
   if (n == null) return '—';
   const prefix = debt && n < 0 ? '−' : '';
   const abs = Math.abs(n);
   if (compact) {
-    const compactMag = formatCompactMagnitude(abs);
+    const compactMag = formatCompactMagnitude(abs, { noDecimalAbove: compactNoDecimalAbove });
     if (compactMag) return `${prefix}$${compactMag}`;
   }
-  if (abs > NO_DECIMAL_THRESHOLD) return `${prefix}$${formatWholeNumber(abs, { useGrouping: true })}`;
+  if (abs > noDecimalAbove) return `${prefix}$${formatWholeNumber(abs, { useGrouping: true })}`;
   if (abs > TWO_DECIMAL_THRESHOLD) return `${prefix}$${formatTwoDecimals(abs, { useGrouping: true })}`;
   if (abs >= 1) return `${prefix}$${formatTwoDecimals(abs, { useGrouping: false })}`;
   if (abs >= 0.01) {
@@ -1435,11 +1438,14 @@ function valueCell(row, { debt = false } = {}) {
   return `<td class="${cls} defi-value-col">${formatDefiValueWithBars(usd, formatted)}</td>`;
 }
 
-/** USD metric cell (Collateral / PnL) — green tier styling like Notional/Value. */
+/** USD metric cell (Collateral / PnL / Notional-style) — same 9.99 rules as Value. */
 function usdMetricCell(value) {
   const n = toNum(value);
   if (n == null) return '<td class="num">—</td>';
-  const formatted = formatUsd(n);
+  const formatted = formatUsd(n, {
+    noDecimalAbove: VALUE_NO_DECIMAL_THRESHOLD,
+    compactNoDecimalAbove: VALUE_NO_DECIMAL_THRESHOLD,
+  });
   const cls = n < 0 ? 'num defi-value--debt defi-value-col' : 'num defi-value-col';
   return `<td class="${cls}">${formatDefiValueWithBars(n, formatted)}</td>`;
 }
