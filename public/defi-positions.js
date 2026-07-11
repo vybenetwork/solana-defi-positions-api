@@ -1517,6 +1517,28 @@ function formatDefiPriceUsd(value) {
   if (n === 0) return '$0.00';
   const abs = Math.abs(n);
   const sign = n < 0 ? '−' : '';
+  // Compact k / M / B for large prices (2 decimals when scaled unit ≤ 9.99, else whole).
+  if (abs > 999.99) {
+    if (abs >= 1_000_000_000) {
+      const billions = abs / 1_000_000_000;
+      if (billions > 9.99) {
+        return `${sign}$${Math.round(billions).toLocaleString(undefined, { maximumFractionDigits: 0 })}B`;
+      }
+      return `${sign}$${billions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
+    }
+    if (abs >= 1_000_000) {
+      const millions = abs / 1_000_000;
+      if (millions > 9.99) {
+        return `${sign}$${Math.round(millions).toLocaleString(undefined, { maximumFractionDigits: 0 })}M`;
+      }
+      return `${sign}$${millions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
+    }
+    const thousands = abs / 1000;
+    if (thousands > 9.99) {
+      return `${sign}$${Math.round(thousands).toLocaleString(undefined, { maximumFractionDigits: 0 })}k`;
+    }
+    return `${sign}$${thousands.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}k`;
+  }
   if (abs > TWO_DECIMAL_THRESHOLD) {
     return `${sign}$${formatTwoDecimals(abs, { useGrouping: true })}`;
   }
