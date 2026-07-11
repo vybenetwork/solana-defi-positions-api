@@ -8,7 +8,6 @@
 [![DeFi positions API](https://img.shields.io/badge/Endpoint-DeFi%20positions-6366f1?style=for-the-badge&logo=swagger&logoColor=white)](https://docs.vybenetwork.com/reference/get_defi_accounts_v4_proxy)
 [![Wallet token balance API](https://img.shields.io/badge/Endpoint-Wallet%20token%20balance-8b5cf6?style=for-the-badge&logo=swagger&logoColor=white)](https://docs.vybenetwork.com/reference/get_wallet_tokens_v4)
 [![X](https://img.shields.io/badge/X-Vybe__Network-000000?style=for-the-badge&logo=x)](https://x.com/Vybe_Network)
-[![Telegram](https://img.shields.io/badge/Telegram-VybeNetwork-26A5E4?style=for-the-badge&logo=telegram)](https://t.me/VybeNetwork_Official)
 </p>
 
 **Solana DeFi Positions API:** Solana DeFi positions API for LPs, lending, staking & yield farming across 50+ protocols. SonarWatch alternative wallet tracker powered by the Vybe API. Use this project as a reference implementation or starter kit for portfolio trackers, DeFi dashboards, and protocol exposure UIs.
@@ -28,7 +27,6 @@ Try the live demo: https://solana-defi-positions-api.vybenetwork.com
 - **[DeFi positions endpoint →](https://docs.vybenetwork.com/reference/get_defi_accounts_v4_proxy)**
 - **[Wallet token balance endpoint →](https://docs.vybenetwork.com/reference/get_wallet_tokens_v4)**
 - **[GitHub repo →](https://github.com/vybenetwork/solana-defi-positions-api)**
-- **[Telegram →](https://t.me/VybeNetwork_Official)**
 - **[X →](https://x.com/Vybe_Network)**
 
 ---
@@ -257,7 +255,6 @@ async function fetchDefiPositions(ownerAddress: string) {
 
 ## Support
 
-- **Telegram:** [VybeNetwork Official](https://t.me/VybeNetwork_Official)
 - **X:** [@Vybe_Network](https://x.com/Vybe_Network)
 - **GitHub:** [solana-defi-positions-api](https://github.com/vybenetwork/solana-defi-positions-api)
 - **Support ticket:** [Submit a ticket via vybenetwork.com](https://vybenetwork.com)
