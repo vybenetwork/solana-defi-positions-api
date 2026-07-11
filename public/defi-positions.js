@@ -549,21 +549,33 @@ function formatDefiTableUsdFraction(abs) {
   }
   const compact = formatLeadingZeroCompact(abs, { html: false });
   if (compact) return compact;
-  const frac = abs.toFixed(20).split('.')[1] || '';
-  let firstNonZeroIdx = 0;
-  while (firstNonZeroIdx < frac.length && frac[firstNonZeroIdx] === '0') firstNonZeroIdx += 1;
-  if (firstNonZeroIdx >= frac.length) return '0.00';
-  return abs.toFixed(firstNonZeroIdx + 1);
+  return formatFromFirstNonZero(abs) ?? '0.00';
 }
 
 const SUPERSCRIPT_DIGITS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+/** Significant digits after the first non-zero decimal for micro amounts/prices. */
+const MICRO_SIGNIFICANT_DIGITS = 3;
 
 function toSuperscriptDigits(n) {
   return String(Math.max(0, Math.floor(n))).replace(/\d/g, (d) => SUPERSCRIPT_DIGITS[Number(d)] ?? d);
 }
 
 /**
- * Compact micro notation: 0.000006297 → 0.0⁵6297 (3+ leading zeros after decimal).
+ * Format abs < 1 from the first non-zero decimal digit, keeping MICRO_SIGNIFICANT_DIGITS.
+ * e.g. 0.001318 → "0.00132", 0.00001234 → handled via compact when eligible.
+ */
+function formatFromFirstNonZero(abs, significantDigits = MICRO_SIGNIFICANT_DIGITS) {
+  if (!Number.isFinite(abs) || abs <= 0) return null;
+  const frac = abs.toFixed(20).split('.')[1] || '';
+  let firstNonZeroIdx = 0;
+  while (firstNonZeroIdx < frac.length && frac[firstNonZeroIdx] === '0') firstNonZeroIdx += 1;
+  if (firstNonZeroIdx >= frac.length) return '0';
+  const decimals = Math.min(firstNonZeroIdx + significantDigits, 20);
+  return abs.toFixed(decimals);
+}
+
+/**
+ * Compact micro notation: 0.000006297 → 0.0⁵630 (3+ leading zeros after decimal).
  * @returns {{ zeroRun: number, mantissa: string } | null}
  */
 function parseLeadingZeroCompact(abs) {
@@ -575,7 +587,7 @@ function parseLeadingZeroCompact(abs) {
   let zeroRun = 0;
   while (zeroRun < frac.length && frac[zeroRun] === '0') zeroRun += 1;
   if (zeroRun < 3 || zeroRun >= frac.length) return null;
-  const mantissa = frac.slice(zeroRun, zeroRun + 4);
+  const mantissa = frac.slice(zeroRun, zeroRun + MICRO_SIGNIFICANT_DIGITS);
   if (!mantissa) return null;
   return { zeroRun, mantissa };
 }
@@ -606,11 +618,11 @@ function formatUsd(value, { debt = false } = {}) {
   const abs = Math.abs(n);
   if (abs >= 1000) return `${prefix}$${Math.round(abs).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   if (abs >= 1) return `${prefix}$${abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  if (abs >= 0.01) return `${prefix}$${abs.toFixed(4)}`;
+  if (abs >= 0.01) return `${prefix}$${abs.toFixed(MICRO_SIGNIFICANT_DIGITS)}`;
   if (n === 0) return '$0.00';
   const compact = formatLeadingZeroCompact(abs, { html: false });
   if (compact) return `${prefix}$${compact}`;
-  return `${prefix}$${abs.toFixed(6)}`;
+  return `${prefix}$${formatFromFirstNonZero(abs) ?? abs.toFixed(MICRO_SIGNIFICANT_DIGITS)}`;
 }
 
 function formatAmount(value, { stable = false, html = false } = {}) {
@@ -641,21 +653,16 @@ function formatAmount(value, { stable = false, html = false } = {}) {
   const compact = formatLeadingZeroCompact(abs, { html });
   if (compact) return `${sign}${compact}`;
 
-  if (abs >= 0.0001) {
+  if (abs >= 1) {
     return `${sign}${abs.toLocaleString(undefined, {
-      maximumFractionDigits: 4,
+      maximumFractionDigits: MICRO_SIGNIFICANT_DIGITS,
       minimumFractionDigits: 0,
       useGrouping: false,
     })}`;
   }
 
-  // Below 0.0001: keep leading zeros, then show the first 2 non-zero decimal digits.
-  const frac = abs.toFixed(20).split('.')[1] || '';
-  let firstNonZeroIdx = 0;
-  while (firstNonZeroIdx < frac.length && frac[firstNonZeroIdx] === '0') firstNonZeroIdx += 1;
-  if (firstNonZeroIdx >= frac.length) return `${sign}0`;
-  const decimals = firstNonZeroIdx + 2;
-  return `${sign}${abs.toFixed(decimals)}`;
+  // Sub-1 amounts: 3 significant digits from the first non-zero decimal.
+  return `${sign}${formatFromFirstNonZero(abs) ?? '0'}`;
 }
 
 function formatPct(value) {
