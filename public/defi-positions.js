@@ -570,10 +570,12 @@ function formatCompactMagnitude(abs) {
   return `${thousands.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}k`;
 }
 
-function formatDefiTableUsdFraction(abs) {
+function formatDefiTableUsdFraction(abs, { compact = true } = {}) {
   if (!Number.isFinite(abs) || abs <= 0) return '0.00';
-  const compactMag = formatCompactMagnitude(abs);
-  if (compactMag) return compactMag;
+  if (compact) {
+    const compactMag = formatCompactMagnitude(abs);
+    if (compactMag) return compactMag;
+  }
   if (abs > TWO_DECIMAL_THRESHOLD) {
     return formatTwoDecimals(abs, { useGrouping: true });
   }
@@ -585,8 +587,8 @@ function formatDefiTableUsdFraction(abs) {
       useGrouping: false,
     });
   }
-  const compact = formatLeadingZeroCompact(abs, { html: false });
-  if (compact) return compact;
+  const leading = formatLeadingZeroCompact(abs, { html: false });
+  if (leading) return leading;
   return formatFromFirstNonZero(abs) ?? '0.00';
 }
 
@@ -641,29 +643,31 @@ function formatLeadingZeroCompact(abs, opts = {}) {
   return `0.0${toSuperscriptDigits(zeroRun)}${mantissa}`;
 }
 
-function formatDefiTableUsd(value, { debt = false } = {}) {
+function formatDefiTableUsd(value, { debt = false, compact = true } = {}) {
   const n = toNum(value);
   if (n == null) return '—';
   if (n === 0) return '$0.00';
   const prefix = debt && n < 0 ? '−' : '';
-  return `${prefix}$${formatDefiTableUsdFraction(Math.abs(n))}`;
+  return `${prefix}$${formatDefiTableUsdFraction(Math.abs(n), { compact })}`;
 }
 
-function formatUsd(value, { debt = false } = {}) {
+function formatUsd(value, { debt = false, compact = true } = {}) {
   const n = toNum(value);
   if (n == null) return '—';
   const prefix = debt && n < 0 ? '−' : '';
   const abs = Math.abs(n);
-  const compactMag = formatCompactMagnitude(abs);
-  if (compactMag) return `${prefix}$${compactMag}`;
+  if (compact) {
+    const compactMag = formatCompactMagnitude(abs);
+    if (compactMag) return `${prefix}$${compactMag}`;
+  }
   if (abs > TWO_DECIMAL_THRESHOLD) return `${prefix}$${formatTwoDecimals(abs, { useGrouping: true })}`;
   if (abs >= 1) return `${prefix}$${formatTwoDecimals(abs, { useGrouping: false })}`;
   if (abs >= 0.01) {
     return `${prefix}$${abs.toFixed(MICRO_SIGNIFICANT_DIGITS).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1')}`;
   }
   if (n === 0) return '$0.00';
-  const compact = formatLeadingZeroCompact(abs, { html: false });
-  if (compact) return `${prefix}$${compact}`;
+  const leading = formatLeadingZeroCompact(abs, { html: false });
+  if (leading) return `${prefix}$${leading}`;
   return `${prefix}$${formatFromFirstNonZero(abs) ?? abs.toFixed(MICRO_SIGNIFICANT_DIGITS)}`;
 }
 
@@ -850,7 +854,7 @@ function renderDefiCategoryLegendHtml(segments, slicePcts) {
         swatchColor: DEFI_PIE_HEX[i % DEFI_PIE_HEX.length],
         slicePct: slicePcts?.[i] ?? 0,
         shareLabel: ' of value',
-        usdLine: formatUsd(segment.usd),
+        usdLine: formatUsd(segment.usd, { compact: false }),
         amountLine: `${segment.count} ${formatPositionCountWord(segment.count)}`,
       }),
     );
@@ -1061,7 +1065,7 @@ function renderDefiStats(payload) {
     defiCategoryPie.style.background = buildPieGradientWithGaps(display, DEFI_PIE_HEX);
     mountDonutPieOverlays(defiCategoryPie, display, DEFI_PIE_HEX, {
       mock: false,
-      hubSubline: `${formatUsd(totalUsd)} · ${items.length} positions`,
+      hubSubline: `${formatUsd(totalUsd, { compact: false })} · ${items.length} positions`,
     });
   }
 
@@ -1072,7 +1076,7 @@ function renderDefiStats(payload) {
 
   if (defiCategoryPieTitle) defiCategoryPieTitle.textContent = 'Categories ranked by USD value';
   if (defiCategoryPieLede) {
-    defiCategoryPieLede.textContent = `${items.length} positions · ${formatUsd(totalUsd)} total DeFi value`;
+    defiCategoryPieLede.textContent = `${items.length} positions · ${formatUsd(totalUsd, { compact: false })} total DeFi value`;
   }
   if (defiCategoryPieInsight) {
     defiCategoryPieInsight.textContent = buildDefiCategoryPieInsight(bucket);
@@ -1837,13 +1841,13 @@ function platformEmptySectionsMessage(platform, { hiddenDustCount = 0 } = {}) {
     const n = dustCount > 0 ? dustCount : rowCount;
     const dustWord = n === 1 ? 'dust row' : 'dust rows';
     if (total != null && Math.abs(total) > 0) {
-      return `Vybe reports ${formatUsd(total)} total for this protocol but returned only ${n.toLocaleString()} ${dustWord} to display.`;
+      return `Vybe reports ${formatUsd(total, { compact: false })} total for this protocol but returned only ${n.toLocaleString()} ${dustWord} to display.`;
     }
     return `This protocol returned only ${n.toLocaleString()} ${dustWord} to display.`;
   }
 
   if (total != null && total > 0) {
-    return `Vybe reports ${formatUsd(total)} total for this protocol but returned no position rows to display.`;
+    return `Vybe reports ${formatUsd(total, { compact: false })} total for this protocol but returned no position rows to display.`;
   }
   return 'No sections returned for this platform.';
 }
@@ -1910,7 +1914,7 @@ function renderPlatform(platform, index) {
               ${renderSectionIconHtml(section, iconRow)}
               <span class="defi-section-title__text">${escapeHtml(heading)}</span>
             </span>
-            <span class="defi-section-meta">${rowCount} row${rowCount === 1 ? '' : 's'} · ${formatUsd(sectionUsd)}</span>
+            <span class="defi-section-meta">${rowCount} row${rowCount === 1 ? '' : 's'} · ${formatUsd(sectionUsd, { compact: false })}</span>
           </h3>
           ${renderSectionTable(section, platformExpanded)}
         </div>
@@ -1942,7 +1946,7 @@ function renderPlatform(platform, index) {
         <div class="defi-platform-header-actions">
           <div class="defi-platform-total">
             <span class="defi-platform-total-label">Platform value</span>
-            <span class="defi-platform-total-value">${formatDefiTableUsd(platform.totalValueUsd)}</span>
+            <span class="defi-platform-total-value">${formatDefiTableUsd(platform.totalValueUsd, { compact: false })}</span>
           </div>
           ${dustBtn}
         </div>
