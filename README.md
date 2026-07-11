@@ -4,9 +4,9 @@
 
 [![Demo](https://img.shields.io/badge/Demo-Live%20app-22c55e?style=for-the-badge&logo=googlechrome&logoColor=white)](https://solana-defi-positions-api.vybenetwork.com)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/vybenetwork/solana-defi-positions-api)
-[![DeFi positions guide](https://img.shields.io/badge/Guides-Positions%20lending%20%26%20LPs-3b82f6?style=for-the-badge)](https://docs.vybenetwork.com/docs/positions-yields-staking)
-[![DeFi positions API](https://img.shields.io/badge/Endpoint-DeFi%20positions-6366f1?style=for-the-badge)](https://docs.vybenetwork.com/reference/get_defi_accounts_v4_proxy)
-[![Wallet token balance API](https://img.shields.io/badge/Endpoint-Wallet%20token%20balance-8b5cf6?style=for-the-badge)](https://docs.vybenetwork.com/reference/get_wallet_tokens_v4)
+[![DeFi positions guide](https://img.shields.io/badge/Guides-Positions%20lending%20%26%20LPs-3b82f6?style=for-the-badge&logo=gitbook&logoColor=white)](https://docs.vybenetwork.com/docs/positions-yields-staking)
+[![DeFi positions API](https://img.shields.io/badge/Endpoint-DeFi%20positions-6366f1?style=for-the-badge&logo=swagger&logoColor=white)](https://docs.vybenetwork.com/reference/get_defi_accounts_v4_proxy)
+[![Wallet token balance API](https://img.shields.io/badge/Endpoint-Wallet%20token%20balance-8b5cf6?style=for-the-badge&logo=swagger&logoColor=white)](https://docs.vybenetwork.com/reference/get_wallet_tokens_v4)
 [![Telegram](https://img.shields.io/badge/Telegram-VybeNetwork-26A5E4?style=for-the-badge&logo=telegram)](https://t.me/VybeNetwork_Official)
 [![X](https://img.shields.io/badge/X-Vybe__Network-000000?style=for-the-badge&logo=x)](https://x.com/Vybe_Network)
 
