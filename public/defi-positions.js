@@ -533,6 +533,8 @@ function queueMissingSymbolEnrichment() {
 const TWO_DECIMAL_THRESHOLD = 9.999;
 /** Above this absolute value, hide decimals until k / M / B activates. */
 const NO_DECIMAL_THRESHOLD = 99.99;
+/** Value column only: hide decimals above this until k / M / B. */
+const VALUE_NO_DECIMAL_THRESHOLD = 9.99;
 /** Above this, use compact k / M / B notation. */
 const COMPACT_MAGNITUDE_THRESHOLD = 999.99;
 
@@ -578,13 +580,13 @@ function formatCompactMagnitude(abs) {
   return `${body}${suffix}`;
 }
 
-function formatDefiTableUsdFraction(abs, { compact = true } = {}) {
+function formatDefiTableUsdFraction(abs, { compact = true, noDecimalAbove = NO_DECIMAL_THRESHOLD } = {}) {
   if (!Number.isFinite(abs) || abs <= 0) return '0.00';
   if (compact) {
     const compactMag = formatCompactMagnitude(abs);
     if (compactMag) return compactMag;
   }
-  if (abs > NO_DECIMAL_THRESHOLD) {
+  if (abs > noDecimalAbove) {
     return formatWholeNumber(abs, { useGrouping: true });
   }
   if (abs > TWO_DECIMAL_THRESHOLD) {
@@ -654,12 +656,12 @@ function formatLeadingZeroCompact(abs, opts = {}) {
   return `0.0${toSuperscriptDigits(zeroRun)}${mantissa}`;
 }
 
-function formatDefiTableUsd(value, { debt = false, compact = true } = {}) {
+function formatDefiTableUsd(value, { debt = false, compact = true, noDecimalAbove = NO_DECIMAL_THRESHOLD } = {}) {
   const n = toNum(value);
   if (n == null) return '—';
   if (n === 0) return '$0.00';
   const prefix = debt && n < 0 ? '−' : '';
-  return `${prefix}$${formatDefiTableUsdFraction(Math.abs(n), { compact })}`;
+  return `${prefix}$${formatDefiTableUsdFraction(Math.abs(n), { compact, noDecimalAbove })}`;
 }
 
 function formatUsd(value, { debt = false, compact = true } = {}) {
@@ -1415,7 +1417,7 @@ function renderStakeStatus(status) {
 
 function valueCell(row, { debt = false } = {}) {
   const usd = effectiveUsd(row);
-  const formatted = formatDefiTableUsd(usd, { debt });
+  const formatted = formatDefiTableUsd(usd, { debt, noDecimalAbove: VALUE_NO_DECIMAL_THRESHOLD });
   const cls = debt && usd < 0 ? 'num defi-value--debt' : usd < 0 ? 'num defi-value--debt' : 'num';
   if (formatted === '—' || !Number.isFinite(usd)) {
     return `<td class="${cls}">—</td>`;
