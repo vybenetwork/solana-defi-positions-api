@@ -1019,6 +1019,43 @@ function formatSectionMeta(value) {
   return s || '—';
 }
 
+/** Normalize pair labels so "ADX / USDC" and "ADX/USDC" compare equal. */
+function normalizeAssetLabelKey(value) {
+  return cleanStr(value)
+    .toLowerCase()
+    .replace(/\s*\/\s*/g, '/')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function resolvePoolAssetTitle(row) {
+  if (!isMultiAssetRow(row)) {
+    const mint = asArray(row.address)[0] || row.address;
+    const leg = resolveLegFields(
+      asArray(row.symbol)[0] ?? row.symbol,
+      asArray(row.name)[0] ?? row.name,
+      asArray(row.logourl)[0] ?? row.logourl,
+      mint,
+    );
+    return leg.displayLabel || '';
+  }
+  const symbols = asArray(row.symbol);
+  const names = asArray(row.name);
+  const logos = asArray(row.logourl);
+  const addresses = asArray(row.address);
+  const legs = Math.max(symbols.length, names.length, logos.length, addresses.length, 1);
+  const resolved = [];
+  for (let i = 0; i < legs; i++) {
+    resolved.push(resolveLegFields(symbols[i], names[i], logos[i], addresses[i]));
+  }
+  const hasTruncated = resolved.some((leg) => looksTruncatedLabel(leg.displayLabel));
+  const pairParts = hasTruncated ? parseDescriptionPairParts(row.sectionName) : null;
+  const labels = resolvePairDisplayLabels(row, resolved).filter((l) => l && l !== 'Unknown');
+  if (pairParts) return pairParts.join(' / ');
+  if (labels.length > 0) return [...new Set(labels)].join(' / ');
+  return 'LP position';
+}
+
 function formatSectionTypeLabel(value) {
   const s = cleanStr(value);
   if (!s) return '—';
@@ -1031,14 +1068,20 @@ function formatSectionTypeLabel(value) {
 }
 
 function sectionNameCell(row) {
-  const text = formatSectionMeta(row.sectionName);
+  let text = formatSectionMeta(row.sectionName);
+  if (text !== '—') {
+    const poolTitle = resolvePoolAssetTitle(row);
+    if (poolTitle && normalizeAssetLabelKey(text) === normalizeAssetLabelKey(poolTitle)) {
+      text = '—';
+    }
+  }
   const title = text === '—' ? '' : ` title="${escapeHtml(text)}"`;
   return `<td class="defi-section-meta-col defi-section-name-col"${title}><span class="defi-section-meta-text">${escapeHtml(text)}</span></td>`;
 }
 
 function sectionTypeCell(row) {
   const label = formatSectionTypeLabel(row.sectionType);
-  return `<td class="defi-section-meta-col"><span class="defi-section-type-badge">${escapeHtml(label)}</span></td>`;
+  return `<td class="defi-section-meta-col defi-section-type-col"><span class="defi-section-type-badge">${escapeHtml(label)}</span></td>`;
 }
 
 function renderAccountCell(addresses) {
@@ -1098,14 +1141,7 @@ function renderPairTokenCell(row) {
   for (let i = 0; i < legs; i++) {
     resolved.push(resolveLegFields(symbols[i], names[i], logos[i], addresses[i]));
   }
-  const hasTruncated = resolved.some((leg) => looksTruncatedLabel(leg.displayLabel));
-  const pairParts = hasTruncated ? parseDescriptionPairParts(row.sectionName) : null;
-  const labels = resolvePairDisplayLabels(row, resolved).filter((l) => l && l !== 'Unknown');
-  const title = pairParts
-    ? pairParts.join(' / ')
-    : labels.length > 0
-      ? [...new Set(labels)].join(' / ')
-      : 'LP position';
+  const title = resolvePoolAssetTitle(row);
   const logoHtml = resolved
     .slice(0, 3)
     .map((leg, i) => {
@@ -1628,6 +1664,41 @@ function platformEmptySectionsMessage(platform) {
   return 'No sections returned for this platform.';
 }
 
+function formatPlatformLabel(label) {
+  const s = cleanStr(label);
+  if (!s) return '';
+  const compact = s.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (compact === 'BORROWLEND') return 'BORROW/LEND';
+  return s
+    .toUpperCase()
+    .replace(/\s*\/\s*/g, '/')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function platformLabelToneClass(label) {
+  const key = cleanStr(label).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (key === 'DEFI') return 'defi-platform-label--defi';
+  if (key.includes('BORROW') || key.includes('LEND')) return 'defi-platform-label--borrow-lend';
+  if (key.includes('STAKE')) return 'defi-platform-label--staking';
+  if (key.includes('LIQUID') || key.includes('POOL')) return 'defi-platform-label--liquidity';
+  if (key.includes('FARM')) return 'defi-platform-label--farming';
+  if (key.includes('PERP') || key.includes('TRADE')) return 'defi-platform-label--perps';
+  if (key.includes('VAULT')) return 'defi-platform-label--vault';
+  if (key.includes('REWARD')) return 'defi-platform-label--rewards';
+  return 'defi-platform-label--default';
+}
+
+function renderPlatformLabelsHtml(labels) {
+  return labels
+    .map((label) => {
+      const text = formatPlatformLabel(label);
+      if (!text) return '';
+      return `<span class="defi-platform-label ${platformLabelToneClass(label)}">${escapeHtml(text)}</span>`;
+    })
+    .join('');
+}
+
 function renderPlatform(platform, index) {
   const sections = sortSections(platform);
   const pid = platformId(platform, index);
@@ -1637,6 +1708,7 @@ function renderPlatform(platform, index) {
   const website = String(platform.platformWebsite || '').trim();
   const title = platform.platform || platform.platformId || `Platform ${index + 1}`;
   const labels = Array.isArray(platform.platformLabels) ? platform.platformLabels.filter(Boolean) : [];
+  const labelsHtml = renderPlatformLabelsHtml(labels);
 
   const sectionsHtml = sections
     .filter((section) => sectionHasVisibleRows(section, platformExpanded))
@@ -1674,10 +1746,12 @@ function renderPlatform(platform, index) {
       <header class="defi-platform-header">
         <img class="defi-platform-logo" src="${escapeHtml(logo)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />
         <div class="defi-platform-heading">
-          <h2 class="defi-platform-title">${escapeHtml(title)}</h2>
+          <div class="defi-platform-title-row">
+            <h2 class="defi-platform-title">${escapeHtml(title)}</h2>
+            ${labelsHtml ? `<div class="defi-platform-labels">${labelsHtml}</div>` : ''}
+          </div>
           <div class="defi-platform-meta">
             ${platform.platformId ? `<span class="defi-platform-id mono">${escapeHtml(platform.platformId)}</span>` : ''}
-            ${labels.map((label) => `<span class="defi-platform-label">${escapeHtml(label)}</span>`).join('')}
             ${website ? `<a class="defi-platform-link" href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">Website</a>` : ''}
           </div>
         </div>

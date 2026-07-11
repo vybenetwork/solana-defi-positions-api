@@ -6176,11 +6176,26 @@ html {
   min-width: 0;
 }
 
-.defi-platform-title {
+.defi-platform-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
   margin: 0 0 0.35rem;
+}
+
+.defi-platform-title {
+  margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
   color: #f4f4f5;
+}
+
+.defi-platform-labels {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .defi-platform-meta {
@@ -6202,6 +6217,65 @@ html {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
   color: #d4d4d8;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.defi-platform-label--defi {
+  color: #67e8f9;
+  border-color: rgba(103, 232, 249, 0.4);
+  background: rgba(103, 232, 249, 0.1);
+}
+
+.defi-platform-label--borrow-lend {
+  color: #fb7185;
+  border-color: rgba(251, 113, 133, 0.4);
+  background: rgba(251, 113, 133, 0.1);
+}
+
+.defi-platform-label--staking {
+  color: #a78bfa;
+  border-color: rgba(167, 139, 250, 0.4);
+  background: rgba(167, 139, 250, 0.1);
+}
+
+.defi-platform-label--liquidity {
+  color: #22d3ee;
+  border-color: rgba(34, 211, 238, 0.4);
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.defi-platform-label--farming {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.defi-platform-label--perps {
+  color: #f472b6;
+  border-color: rgba(244, 114, 182, 0.4);
+  background: rgba(244, 114, 182, 0.1);
+}
+
+.defi-platform-label--vault {
+  color: #c4b5fd;
+  border-color: rgba(196, 181, 253, 0.4);
+  background: rgba(196, 181, 253, 0.1);
+}
+
+.defi-platform-label--rewards {
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.4);
+  background: rgba(250, 204, 21, 0.1);
+}
+
+.defi-platform-label--default {
+  color: #e4e4e7;
+  border-color: rgba(228, 228, 231, 0.28);
+  background: rgba(228, 228, 231, 0.08);
 }
 
 .defi-platform-link {
@@ -6377,35 +6451,42 @@ html {
 }
 
 .defi-positions-table .defi-col-section-name {
-  width: 200px;
-  min-width: 180px;
-  max-width: 200px;
+  width: 192px;
+  min-width: 172px;
+  max-width: 192px;
 }
 
 .defi-positions-table td.defi-section-name-col {
-  width: 200px;
-  min-width: 180px;
-  max-width: 200px;
+  width: 192px;
+  min-width: 172px;
+  max-width: 192px;
   box-sizing: border-box;
 }
 
-/* 3+ symbols in Pool/assets: allow Description to shrink to 140px */
+/* 3+ symbols in Pool/assets: allow Description to shrink to 132px */
 .defi-positions-table--wide-asset .defi-col-section-name,
 .defi-positions-table--wide-asset td.defi-section-name-col {
-  width: 140px;
-  min-width: 140px;
-  max-width: 200px;
+  width: 132px;
+  min-width: 132px;
+  max-width: 192px;
 }
 
 .defi-positions-table--nativeStaking .defi-col-section-name,
 .defi-positions-table--nativeStaking td.defi-section-name-col {
-  width: 125px;
-  min-width: 125px;
-  max-width: 125px;
+  width: 117px;
+  min-width: 117px;
+  max-width: 117px;
 }
 
 .defi-positions-table .defi-col-section-type {
-  width: 7.5rem;
+  width: 110px;
+  max-width: 110px;
+}
+
+.defi-positions-table td.defi-section-type-col {
+  width: 110px;
+  max-width: 110px;
+  box-sizing: border-box;
 }
 
 .defi-positions-table .defi-col-qty {
@@ -6554,26 +6635,31 @@ html {
 }
 
 .defi-account-more-tip__panel {
-  display: block;
-  min-width: 7.5rem;
-  padding: 0.32rem 0.5rem;
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.28rem;
+  width: max-content;
+  max-width: min(22rem, 70vw);
+  min-width: 0;
+  padding: 0.28rem 0.35rem;
   border-radius: 6px;
   border: 1px solid #3f3f46;
   background: #18181b;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  /* Grow leftward from the +N badge */
+  margin-left: auto;
 }
 
 .defi-account-more-tip .holders-mint-link {
-  display: block;
-  margin: 0.12rem 0;
-}
-
-.defi-account-more-tip .holders-mint-link:first-child {
-  margin-top: 0;
-}
-
-.defi-account-more-tip .holders-mint-link:last-child {
-  margin-bottom: 0;
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.16rem 0.4rem;
+  flex-shrink: 0;
 }
 
 .defi-account-more:hover .defi-account-more-tip,
@@ -6620,6 +6706,7 @@ html {
   align-items: center;
   gap: 0.55rem;
   min-width: 0;
+  margin-right: 8px;
 }
 
 .defi-token-logo {
@@ -6635,7 +6722,7 @@ html {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
-  min-width: 0;
+  min-width: 120px;
 }
 
 .defi-token-symbol {
