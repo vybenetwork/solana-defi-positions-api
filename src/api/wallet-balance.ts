@@ -159,7 +159,7 @@ export interface WalletBalanceListItem {
   valueUsd: number;
   valueSol?: number;
   verified: boolean;
-  priceSource?: 'Vybe' | 'Jupiter' | 'Pumpfun-API';
+  priceSource?: 'Vybe' | 'Jupiter' | 'Pumpfun-API' | 'RPC';
   enrichmentPending?: boolean;
   /** Skip Jupiter/pump logo repair — suspicious unverified Vybe mark. */
   skipLogoEnrich?: boolean;

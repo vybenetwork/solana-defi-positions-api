@@ -39,19 +39,6 @@ const USD_MAGNITUDE_BAR_COLORS = {
   lightGreen: '#86efac',
   green: '#22c55e',
 };
-const WALLET_USD_BAND_COLORS = [
-  USD_MAGNITUDE_BAR_COLORS.orange,
-  USD_MAGNITUDE_BAR_COLORS.yellow,
-  USD_MAGNITUDE_BAR_COLORS.lightGreen,
-  USD_MAGNITUDE_BAR_COLORS.green,
-  USD_MAGNITUDE_BAR_COLORS.green,
-  USD_MAGNITUDE_BAR_COLORS.green,
-  USD_MAGNITUDE_BAR_COLORS.green,
-  USD_MAGNITUDE_BAR_COLORS.green,
-];
-const HOLDERS_MONEY_BAG_SVG =
-  '<path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M38.14,21.15c-1.9-5.6-3.6-11.25-5.05-17c5.38-5.9,26.15-5.12,32.13-0.09l-5.53,13.15 c2.98-3.91,3.98-5.51,5.75-7.69c0.75,0.49,1.45,1.04,2.11,1.64c1.57,1.42,2.98,3,3.26,5.19c0.18,1.42-0.22,2.87-1.49,4.35 L56.63,35.48c-1.63-0.27-3.23-0.66-4.78-1.21c0.72-1.69,1.59-3.56,2.31-5.25L49.54,34c-4.81-1.02-8.69-0.41-12.29,1.5L24.37,20.05 c-0.76-0.92-1.11-1.84-1.11-2.76c0.01-3.73,5.57-6.96,8.5-8.18L38.14,21.15L38.14,21.15z M54.64,49.06l-2.51-11.49 c10.76,2,28.01,23.89,33.58,33.84c2.84,5.08,5.34,10.68,7.38,16.93c4.06,15.14,0.15,29.3-16.27,32.6 c-10.29,2.07-29.48,2.21-40.3,1.65c-11.63-0.6-29.64-0.58-34.34-12.53c-7.59-19.28,6.32-42.25,19-56.31 c1.67-1.85,3.39-3.57,5.18-5.17c4.61-4.06,9.59-8.87,15.52-10.88l-5.74,10.68l8.33-11.04h4.39L54.64,49.06L54.64,49.06z M49.29,58.49v2.03c2.15,0.23,4,0.67,5.54,1.33c1.54,0.67,2.88,1.67,4.03,3.02c0.91,1.03,1.61,2.09,2.1,3.17 c0.49,1.09,0.74,2.08,0.74,2.99c0,1.01-0.37,1.88-1.1,2.61c-0.74,0.73-1.63,1.1-2.68,1.1c-1.98,0-3.26-1.07-3.84-3.2 c-0.67-2.51-2.26-4.19-4.8-5.01v12.55c2.49,0.68,4.49,1.31,5.96,1.87c1.48,0.56,2.81,1.37,3.97,2.44c1.25,1.1,2.21,2.43,2.89,3.96 c0.67,1.54,1.01,3.22,1.01,5.05c0,2.29-0.53,4.44-1.62,6.43c-1.08,2.01-2.67,3.63-4.76,4.91c-2.1,1.27-4.58,2.02-7.46,2.25v2.05 c0,1.18-0.12,2.05-0.35,2.59c-0.23,0.54-0.73,0.81-1.52,0.81c-0.72,0-1.23-0.22-1.52-0.66c-0.29-0.44-0.43-1.13-0.43-2.06v-2.68 c-2.35-0.26-4.41-0.81-6.17-1.66c-1.76-0.84-3.23-1.89-4.41-3.15c-1.17-1.27-2.05-2.57-2.6-3.92c-0.57-1.36-0.84-2.7-0.84-4 c0-0.96,0.37-1.83,1.13-2.6c0.75-0.77,1.69-1.16,2.81-1.16c0.91,0,1.67,0.21,2.3,0.63c0.62,0.42,1.05,1.02,1.3,1.78 c0.54,1.65,1.01,2.91,1.41,3.79c0.41,0.87,1.02,1.68,1.83,2.4c0.81,0.72,1.89,1.28,3.24,1.66V85.79c-2.7-0.75-4.94-1.57-6.75-2.49 c-1.81-0.92-3.28-2.21-4.4-3.9c-1.12-1.69-1.69-3.86-1.69-6.51c0-3.46,1.1-6.3,3.3-8.5c2.2-2.21,5.38-3.5,9.54-3.86v-1.97 c0-1.69,0.64-2.53,1.9-2.53C48.65,56.02,49.29,56.84,49.29,58.49L49.29,58.49z M45.46,77.95V66.4c-1.69,0.5-3.01,1.16-3.95,1.99 c-0.95,0.82-1.42,2.08-1.42,3.75c0,1.58,0.44,2.79,1.33,3.6C42.3,76.55,43.65,77.29,45.46,77.95L45.46,77.95z M49.29,86.9v13.22 c2.03-0.4,3.59-1.21,4.7-2.44c1.1-1.24,1.66-2.66,1.66-4.29c0-1.75-0.54-3.1-1.62-4.06C52.96,88.37,51.38,87.56,49.29,86.9 L49.29,86.9z"/>';
-
 const SOLSCAN_TOKEN = 'https://solscan.io/token/';
 const TOKEN_PLACEHOLDER = '/token-placeholder.png';
 const DEFI_META_PLACEHOLDER = 'Load a wallet to see DeFi positions from the Vybe API.';
@@ -59,6 +46,23 @@ const DUST_USD_THRESHOLD = 0.1;
 const DUST_USD_LABEL = '$0.10';
 const SYMBOL_ENRICH_LIMIT = 20;
 const STAKE_STATUS_LABELS = { 4: 'Active', 6: 'Inactive' };
+const NATIVE_SOL_MINT = '11111111111111111111111111111111';
+const WSOL_MINT = 'So11111111111111111111111111111111111111112';
+const STABLECOIN_MINTS = new Set([
+  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+  'USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB',
+  '2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo',
+  'JEFFSQ3s8T3wKsvp4tnRAsUBW7Cqgnf8ukBZC4C8XBm1',
+  'Dn4noZ5jgGfkntzcQSUZ8czkreiZ1ForXYoV2H8Dm7S1',
+  '7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT',
+  'USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX',
+  'A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM',
+  'A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6',
+  'DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT',
+]);
+const STABLE_SYMBOLS = new Set(['USD', 'USDC', 'USDT', 'PYUSD', 'USD1', 'USDE', 'USDH', 'UXD', 'USDY', 'DAI', 'EURC', 'USDS', 'FDUSD']);
+const STABLE_SYMBOL_NEEDLES = ['USDC', 'USDT', 'PYUSD', 'USD1', 'USDE', 'USDH', 'UXD', 'USDY', 'DAI', 'EURC', 'USDS', 'FDUSD'];
 
 let lastPayload = null;
 /** @type {Set<string>} Platform ids with dust expanded */
@@ -139,6 +143,8 @@ const DEFI_SECTION_ICON_SVGS = {
     '<path d="M3.5 11.8 6.4 8.2l2.1 1.8 3-4.3" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.2 5.7h-2.8v2.8" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>',
   positions:
     '<rect x="3.5" y="3.5" width="4.2" height="4.2" rx="0.8" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="8.3" y="3.5" width="4.2" height="4.2" rx="0.8" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="3.5" y="8.3" width="4.2" height="4.2" rx="0.8" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="8.3" y="8.3" width="4.2" height="4.2" rx="0.8" fill="none" stroke="currentColor" stroke-width="1.2"/>',
+  everythingElse:
+    '<rect x="3.2" y="3.2" width="9.6" height="9.6" rx="2" fill="none" stroke="currentColor" stroke-width="1.25" stroke-dasharray="2.2 1.6"/><circle cx="5.5" cy="8" r="1.05" fill="currentColor"/><circle cx="8" cy="8" r="1.05" fill="currentColor"/><circle cx="10.5" cy="8" r="1.05" fill="currentColor"/>',
 };
 
 function resolveSectionIconKey(section, row) {
@@ -173,6 +179,19 @@ function renderSectionIconHtml(section, row) {
   const key = resolveSectionIconKey(section, row);
   const paths = DEFI_SECTION_ICON_SVGS[key] || DEFI_SECTION_ICON_SVGS.positions;
   return `<span class="defi-section-icon defi-section-icon--${escapeHtml(key)}" aria-hidden="true"><svg class="defi-section-icon__svg" viewBox="0 0 16 16">${paths}</svg></span>`;
+}
+
+function defiCategoryIconKey(categoryKey) {
+  const key = String(categoryKey || '').trim();
+  if (!key || key === 'everythingElse' || /^everything\s*else$/i.test(key)) return 'everythingElse';
+  return resolveSectionIconKey({ type: key }, { tableType: key });
+}
+
+function renderDefiCategoryTitleIconHtml(iconKey, accent) {
+  const key = DEFI_SECTION_ICON_SVGS[iconKey] ? iconKey : 'everythingElse';
+  const paths = DEFI_SECTION_ICON_SVGS[key];
+  const color = accent ? ` style="color:${escapeHtml(accent)}"` : '';
+  return `<span class="token-tier-card__title-icon defi-section-icon defi-section-icon--${escapeHtml(key)}"${color} aria-hidden="true"><svg class="token-tier-card__title-icon__svg" viewBox="0 0 16 16">${paths}</svg></span>`;
 }
 
 function asArray(value) {
@@ -341,8 +360,11 @@ function mintNeedsSymbol(mint, symbolHint) {
   return true;
 }
 
-/** Collect uncached missing-symbol mints: non-dust first (by USD), then top dust until SYMBOL_ENRICH_LIMIT.
- * Mints already in symbolCacheByMint / balance meta are excluded and do not count toward the 20. */
+/**
+ * Collect uncached missing-symbol mints for enrich-symbols.
+ * Only queues when at least one non-dust mint needs a fetch; dust-only → skip.
+ * When queuing: non-dust first, then dust to fill up to SYMBOL_ENRICH_LIMIT.
+ */
 function collectMissingSymbolCandidates(payload) {
   /** @type {Map<string, { mint: string, usd: number, isDust: boolean }>} */
   const byMint = new Map();
@@ -372,6 +394,7 @@ function collectMissingSymbolCandidates(payload) {
   }
   const all = [...byMint.values()];
   const nonDust = all.filter((c) => !c.isDust).sort((a, b) => b.usd - a.usd);
+  if (nonDust.length === 0) return [];
   const dust = all.filter((c) => c.isDust).sort((a, b) => b.usd - a.usd);
   const picked = nonDust.slice(0, SYMBOL_ENRICH_LIMIT);
   if (picked.length < SYMBOL_ENRICH_LIMIT) {
@@ -614,14 +637,10 @@ function walletUsdBands() {
   ];
 }
 
-function walletUsdBandColor(i) {
-  return WALLET_USD_BAND_COLORS[i] ?? USD_MAGNITUDE_BAR_COLORS.green;
-}
-
-function holdersMoneyBagIconHtml(bandLabel, color) {
-  const tip = bandLabel ? `USD band ${bandLabel}` : 'USD value band';
-  const style = color ? ` style="color:${escapeHtml(color)}"` : '';
-  return `<span class="holders-value-usd-bag"${style} title="${escapeHtml(tip)}" aria-label="${escapeHtml(tip)}"><svg class="holders-value-usd-bag__svg" viewBox="0 0 94.56 122.88" aria-hidden="true">${HOLDERS_MONEY_BAG_SVG}</svg></span>`;
+/** Sample USD firmly inside each band so bar count/color match the Value column rules. */
+function defiUsdBandSampleUsd(bandIndex) {
+  const samples = [0.005, 0.05, 0.5, 5, 50, 500, 5000, 15000];
+  return samples[bandIndex] ?? 15000;
 }
 
 function formatPositionCountWord(count) {
@@ -637,9 +656,10 @@ function setDefiLegendGrid(el, sliceCount) {
 }
 
 function renderDefiTierCard(args) {
+  const iconHtml = renderDefiCategoryTitleIconHtml(args.iconKey, args.accent);
   return `<div class="token-supply-legend-item token-supply-legend-item--tier-dashboard">
     <article class="token-tier-card" style="--tier-accent:${args.accent};--tier-swatch:${args.swatchColor}">
-      <h4 class="token-tier-card__title"><span class="token-tier-card__title-text">${escapeHtml(args.title)}</span></h4>
+      <h4 class="token-tier-card__title">${iconHtml}<span class="token-tier-card__title-text">${escapeHtml(args.title)}</span></h4>
       <ul class="token-tier-card__metrics">
         <li class="token-tier-metric">
           <span class="token-tier-metric__ico token-tier-metric__ico--share-swatch" style="--tier-swatch:${args.swatchColor}" aria-hidden="true"></span>
@@ -658,11 +678,12 @@ function renderDefiTierCard(args) {
   </div>`;
 }
 
-function renderDefiTierCardPlaceholder(title, accent, swatch) {
+function renderDefiTierCardPlaceholder(title, accent, swatch, iconKey) {
   return renderDefiTierCard({
     title,
     accent,
     swatchColor: swatch,
+    iconKey: iconKey || defiCategoryIconKey(title),
     slicePct: 0,
     usdLine: '—',
     amountLine: '—',
@@ -672,9 +693,10 @@ function renderDefiTierCardPlaceholder(title, accent, swatch) {
 function renderDefiUsdBarRow(d, i, count, total, maxC, sumUsd) {
   const pct = total > 0 ? (count / total) * 100 : 0;
   const w = Math.min(100, (count / maxC) * 100);
-  const color = walletUsdBandColor(i);
+  const sampleUsd = defiUsdBandSampleUsd(i);
+  const { color } = defiValueBarTierMeta(sampleUsd);
   const safe = escapeHtml(d.label);
-  const icon = holdersMoneyBagIconHtml(d.label, color);
+  const icon = renderDefiValueBars(sampleUsd);
   const pctLabel = formatPctSmart(pct);
   const positionMeta =
     count > 0
@@ -759,18 +781,20 @@ function defiCategoryBuckets(items) {
 
   const segments = top3.map((item) => ({
     title: defiCategoryLabel(item.key),
+    iconKey: defiCategoryIconKey(item.key),
     count: item.count,
     usd: item.usd,
   }));
   if (everythingElse.count > 0) {
     segments.push({
       title: 'Everything Else',
+      iconKey: 'everythingElse',
       count: everythingElse.count,
       usd: everythingElse.usd,
     });
   }
 
-  const finalSegments = segments.length > 0 ? segments : [{ title: '—', count: 0, usd: 0 }];
+  const finalSegments = segments.length > 0 ? segments : [{ title: '—', iconKey: 'everythingElse', count: 0, usd: 0 }];
   const totalUsd = finalSegments.reduce((sum, s) => sum + s.usd, 0) || 1;
   return {
     segments: finalSegments,
@@ -821,14 +845,19 @@ function setDefiStatsPlaceholder() {
   }
   setDefiLegendGrid(defiCategoryLegend, 4);
   if (defiCategoryLegend) {
-    defiCategoryLegend.innerHTML = ['Rewards', 'Staked', 'Lending', 'Everything Else']
-      .map((title, i) => renderDefiTierCardPlaceholder(title, DEFI_PIE_HEX[i], DEFI_PIE_HEX[i]))
+    defiCategoryLegend.innerHTML = [
+      ['Rewards', 'rewards'],
+      ['Staked', 'staked'],
+      ['Lending', 'lending'],
+      ['Everything Else', 'everythingElse'],
+    ]
+      .map(([title, iconKey], i) => renderDefiTierCardPlaceholder(title, DEFI_PIE_HEX[i], DEFI_PIE_HEX[i], iconKey))
       .join('');
   }
   if (defiValueUsdBars) defiValueUsdBars.innerHTML = renderDefiUsdBarsPlaceholderHtml();
   if (defiCategoryPieTitle) defiCategoryPieTitle.textContent = 'Categories ranked by USD value';
   if (defiCategoryPieLede) defiCategoryPieLede.textContent = 'Load a wallet to see DeFi category value breakdown.';
-  if (defiCategoryPieInsight) defiCategoryPieInsight.textContent = 'Top categories by USD value; remainder grouped as Everything Else.';
+  if (defiCategoryPieInsight) defiCategoryPieInsight.textContent = 'Top categories by USD; rest as Everything Else.';
   if (defiStatsMeta) {
     defiStatsMeta.textContent = 'Load a wallet to see DeFi position categories and USD value band charts (all positions, including dust).';
   }
@@ -866,6 +895,7 @@ function renderDefiStats(payload) {
       .map((segment, i) =>
         renderDefiTierCard({
           title: segment.title,
+          iconKey: segment.iconKey,
           accent: DEFI_PIE_HEX[i],
           swatchColor: DEFI_PIE_HEX[i],
           slicePct: bucket.slicePcts[i],
@@ -1003,7 +1033,7 @@ function formatSectionTypeLabel(value) {
 function sectionNameCell(row) {
   const text = formatSectionMeta(row.sectionName);
   const title = text === '—' ? '' : ` title="${escapeHtml(text)}"`;
-  return `<td class="defi-section-meta-col"${title}><span class="defi-section-meta-text">${escapeHtml(text)}</span></td>`;
+  return `<td class="defi-section-meta-col defi-section-name-col"${title}><span class="defi-section-meta-text">${escapeHtml(text)}</span></td>`;
 }
 
 function sectionTypeCell(row) {
@@ -1024,7 +1054,7 @@ function renderAccountCell(addresses) {
     ${primary}
     <span class="defi-account-more token-badge token-badge--info token-badge--has-tip" tabindex="0" aria-label="${extra.length} more account address(es)">
       +${extra.length}
-      <span class="token-badge-tip defi-account-more-tip" role="tooltip">${tooltipLinks}</span>
+      <span class="token-badge-tip defi-account-more-tip" role="tooltip"><span class="defi-account-more-tip__panel">${tooltipLinks}</span></span>
     </span>
   </span>`;
 }
@@ -1097,17 +1127,47 @@ function renderAssetCell(row) {
   return isMultiAssetRow(row) ? renderPairTokenCell(row) : renderSingleTokenCell(row);
 }
 
+function isStableToken(mint, symbol) {
+  const m = cleanStr(mint);
+  if (m && STABLECOIN_MINTS.has(m)) return true;
+  const sym = cleanStr(symbol).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (!sym) return false;
+  if (STABLE_SYMBOLS.has(sym)) return true;
+  return STABLE_SYMBOL_NEEDLES.some((needle) => sym.includes(needle));
+}
+
+function isSolToken(mint, symbol) {
+  const m = cleanStr(mint);
+  if (m === NATIVE_SOL_MINT || m === WSOL_MINT) return true;
+  const sym = cleanStr(symbol).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return sym === 'SOL' || sym === 'WSOL';
+}
+
+function amountTokenToneClass(mint, symbol) {
+  if (isStableToken(mint, symbol)) return 'defi-amount-line--stable';
+  if (isSolToken(mint, symbol)) return 'defi-amount-line--sol';
+  return 'defi-amount-line--other';
+}
+
+function renderAmountLineHtml(amount, label, logo, mint) {
+  const tone = amountTokenToneClass(mint, label);
+  const logoSrc = cleanStr(logo) || TOKEN_PLACEHOLDER;
+  return `<span class="defi-amount-line ${tone}"><span class="defi-amount-line__value">${formatAmount(amount)}</span> <span class="defi-amount-line__symbol">${escapeHtml(label)}</span><img class="defi-amount-line__logo" src="${escapeHtml(logoSrc)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" /></span>`;
+}
+
 function renderMultiAmounts(row) {
   const amounts = asArray(row.amount);
   const symbols = asArray(row.symbol);
   const names = asArray(row.name);
   const addresses = asArray(row.address);
+  const logos = asArray(row.logourl);
   if (amounts.length === 0) return '—';
-  const resolved = amounts.map((_, i) => resolveLegFields(symbols[i], names[i], null, addresses[i]));
+  const resolved = amounts.map((_, i) => resolveLegFields(symbols[i], names[i], logos[i], addresses[i]));
   const labels = resolvePairDisplayLabels(row, resolved);
   const lines = amounts.map((amount, i) => {
-    const label = labels[i] || resolved[i]?.displayLabel || '—';
-    return `<span class="defi-amount-line"><span class="defi-amount-line__value">${formatAmount(amount)}</span> ${escapeHtml(label)}</span>`;
+    const leg = resolved[i];
+    const label = labels[i] || leg?.displayLabel || '—';
+    return renderAmountLineHtml(amount, label, leg?.logo, addresses[i]);
   });
   return `<div class="defi-multi-amounts">${lines.join('')}</div>`;
 }
@@ -1134,30 +1194,153 @@ function renderStakeStatus(status) {
 
 function valueCell(row, { debt = false } = {}) {
   const usd = effectiveUsd(row);
+  const formatted = formatDefiTableUsd(usd, { debt });
   const cls = debt && usd < 0 ? 'num defi-value--debt' : usd < 0 ? 'num defi-value--debt' : 'num';
-  return `<td class="${cls}">${formatDefiTableUsd(usd, { debt })}</td>`;
+  if (formatted === '—' || !Number.isFinite(usd)) {
+    return `<td class="${cls}">—</td>`;
+  }
+  return `<td class="${cls} defi-value-col">${formatDefiValueWithBars(usd, formatted)}</td>`;
+}
+
+/** DeFi Value column bars. */
+function defiValueBarCount(usd) {
+  const n = Number(usd);
+  if (!Number.isFinite(n)) return 0;
+  if (n < 0) return 1;
+  if (n < 0.01) return 1; // $0 – <$0.01: 1 orange
+  if (n < 0.1) return 1; // $0.01 – <$0.10: 1 yellow
+  if (n < 1) return 1; // $0.10 – <$1: 1 light green
+  if (n < 10) return 2;
+  if (n < 100) return 3;
+  if (n < 1000) return 4;
+  return 5;
+}
+
+function defiValueBarTierMeta(usd) {
+  const n = Number(usd);
+  if (!Number.isFinite(n) || n < 0) {
+    return {
+      tierClass: 'holders-usd-tier--red',
+      color: USD_MAGNITUDE_BAR_COLORS.red,
+      label: 'negative',
+    };
+  }
+  if (n < 0.01) {
+    return {
+      tierClass: 'holders-usd-tier--orange',
+      color: USD_MAGNITUDE_BAR_COLORS.orange,
+      label: '$0–$0.01',
+    };
+  }
+  if (n < 0.1) {
+    return {
+      tierClass: 'holders-usd-tier--yellow',
+      color: USD_MAGNITUDE_BAR_COLORS.yellow,
+      label: '$0.01–$0.10',
+    };
+  }
+  if (n < 1) {
+    return {
+      tierClass: 'holders-usd-tier--light-green',
+      color: USD_MAGNITUDE_BAR_COLORS.lightGreen,
+      label: '$0.10–$1',
+    };
+  }
+  if (n < 10) {
+    return {
+      tierClass: 'holders-usd-tier--green',
+      color: USD_MAGNITUDE_BAR_COLORS.green,
+      label: '$1–$10',
+    };
+  }
+  if (n < 100) {
+    return {
+      tierClass: 'holders-usd-tier--green',
+      color: USD_MAGNITUDE_BAR_COLORS.green,
+      label: '$10–$100',
+    };
+  }
+  if (n < 1000) {
+    return {
+      tierClass: 'holders-usd-tier--green',
+      color: USD_MAGNITUDE_BAR_COLORS.green,
+      label: '$100–$1,000',
+    };
+  }
+  return {
+    tierClass: 'holders-usd-tier--green',
+    color: USD_MAGNITUDE_BAR_COLORS.green,
+    label: '$1,000+',
+  };
+}
+
+function renderDefiValueBars(usd) {
+  const bars = defiValueBarCount(usd);
+  if (bars < 1 || bars > 5) return '';
+  const { color, label } = defiValueBarTierMeta(usd);
+  const tierLabel = `Value ${label}`;
+  const barHtml = Array.from({ length: 5 }, (_, i) => {
+    const active = i < bars;
+    const style = active ? ` style="background:${color}"` : '';
+    return `<span class="trade-volume-bar${active ? ' trade-volume-bar--active' : ''}"${style}></span>`;
+  }).join('');
+  return `<span class="trade-volume-bars" aria-label="${escapeHtml(tierLabel)}" title="${escapeHtml(tierLabel)}">${barHtml}</span>`;
+}
+
+function formatDefiValueWithBars(usd, formattedText) {
+  const bars = defiValueBarCount(usd);
+  if (!formattedText || formattedText === '—' || bars === 0) return formattedText || '—';
+  const { tierClass } = defiValueBarTierMeta(usd);
+  const main = `<span class="holders-usd-tier ${tierClass}">${escapeHtml(formattedText)}</span>`;
+  const barsHtml = renderDefiValueBars(usd);
+  return `<span class="trades-cell-with-volume"><span class="trades-cell-with-volume__bars">${barsHtml}</span><span class="trades-cell-with-volume__main">${main}</span></span>`;
 }
 
 function amountCell(row, { debt = false } = {}) {
+  const amounts = asArray(row.amount);
+  if (amounts.length > 1 || isMultiAssetRow(row)) {
+    return `<td class="num defi-amounts-col">${renderMultiAmounts(row)}</td>`;
+  }
   const amount = toNum(row.amount);
-  const cls = debt && amount != null && amount < 0 ? 'num defi-value--debt' : 'num';
-  return `<td class="${cls}">${formatAmount(row.amount)}</td>`;
+  const cls = debt && amount != null && amount < 0 ? 'num defi-value--debt defi-amounts-col' : 'num defi-amounts-col';
+  const mint = asArray(row.address)[0] || row.address;
+  const leg = resolveLegFields(
+    asArray(row.symbol)[0] ?? row.symbol,
+    asArray(row.name)[0] ?? row.name,
+    asArray(row.logourl)[0] ?? row.logourl,
+    mint,
+  );
+  if (!leg.displayLabel || leg.displayLabel === 'Unknown') {
+    return `<td class="${cls}">${formatAmount(row.amount)}</td>`;
+  }
+  return `<td class="${cls}">${renderAmountLineHtml(row.amount, leg.displayLabel, leg.logo, mint)}</td>`;
 }
 
 function resolveApyBadgeClass(apy) {
   const n = toNum(apy);
   if (n == null) return '';
-  if (n === 0) return 'swap-pair-chg swap-pair-chg--breaking-even';
+  if (n === 0) return 'swap-pair-chg swap-pair-chg--zero-apy';
+  if (Math.abs(n) < 0.01) return 'swap-pair-chg swap-pair-chg--dust-apy';
   if (n > 0 && n <= 1) return 'swap-pair-chg swap-pair-chg--missing-7d';
   if (n > 1 && n <= 10) return 'swap-pair-chg swap-pair-chg--light-up';
   if (n > 10) return 'swap-pair-chg swap-pair-chg--up';
   return 'swap-pair-chg swap-pair-chg--down';
 }
 
+function formatApyLabel(apy) {
+  const n = toNum(apy);
+  if (n == null) return null;
+  if (n === 0) return '0%';
+  if (Math.abs(n) < 0.01) return '0.001%';
+  return formatPct(n);
+}
+
 function apyCell(row) {
-  if (row.apy == null) return '<td class="num defi-apy-col">—</td>';
+  const label = formatApyLabel(row.apy);
+  if (label == null) {
+    return '<td class="num defi-apy-col"><span class="swap-pair-chg swap-pair-chg--missing">No APY</span></td>';
+  }
   const badgeClass = resolveApyBadgeClass(row.apy);
-  const label = formatPct(row.apy);
   return `<td class="num defi-apy-col"><span class="${badgeClass}">${escapeHtml(label)}</span></td>`;
 }
 
@@ -1392,6 +1575,16 @@ function sectionHasVisibleRows(section, platformExpanded) {
   return rowsForDisplay(rows, platformExpanded).length > 0;
 }
 
+function rowSymbolCount(row) {
+  const symbols = asArray(row?.symbol).filter((s) => cleanStr(s));
+  const addresses = asArray(row?.address).filter((a) => cleanStr(a));
+  return Math.max(symbols.length, addresses.length, isMultiAssetRow(row) ? 2 : 1);
+}
+
+function tableNeedsWideAssetColumn(rows) {
+  return rows.some((row) => rowSymbolCount(row) >= 3);
+}
+
 function renderSectionTable(section, platformExpanded) {
   const rows = Array.isArray(section.rows) ? section.rows : [];
   const rowsToRender = rowsForDisplay(rows, platformExpanded);
@@ -1404,9 +1597,10 @@ function renderSectionTable(section, platformExpanded) {
   const body = rowsToRender.map((row, index) => schema.renderRow(row, index)).join('');
 
   const layoutClass = schema.layout ? ` defi-positions-table--${escapeHtml(schema.layout)}` : '';
+  const wideAssetClass = tableNeedsWideAssetColumn(rowsToRender) ? ' defi-positions-table--wide-asset' : '';
   return `
     <div class="table-wrap table-wrap--defi-section">
-      <table class="defi-positions-table defi-positions-table--${escapeHtml(schema.tableType)}${layoutClass}">
+      <table class="defi-positions-table defi-positions-table--${escapeHtml(schema.tableType)}${layoutClass}${wideAssetClass}">
         ${renderTableColgroup(schema.layout)}
         <thead>
           <tr>${renderTableHeader(schema)}</tr>
@@ -1533,12 +1727,10 @@ function renderPlatforms(payload, options = {}) {
   const { visible, hidden } = countVisibleHidden(platforms);
   renderSummary(payload, visible, hidden);
 
-  const dustNote = hidden > 0 ? ` · ${hidden} under ${DUST_USD_LABEL} hidden` : '';
-  const enrichNote =
-    balanceMetaByMint.size > 0 || symbolCacheByMint.size > 0
-      ? ' · labels/logos enriched from wallet balances and cached pair symbols where missing'
-      : '';
-  defiMeta.textContent = `${platforms.length} protocol${platforms.length === 1 ? '' : 's'} · ${visible} position${visible === 1 ? '' : 's'} shown${dustNote}${enrichNote} · sorted by value · schema per position type (LP, lend, borrow, stake, perps).`;
+  const dustNote = hidden > 0 ? ` · ${hidden.toLocaleString()} under ${DUST_USD_LABEL} hidden` : '';
+  const protocolWord = platforms.length === 1 ? 'protocol' : 'protocols';
+  const positionWord = visible === 1 ? 'position' : 'positions';
+  defiMeta.textContent = `Showing ${visible.toLocaleString()} ${positionWord} across ${platforms.length.toLocaleString()} ${protocolWord}${dustNote}`;
   defiPlatforms.innerHTML = platforms.map(renderPlatform).join('');
   renderDefiStats(payload);
 }

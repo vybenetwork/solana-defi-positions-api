@@ -34,7 +34,7 @@ export interface CachedTokenMeta {
   /** Epoch ms when price fields were last fetched for quote TTL */
   priceFetchedAt?: number;
   /** Which resolver last fetched the spot price (for TTL cache hits). */
-  priceSource?: 'Vybe' | 'Jupiter' | 'Pumpfun-API';
+  priceSource?: 'Vybe' | 'Jupiter' | 'Pumpfun-API' | 'RPC';
   marketCapUsd?: number;
   liquidityUsd?: number;
   category?: string;
@@ -373,7 +373,8 @@ export function mergePriceFieldsOnly(
     priceSource:
       token.priceSource === 'Vybe' ||
       token.priceSource === 'Jupiter' ||
-      token.priceSource === 'Pumpfun-API'
+      token.priceSource === 'Pumpfun-API' ||
+      token.priceSource === 'RPC'
         ? token.priceSource
         : existing.priceSource,
   };
@@ -436,7 +437,8 @@ export async function cacheTokenMetaFromVybe(
     priceSource:
       token.priceSource === 'Vybe' ||
       token.priceSource === 'Jupiter' ||
-      token.priceSource === 'Pumpfun-API'
+      token.priceSource === 'Pumpfun-API' ||
+      token.priceSource === 'RPC'
         ? token.priceSource
         : undefined,
     marketCapUsd:

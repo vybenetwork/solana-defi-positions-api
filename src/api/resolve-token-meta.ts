@@ -95,16 +95,10 @@ async function applyJupiterMeta(
   decimalsHint: number | undefined,
 ): Promise<boolean> {
   try {
-    let jupiter = await fetchJupiterTokenDetails(mint, {
+    const jupiter = await fetchJupiterTokenDetails(mint, {
       decimalsHint,
     });
-    if (!jupiter) {
-      jupiter = await fetchJupiterTokenDetails(mint, {
-        decimalsHint,
-        allowMissingPrice: true,
-      });
-    }
-    if (!jupiter?.token?.symbol) return false;
+    if (!jupiter) return false;
     await cacheTokenMetaFromVybe(mint, {
       ...jupiter.token,
       priceFetchedAt: Date.now(),

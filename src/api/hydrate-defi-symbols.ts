@@ -55,7 +55,10 @@ function isBadSymbol(symbol: unknown, mint: string): boolean {
 
 function metaToPatch(meta: CachedTokenMeta): { symbol: string; name: string; logoUrl?: string } | null {
   const symbol = String(meta.symbol ?? '').trim();
-  if (!symbol || isMintLikeLabel(symbol, meta.mint) || symbol.includes('…')) return null;
+  if (!symbol || symbol.includes('…')) return null;
+  if (isMintLikeLabel(symbol, meta.mint) && symbol.toUpperCase() !== 'SPL' && symbol.toUpperCase() !== 'TOKEN2022') {
+    return null;
+  }
   const name = String(meta.name ?? '').trim();
   return {
     symbol,
@@ -140,9 +143,19 @@ function collectAllMissingMints(platforms: unknown[]): MintCandidate[] {
   return [...nonDust, ...dust];
 }
 
-/** Apply 20-cap only to uncached network fetches (cache hits do not count). */
+/**
+ * Apply 20-cap only to uncached network fetches (cache hits do not count).
+ * Skip entirely when there are no non-dust mints to fetch — dust-only queues are not started.
+ */
 function pickEnrichQueue(candidates: MintCandidate[], limit: number): string[] {
-  return candidates.slice(0, Math.max(0, limit)).map((c) => c.mint);
+  const nonDust = candidates.filter((c) => !c.isDust);
+  if (nonDust.length === 0) return [];
+  const dust = candidates.filter((c) => c.isDust);
+  const picked = nonDust.slice(0, Math.max(0, limit));
+  if (picked.length < limit) {
+    picked.push(...dust.slice(0, limit - picked.length));
+  }
+  return picked.map((c) => c.mint);
 }
 
 function applyMetaMapToPlatforms(

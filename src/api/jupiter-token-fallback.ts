@@ -116,13 +116,11 @@ export async function fetchJupiterAsset(mint: string): Promise<JupiterAssetInfo 
         icon?: string;
         decimals?: number;
         isVerified?: boolean;
-        organicScore?: number;
       }
     | undefined;
   if (!row) return null;
-  const symbol = row.symbol?.trim() || '';
+  const symbol = row.symbol?.trim() || apiMint.slice(0, 6);
   const name = row.name?.trim() || symbol;
-  if (!symbol) return null;
   const logoUrl = row.icon?.trim() || null;
   const decimals = parsePositiveInt(row.decimals);
   return {
@@ -134,10 +132,10 @@ export async function fetchJupiterAsset(mint: string): Promise<JupiterAssetInfo 
   };
 }
 
-/** Full token details from Jupiter asset search + USDC swap quote. */
+/** Full token details from Jupiter asset search + USDC swap quote (same contract as wallet-balances). */
 export async function fetchJupiterTokenDetails(
   mint: string,
-  options: { decimalsHint?: number; allowMissingPrice?: boolean } = {},
+  options: { decimalsHint?: number } = {},
 ): Promise<JupiterTokenDetails | null> {
   const m = mint.trim();
   if (!m) return null;
@@ -152,25 +150,18 @@ export async function fetchJupiterTokenDetails(
   } catch {
     if (typeof decimals !== 'number' || !Number.isFinite(decimals)) return null;
   }
-  if (!asset?.symbol?.trim()) {
-    if (!options.allowMissingPrice) return null;
-  }
-  if (typeof decimals !== 'number' || !Number.isFinite(decimals)) {
-    if (!asset?.symbol?.trim()) return null;
-    decimals = 0;
-  }
+  if (typeof decimals !== 'number' || !Number.isFinite(decimals)) return null;
 
-  let quote: JupiterQuotePrice | null = null;
+  let quote: JupiterQuotePrice | null;
   try {
     quote = await fetchJupiterQuotePrice(m, decimals);
   } catch {
-    quote = null;
-  }
-
-  const priceUsd = quote?.priceUsd ?? 0;
-  if (!options.allowMissingPrice && (!(Number.isFinite(priceUsd) && priceUsd > 0))) {
     return null;
   }
+  if (!quote) return null;
+
+  const priceUsd = quote.priceUsd;
+  if (!Number.isFinite(priceUsd) || priceUsd <= 0) return null;
 
   const symbol = asset?.symbol?.trim() || m.slice(0, 6);
   const name = asset?.name?.trim() || symbol;
@@ -181,12 +172,12 @@ export async function fetchJupiterTokenDetails(
     decimals,
     decimal: decimals,
     logoUrl: asset?.logoUrl?.trim() || undefined,
-    price: priceUsd > 0 ? priceUsd : undefined,
+    price: priceUsd,
     verified: asset?.verified === true,
     isVerified: asset?.verified === true,
   };
 
-  return { mint: m, priceUsd: priceUsd > 0 ? priceUsd : 0, decimals, token };
+  return { mint: m, priceUsd, decimals, token };
 }
 
 /** USD price per token from Jupiter swap quote (input → USDC only). */

@@ -3672,8 +3672,16 @@ td .mono {
   color: #86efac;
 }
 
+.holders-usd-tier--mid-green {
+  color: #4ade80;
+}
+
 .holders-usd-tier--green {
   color: #22c55e;
+}
+
+.holders-usd-tier--dark-green {
+  color: #16a34a;
 }
 
 .holders-value-usd {
@@ -3791,10 +3799,22 @@ td .mono {
   font-size: 0.72rem;
 }
 
-.wallet-charts-row__col--usd-bands .holders-value-usd-bag__svg {
-  width: 8.8px;
-  height: 12px;
+.wallet-charts-row__col--usd-bands .holders-hbar-name .trade-volume-bars {
+  height: 0.95em;
+  flex-shrink: 0;
+  margin-right: 0.1rem;
 }
+
+.wallet-charts-row__col--usd-bands .holders-hbar-name .trade-volume-bar {
+  width: 0.16em;
+  min-width: 1px;
+}
+
+.wallet-charts-row__col--usd-bands .holders-hbar-name .trade-volume-bar:nth-child(1) { height: 0.35em; }
+.wallet-charts-row__col--usd-bands .holders-hbar-name .trade-volume-bar:nth-child(2) { height: 0.5em; }
+.wallet-charts-row__col--usd-bands .holders-hbar-name .trade-volume-bar:nth-child(3) { height: 0.65em; }
+.wallet-charts-row__col--usd-bands .holders-hbar-name .trade-volume-bar:nth-child(4) { height: 0.8em; }
+.wallet-charts-row__col--usd-bands .holders-hbar-name .trade-volume-bar:nth-child(5) { height: 0.95em; }
 
 .wallet-charts-row__col--usd-bands .holders-hbar-meta {
   grid-column: 2;
@@ -4749,6 +4769,18 @@ td .mono {
   color: #facc15;
   border-color: rgba(250, 204, 21, 0.3);
   background: rgba(250, 204, 21, 0.1);
+}
+
+.swap-pair-chg--zero-apy {
+  color: #ea580c;
+  border-color: rgba(234, 88, 12, 0.4);
+  background: rgba(234, 88, 12, 0.14);
+}
+
+.swap-pair-chg--dust-apy {
+  color: #fdba74;
+  border-color: rgba(253, 186, 116, 0.4);
+  background: rgba(253, 186, 116, 0.12);
 }
 
 /* Dead rows: 1d missing chip matches 7d missing styling */
@@ -6246,6 +6278,12 @@ html {
 .defi-section-icon--nativeStaking { color: #34d399; }
 .defi-section-icon--leverage { color: #f472b6; }
 .defi-section-icon--positions { color: #a1a1aa; }
+.defi-section-icon--everythingElse { color: #fb923c; }
+
+.token-tier-card__title-icon.defi-section-icon {
+  width: 12px;
+  height: 12px;
+}
 
 .defi-platform-dust-btn {
   padding: 0.4rem 0.7rem;
@@ -6310,15 +6348,11 @@ html {
 }
 
 .defi-positions-table--asset9 {
-  min-width: 56rem;
+  min-width: 62.25rem;
 }
 
 .defi-positions-table--nativeStaking {
   min-width: 57.5rem;
-}
-
-.defi-positions-table--nativeStaking col.defi-col-section-name {
-  width: 9.33rem;
 }
 
 .defi-positions-table--leverage {
@@ -6333,8 +6367,41 @@ html {
   width: 10rem;
 }
 
+/* 1/3 wider Pool/assets when any row has 3+ symbols (e.g. wSOL / EURC / RAY) */
+.defi-positions-table--wide-asset .defi-col-asset {
+  width: 13.333rem;
+}
+
+.defi-positions-table--asset9.defi-positions-table--wide-asset {
+  min-width: 62.25rem;
+}
+
 .defi-positions-table .defi-col-section-name {
-  width: 14rem;
+  width: 200px;
+  min-width: 180px;
+  max-width: 200px;
+}
+
+.defi-positions-table td.defi-section-name-col {
+  width: 200px;
+  min-width: 180px;
+  max-width: 200px;
+  box-sizing: border-box;
+}
+
+/* 3+ symbols in Pool/assets: allow Description to shrink to 140px */
+.defi-positions-table--wide-asset .defi-col-section-name,
+.defi-positions-table--wide-asset td.defi-section-name-col {
+  width: 140px;
+  min-width: 140px;
+  max-width: 200px;
+}
+
+.defi-positions-table--nativeStaking .defi-col-section-name,
+.defi-positions-table--nativeStaking td.defi-section-name-col {
+  width: 125px;
+  min-width: 125px;
+  max-width: 125px;
 }
 
 .defi-positions-table .defi-col-section-type {
@@ -6342,7 +6409,7 @@ html {
 }
 
 .defi-positions-table .defi-col-qty {
-  width: 6.5rem;
+  width: 10rem;
 }
 
 .defi-positions-table .defi-col-price {
@@ -6350,7 +6417,7 @@ html {
 }
 
 .defi-positions-table .defi-col-value {
-  width: 5.5rem;
+  width: 7.01rem;
 }
 
 .defi-positions-table .defi-col-rate {
@@ -6378,7 +6445,7 @@ html {
 }
 
 .defi-positions-table td.defi-amounts-col {
-  white-space: normal;
+  white-space: nowrap;
   overflow: visible;
   text-overflow: clip;
 }
@@ -6418,7 +6485,18 @@ html {
 
 .defi-account-col {
   max-width: 120px;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.defi-positions-table td.defi-account-col {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+.defi-positions-table td.defi-account-col:hover,
+.defi-positions-table td.defi-account-col:focus-within {
+  z-index: 40;
 }
 
 .defi-account-cell {
@@ -6429,7 +6507,13 @@ html {
   width: 100%;
   min-width: 0;
   max-width: 120px;
+  overflow: visible;
+}
+
+.defi-account-cell > .holders-mint-link {
+  min-width: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .defi-account-more {
@@ -6446,17 +6530,37 @@ html {
   font-weight: 600;
   line-height: 1.2;
   cursor: default;
+  flex-shrink: 0;
+  z-index: 1;
 }
 
 .defi-account-more-tip {
   pointer-events: auto;
   white-space: normal;
-  min-width: 7.5rem;
+  min-width: 0;
   line-height: 1.45;
   left: auto;
   right: 0;
-  top: calc(100% + 0.35rem);
+  top: auto;
+  bottom: 100%;
   transform: none;
+  z-index: 50;
+  /* Transparent shell: padding is the hover bridge into the panel */
+  padding: 0 0 0.2rem;
+  margin: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.defi-account-more-tip__panel {
+  display: block;
+  min-width: 7.5rem;
+  padding: 0.32rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #3f3f46;
+  background: #18181b;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
 }
 
 .defi-account-more-tip .holders-mint-link {
@@ -6464,8 +6568,16 @@ html {
   margin: 0.12rem 0;
 }
 
+.defi-account-more-tip .holders-mint-link:first-child {
+  margin-top: 0;
+}
+
+.defi-account-more-tip .holders-mint-link:last-child {
+  margin-bottom: 0;
+}
+
 .defi-account-more:hover .defi-account-more-tip,
-.defi-account-more:focus-visible .defi-account-more-tip {
+.defi-account-more:focus-within .defi-account-more-tip {
   display: block;
 }
 
@@ -6493,6 +6605,13 @@ html {
   font-variant-numeric: tabular-nums;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Amounts: show full value + symbol + logo (override td.num clipping) */
+.defi-positions-table td.num.defi-amounts-col {
+  overflow: visible;
+  text-overflow: clip;
   white-space: nowrap;
 }
 
@@ -6570,6 +6689,26 @@ html {
   color: #f87171;
 }
 
+.defi-positions-table td.defi-value-col {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.defi-positions-table td.defi-value-col .trade-volume-bars {
+  height: 0.88em;
+}
+
+.defi-positions-table td.defi-value-col .trade-volume-bar {
+  width: 0.147em;
+  min-width: 1px;
+}
+
+.defi-positions-table td.defi-value-col .trade-volume-bar:nth-child(1) { height: 0.32em; }
+.defi-positions-table td.defi-value-col .trade-volume-bar:nth-child(2) { height: 0.46em; }
+.defi-positions-table td.defi-value-col .trade-volume-bar:nth-child(3) { height: 0.6em; }
+.defi-positions-table td.defi-value-col .trade-volume-bar:nth-child(4) { height: 0.74em; }
+.defi-positions-table td.defi-value-col .trade-volume-bar:nth-child(5) { height: 0.88em; }
+
 .defi-token-cell--pair .defi-token-logo-stack {
   position: relative;
   width: 34px;
@@ -6594,14 +6733,45 @@ html {
 }
 
 .defi-amount-line {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.28rem;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  font-weight: 400;
 }
 
-.defi-amount-line__value {
-  font-weight: 600;
-  color: #e4e4e7;
+.defi-amount-line__value,
+.defi-amount-line__symbol {
+  font-weight: 400;
+}
+
+.defi-amount-line__logo {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.defi-amount-line--stable,
+.defi-amount-line--stable .defi-amount-line__value,
+.defi-amount-line--stable .defi-amount-line__symbol {
+  color: #86efac;
+}
+
+.defi-amount-line--sol,
+.defi-amount-line--sol .defi-amount-line__value,
+.defi-amount-line--sol .defi-amount-line__symbol {
+  color: #c4b5fd;
+}
+
+.defi-amount-line--other,
+.defi-amount-line--other .defi-amount-line__value,
+.defi-amount-line--other .defi-amount-line__symbol {
+  color: #facc15;
 }
 
 .defi-account-links {
