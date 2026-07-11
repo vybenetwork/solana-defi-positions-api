@@ -1689,8 +1689,29 @@ function sortSections(platform) {
   });
 }
 
-function platformEmptySectionsMessage(platform) {
+function platformTotalRowCount(platform) {
+  let count = 0;
+  for (const section of platform.sections || []) {
+    count += Array.isArray(section.rows) ? section.rows.length : 0;
+  }
+  return count;
+}
+
+function platformEmptySectionsMessage(platform, { hiddenDustCount = 0 } = {}) {
   const total = toNum(platform.totalValueUsd);
+  const rowCount = platformTotalRowCount(platform);
+  const dustCount = hiddenDustCount > 0 ? hiddenDustCount : platformHiddenDustCount(platform);
+
+  // Rows exist but none are visible → they are dust (hide-dust is on).
+  if (rowCount > 0) {
+    const n = dustCount > 0 ? dustCount : rowCount;
+    const dustWord = n === 1 ? 'dust row' : 'dust rows';
+    if (total != null && Math.abs(total) > 0) {
+      return `Vybe reports ${formatUsd(total)} total for this protocol but returned only ${n.toLocaleString()} ${dustWord} to display.`;
+    }
+    return `This protocol returned only ${n.toLocaleString()} ${dustWord} to display.`;
+  }
+
   if (total != null && total > 0) {
     return `Vybe reports ${formatUsd(total)} total for this protocol but returned no position rows to display.`;
   }
