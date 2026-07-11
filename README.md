@@ -11,7 +11,7 @@
 
 </p>
 
-**Solana DeFi Positions API:** Solana DeFi positions API for LPs, lending, staking & yield farming across 50+ protocols. Free SonarWatch alternative wallet tracker powered by Vybe API. Use this project as a reference implementation or starter kit for portfolio trackers, DeFi dashboards, and protocol exposure UIs.
+**Solana DeFi Positions API:** Solana DeFi positions API for LPs, lending, staking & yield farming across 50+ protocols. SonarWatch alternative wallet tracker powered by the Vybe API. Use this project as a reference implementation or starter kit for portfolio trackers, DeFi dashboards, and protocol exposure UIs.
 
 It includes a production-ready Node.js backend and a modern frontend that integrate Vybe’s DeFi positions and wallet token-balance endpoints—explore platform cards, position tables, APY badges, USD magnitude indicators, and symbol enrichment for LP / lending / staking rows.
 
