@@ -544,7 +544,7 @@ function formatTwoDecimals(abs, { useGrouping = true } = {}) {
 
 /**
  * Compact k / M / B for abs > 999.99.
- * Always 2 decimals, then strip trailing zeros (37.00 → 37, 1.89 → 1.89).
+ * Scaled |unit| > 100 → no decimals; otherwise 2 decimals with trailing zeros stripped.
  * @returns {string | null}
  */
 function formatCompactMagnitude(abs) {
@@ -560,6 +560,9 @@ function formatCompactMagnitude(abs) {
   } else {
     scaled = abs / 1000;
     suffix = 'k';
+  }
+  if (scaled > 100) {
+    return `${Math.round(scaled).toLocaleString(undefined, { maximumFractionDigits: 0 })}${suffix}`;
   }
   const body = scaled.toFixed(2).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
   return `${body}${suffix}`;
