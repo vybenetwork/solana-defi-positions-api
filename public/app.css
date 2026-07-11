@@ -6784,6 +6784,25 @@ html {
   color: #86efac;
 }
 
+.defi-positions-table .defi-price-zero-run,
+.defi-amount-line__value .defi-price-zero-run {
+  font-size: 0.62em;
+  font-weight: 500;
+  line-height: 0;
+  vertical-align: super;
+  margin-left: 0.03em;
+  color: inherit;
+  opacity: 0.85;
+}
+
+.defi-positions-table .defi-price-usd-suffix {
+  margin-left: 0.2em;
+  font-size: 0.82em;
+  font-weight: 450;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+}
+
 .defi-positions-table th,
 .defi-positions-table td {
   padding: 0.3rem 0.65rem;
