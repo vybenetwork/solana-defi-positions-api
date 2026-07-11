@@ -6543,7 +6543,45 @@ html {
 }
 
 .defi-positions-table--leverage {
-  min-width: 54rem;
+  min-width: 46rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-market {
+  width: 7.25rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-desc,
+.defi-positions-table--leverage td.defi-section-name-col {
+  width: 5.25rem;
+  min-width: 5.25rem;
+  max-width: 5.25rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-side {
+  width: 4.5rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-size {
+  width: 7rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-usd {
+  width: 5.75rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-x {
+  width: 4.25rem;
+}
+
+.defi-positions-table--leverage th:nth-child(5),
+.defi-positions-table--leverage td:nth-child(5) {
+  text-align: center;
+}
+
+.defi-positions-table--leverage th:nth-child(n + 6),
+.defi-positions-table--leverage td:nth-child(n + 6) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .defi-positions-table .defi-col-index {

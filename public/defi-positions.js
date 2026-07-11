@@ -544,30 +544,25 @@ function formatTwoDecimals(abs, { useGrouping = true } = {}) {
 
 /**
  * Compact k / M / B for abs > 999.99.
- * Scaled unit ≤ 9.99 → 2 decimals; else whole number.
+ * Always 2 decimals, then strip trailing zeros (37.00 → 37, 1.89 → 1.89).
  * @returns {string | null}
  */
 function formatCompactMagnitude(abs) {
   if (!Number.isFinite(abs) || abs <= COMPACT_MAGNITUDE_THRESHOLD) return null;
+  let scaled;
+  let suffix;
   if (abs >= 1_000_000_000) {
-    const billions = abs / 1_000_000_000;
-    if (billions > 9.99) {
-      return `${Math.round(billions).toLocaleString(undefined, { maximumFractionDigits: 0 })}B`;
-    }
-    return `${billions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
+    scaled = abs / 1_000_000_000;
+    suffix = 'B';
+  } else if (abs >= 1_000_000) {
+    scaled = abs / 1_000_000;
+    suffix = 'M';
+  } else {
+    scaled = abs / 1000;
+    suffix = 'k';
   }
-  if (abs >= 1_000_000) {
-    const millions = abs / 1_000_000;
-    if (millions > 9.99) {
-      return `${Math.round(millions).toLocaleString(undefined, { maximumFractionDigits: 0 })}M`;
-    }
-    return `${millions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
-  }
-  const thousands = abs / 1000;
-  if (thousands > 9.99) {
-    return `${Math.round(thousands).toLocaleString(undefined, { maximumFractionDigits: 0 })}k`;
-  }
-  return `${thousands.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}k`;
+  const body = scaled.toFixed(2).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
+  return `${body}${suffix}`;
 }
 
 function formatDefiTableUsdFraction(abs, { compact = true } = {}) {
@@ -1406,6 +1401,15 @@ function valueCell(row, { debt = false } = {}) {
   return `<td class="${cls} defi-value-col">${formatDefiValueWithBars(usd, formatted)}</td>`;
 }
 
+/** USD metric cell (Collateral / PnL) — green tier styling like Notional/Value. */
+function usdMetricCell(value) {
+  const n = toNum(value);
+  if (n == null) return '<td class="num">—</td>';
+  const formatted = formatUsd(n);
+  const cls = n < 0 ? 'num defi-value--debt defi-value-col' : 'num defi-value-col';
+  return `<td class="${cls}">${formatDefiValueWithBars(n, formatted)}</td>`;
+}
+
 /** DeFi Value column bars. */
 function defiValueBarCount(usd) {
   const n = Number(usd);
@@ -1602,6 +1606,8 @@ function isNumericHeaderColumn(layout, colIndex) {
   if (layout === 'asset9') return colIndex >= 4 && colIndex <= 7;
   // Stake…MEV numeric; Status + Account right-aligned to match cell content
   if (layout === 'nativeStaking') return colIndex >= 3;
+  // Size…Leverage
+  if (layout === 'leverage') return colIndex >= 5;
   return false;
 }
 
@@ -1636,15 +1642,15 @@ function renderTableColgroup(layout) {
   if (layout === 'leverage') {
     return `<colgroup>
       <col class="defi-col-index" />
-      <col class="defi-col-asset" />
-      <col class="defi-col-section-name" />
+      <col class="defi-col-lev-market" />
+      <col class="defi-col-lev-desc" />
       <col class="defi-col-section-type" />
-      <col class="defi-col-rate" />
-      <col class="defi-col-qty" />
-      <col class="defi-col-value" />
-      <col class="defi-col-value" />
-      <col class="defi-col-value" />
-      <col class="defi-col-rate" />
+      <col class="defi-col-lev-side" />
+      <col class="defi-col-lev-size" />
+      <col class="defi-col-lev-usd" />
+      <col class="defi-col-lev-usd" />
+      <col class="defi-col-lev-usd" />
+      <col class="defi-col-lev-x" />
     </colgroup>`;
   }
   return '';
@@ -1729,8 +1735,8 @@ function buildTableSchema(tableType) {
               <td>${renderSideBadge(row.side)}</td>
               ${amountCell(row)}
               ${valueCell(row)}
-              <td class="num">${row.collateralValue == null ? '—' : formatUsd(row.collateralValue)}</td>
-              <td class="num">${row.pnlValue == null ? '—' : formatUsd(row.pnlValue)}</td>
+              ${usdMetricCell(row.collateralValue)}
+              ${usdMetricCell(row.pnlValue)}
               <td class="num">${row.leverage == null ? '—' : `${Number(row.leverage).toFixed(2)}×`}</td>
             </tr>
           `;
