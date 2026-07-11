@@ -529,15 +529,21 @@ function queueMissingSymbolEnrichment() {
   void runMissingSymbolEnrichment(generation);
 }
 
+/** Above this absolute value, all token columns use exactly 2 decimal places. */
+const TWO_DECIMAL_THRESHOLD = 9.999;
+
+function formatTwoDecimals(abs, { useGrouping = true } = {}) {
+  return abs.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping,
+  });
+}
+
 function formatDefiTableUsdFraction(abs) {
   if (!Number.isFinite(abs) || abs <= 0) return '0.00';
-  // Value column: no decimals at $1,000+ (or −$1,000 and below via abs).
-  if (abs >= 1000) {
-    return Math.round(abs).toLocaleString(undefined, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-      useGrouping: true,
-    });
+  if (abs > TWO_DECIMAL_THRESHOLD) {
+    return formatTwoDecimals(abs, { useGrouping: true });
   }
   if (abs >= 0.01) {
     const rounded = Math.round(abs * 100) / 100;
@@ -616,8 +622,8 @@ function formatUsd(value, { debt = false } = {}) {
   if (n == null) return '—';
   const prefix = debt && n < 0 ? '−' : '';
   const abs = Math.abs(n);
-  if (abs >= 1000) return `${prefix}$${Math.round(abs).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  if (abs >= 1) return `${prefix}$${abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (abs > TWO_DECIMAL_THRESHOLD) return `${prefix}$${formatTwoDecimals(abs, { useGrouping: true })}`;
+  if (abs >= 1) return `${prefix}$${formatTwoDecimals(abs, { useGrouping: false })}`;
   if (abs >= 0.01) {
     return `${prefix}$${abs.toFixed(MICRO_SIGNIFICANT_DIGITS).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1')}`;
   }
@@ -634,13 +640,9 @@ function formatAmount(value, { stable = false, html = false } = {}) {
   const sign = n < 0 ? '−' : '';
   const abs = Math.abs(n);
 
-  // Amount / Amounts / Debt: no decimals once past 999.
-  if (abs > 999) {
-    return `${sign}${Math.round(abs).toLocaleString(undefined, {
-      maximumFractionDigits: 0,
-      minimumFractionDigits: 0,
-      useGrouping: true,
-    })}`;
+  // All token columns: above 9.999 → exactly 2 decimal places.
+  if (abs > TWO_DECIMAL_THRESHOLD) {
+    return `${sign}${formatTwoDecimals(abs, { useGrouping: true })}`;
   }
 
   // Stablecoins: at most 2 decimal places.
@@ -1515,19 +1517,8 @@ function formatDefiPriceUsd(value) {
   if (n === 0) return '$0.00';
   const abs = Math.abs(n);
   const sign = n < 0 ? '−' : '';
-  if (abs > 999.99) {
-    if (abs >= 1_000_000) {
-      const millions = abs / 1_000_000;
-      if (millions > 9.99) {
-        return `${sign}$${Math.round(millions).toLocaleString(undefined, { maximumFractionDigits: 0 })}M`;
-      }
-      return `${sign}$${millions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
-    }
-    const thousands = abs / 1000;
-    if (thousands > 9.99) {
-      return `${sign}$${Math.round(thousands).toLocaleString(undefined, { maximumFractionDigits: 0 })}k`;
-    }
-    return `${sign}$${thousands.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}k`;
+  if (abs > TWO_DECIMAL_THRESHOLD) {
+    return `${sign}$${formatTwoDecimals(abs, { useGrouping: true })}`;
   }
   const compactHtml = formatLeadingZeroCompact(abs, { html: true });
   if (compactHtml) {
