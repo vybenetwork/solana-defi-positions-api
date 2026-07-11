@@ -530,12 +530,20 @@ function queueMissingSymbolEnrichment() {
 
 function formatDefiTableUsdFraction(abs) {
   if (!Number.isFinite(abs) || abs <= 0) return '0.00';
+  // Value column: no decimals at $1,000+ (or −$1,000 and below via abs).
+  if (abs >= 1000) {
+    return Math.round(abs).toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+      useGrouping: true,
+    });
+  }
   if (abs >= 0.01) {
     const rounded = Math.round(abs * 100) / 100;
     return rounded.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-      useGrouping: abs >= 1000,
+      useGrouping: false,
     });
   }
   const frac = abs.toFixed(20).split('.')[1] || '';
@@ -558,8 +566,7 @@ function formatUsd(value, { debt = false } = {}) {
   if (n == null) return '—';
   const prefix = debt && n < 0 ? '−' : '';
   const abs = Math.abs(n);
-  if (abs >= 1_000_000) return `${prefix}$${abs.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  if (abs >= 1000) return `${prefix}$${abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (abs >= 1000) return `${prefix}$${Math.round(abs).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   if (abs >= 1) return `${prefix}$${abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   if (abs >= 0.01) return `${prefix}$${abs.toFixed(4)}`;
   if (n === 0) return '$0.00';
