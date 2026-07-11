@@ -42,7 +42,12 @@ const USD_MAGNITUDE_BAR_COLORS = {
 const SOLSCAN_TOKEN = 'https://solscan.io/token/';
 const TOKEN_PLACEHOLDER = '/token-placeholder.png';
 const DEFI_META_PLACEHOLDER = 'Load a wallet to see DeFi positions from the Vybe API.';
-const DEFI_PLACEHOLDER_ROW_COUNT = 8;
+const DEFI_PLACEHOLDER_ROW_COUNT = 3;
+const DEFI_PLACEHOLDER_SECTIONS = [
+  { label: 'Lending', tableType: 'supplied' },
+  { label: 'Staked', tableType: 'staked' },
+  { label: 'Rewards', tableType: 'rewards' },
+];
 const DUST_USD_THRESHOLD = 0.1;
 const DUST_USD_LABEL = '$0.10';
 const SYMBOL_ENRICH_LIMIT = 20;
@@ -1843,10 +1848,35 @@ function buildDefiPlaceholderRows(count = DEFI_PLACEHOLDER_ROW_COUNT) {
   </tr>`).join('');
 }
 
+function renderDefiPlaceholderSection(section) {
+  const schema = buildTableSchema(section.tableType);
+  const icon = renderSectionIconHtml({ label: section.label, tableType: section.tableType }, { tableType: section.tableType });
+  return `
+    <div class="defi-section-block">
+      <h3 class="defi-section-title">
+        <span class="defi-section-title__lead">
+          ${icon}
+          <span class="defi-section-title__text">${escapeHtml(section.label)}</span>
+        </span>
+        <span class="defi-section-meta">—</span>
+      </h3>
+      <div class="table-wrap table-wrap--defi-section">
+        <table class="defi-positions-table defi-positions-table--${escapeHtml(schema.tableType)} defi-positions-table--${escapeHtml(schema.layout || 'default')}">
+          ${renderTableColgroup(schema.layout)}
+          <thead>
+            <tr>${renderTableHeader(schema)}</tr>
+          </thead>
+          <tbody>${buildDefiPlaceholderRows()}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
 function renderDefiTablePlaceholder() {
   if (!defiPlatforms) return;
   if (defiMeta) defiMeta.textContent = DEFI_META_PLACEHOLDER;
-  const schema = buildAssetTableSchema('default');
+  const sectionsHtml = DEFI_PLACEHOLDER_SECTIONS.slice(0, 3).map(renderDefiPlaceholderSection).join('');
   defiPlatforms.innerHTML = `
     <article class="defi-platform-card defi-platform-card--placeholder" aria-hidden="true">
       <header class="defi-platform-header">
@@ -1866,25 +1896,7 @@ function renderDefiTablePlaceholder() {
           </div>
         </div>
       </header>
-      <div class="defi-platform-sections">
-        <div class="defi-section-block">
-          <h3 class="defi-section-title">
-            <span class="defi-section-title__lead">
-              <span class="defi-section-title__text">—</span>
-            </span>
-            <span class="defi-section-meta">—</span>
-          </h3>
-          <div class="table-wrap table-wrap--defi-section">
-            <table class="defi-positions-table defi-positions-table--default defi-positions-table--asset9">
-              ${renderTableColgroup(schema.layout)}
-              <thead>
-                <tr>${renderTableHeader(schema)}</tr>
-              </thead>
-              <tbody>${buildDefiPlaceholderRows()}</tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      <div class="defi-platform-sections">${sectionsHtml}</div>
     </article>
   `;
 }
