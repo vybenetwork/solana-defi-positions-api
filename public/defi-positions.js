@@ -562,7 +562,7 @@ function toSuperscriptDigits(n) {
 
 /**
  * Format abs < 1 from the first non-zero decimal digit, keeping MICRO_SIGNIFICANT_DIGITS.
- * e.g. 0.001318 → "0.00132", 0.00001234 → handled via compact when eligible.
+ * e.g. 0.001318 → "0.00132", 0.0031 → "0.0031" (no trailing zeros).
  */
 function formatFromFirstNonZero(abs, significantDigits = MICRO_SIGNIFICANT_DIGITS) {
   if (!Number.isFinite(abs) || abs <= 0) return null;
@@ -571,7 +571,7 @@ function formatFromFirstNonZero(abs, significantDigits = MICRO_SIGNIFICANT_DIGIT
   while (firstNonZeroIdx < frac.length && frac[firstNonZeroIdx] === '0') firstNonZeroIdx += 1;
   if (firstNonZeroIdx >= frac.length) return '0';
   const decimals = Math.min(firstNonZeroIdx + significantDigits, 20);
-  return abs.toFixed(decimals);
+  return abs.toFixed(decimals).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
 }
 
 /**
@@ -618,7 +618,9 @@ function formatUsd(value, { debt = false } = {}) {
   const abs = Math.abs(n);
   if (abs >= 1000) return `${prefix}$${Math.round(abs).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   if (abs >= 1) return `${prefix}$${abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  if (abs >= 0.01) return `${prefix}$${abs.toFixed(MICRO_SIGNIFICANT_DIGITS)}`;
+  if (abs >= 0.01) {
+    return `${prefix}$${abs.toFixed(MICRO_SIGNIFICANT_DIGITS).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1')}`;
+  }
   if (n === 0) return '$0.00';
   const compact = formatLeadingZeroCompact(abs, { html: false });
   if (compact) return `${prefix}$${compact}`;
