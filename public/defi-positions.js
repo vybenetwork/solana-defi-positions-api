@@ -531,6 +531,8 @@ function queueMissingSymbolEnrichment() {
 
 /** Above this absolute value, all token columns use exactly 2 decimal places. */
 const TWO_DECIMAL_THRESHOLD = 9.999;
+/** Above this, use compact k / M / B notation. */
+const COMPACT_MAGNITUDE_THRESHOLD = 999.99;
 
 function formatTwoDecimals(abs, { useGrouping = true } = {}) {
   return abs.toLocaleString(undefined, {
@@ -540,8 +542,38 @@ function formatTwoDecimals(abs, { useGrouping = true } = {}) {
   });
 }
 
+/**
+ * Compact k / M / B for abs > 999.99.
+ * Scaled unit ≤ 9.99 → 2 decimals; else whole number.
+ * @returns {string | null}
+ */
+function formatCompactMagnitude(abs) {
+  if (!Number.isFinite(abs) || abs <= COMPACT_MAGNITUDE_THRESHOLD) return null;
+  if (abs >= 1_000_000_000) {
+    const billions = abs / 1_000_000_000;
+    if (billions > 9.99) {
+      return `${Math.round(billions).toLocaleString(undefined, { maximumFractionDigits: 0 })}B`;
+    }
+    return `${billions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
+  }
+  if (abs >= 1_000_000) {
+    const millions = abs / 1_000_000;
+    if (millions > 9.99) {
+      return `${Math.round(millions).toLocaleString(undefined, { maximumFractionDigits: 0 })}M`;
+    }
+    return `${millions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
+  }
+  const thousands = abs / 1000;
+  if (thousands > 9.99) {
+    return `${Math.round(thousands).toLocaleString(undefined, { maximumFractionDigits: 0 })}k`;
+  }
+  return `${thousands.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}k`;
+}
+
 function formatDefiTableUsdFraction(abs) {
   if (!Number.isFinite(abs) || abs <= 0) return '0.00';
+  const compactMag = formatCompactMagnitude(abs);
+  if (compactMag) return compactMag;
   if (abs > TWO_DECIMAL_THRESHOLD) {
     return formatTwoDecimals(abs, { useGrouping: true });
   }
@@ -622,6 +654,8 @@ function formatUsd(value, { debt = false } = {}) {
   if (n == null) return '—';
   const prefix = debt && n < 0 ? '−' : '';
   const abs = Math.abs(n);
+  const compactMag = formatCompactMagnitude(abs);
+  if (compactMag) return `${prefix}$${compactMag}`;
   if (abs > TWO_DECIMAL_THRESHOLD) return `${prefix}$${formatTwoDecimals(abs, { useGrouping: true })}`;
   if (abs >= 1) return `${prefix}$${formatTwoDecimals(abs, { useGrouping: false })}`;
   if (abs >= 0.01) {
@@ -640,7 +674,10 @@ function formatAmount(value, { stable = false, html = false } = {}) {
   const sign = n < 0 ? '−' : '';
   const abs = Math.abs(n);
 
-  // All token columns: above 9.999 → exactly 2 decimal places.
+  const compactMag = formatCompactMagnitude(abs);
+  if (compactMag) return `${sign}${compactMag}`;
+
+  // Above 9.999 and ≤ 999.99 → exactly 2 decimal places.
   if (abs > TWO_DECIMAL_THRESHOLD) {
     return `${sign}${formatTwoDecimals(abs, { useGrouping: true })}`;
   }
@@ -1517,28 +1554,8 @@ function formatDefiPriceUsd(value) {
   if (n === 0) return '$0.00';
   const abs = Math.abs(n);
   const sign = n < 0 ? '−' : '';
-  // Compact k / M / B for large prices (2 decimals when scaled unit ≤ 9.99, else whole).
-  if (abs > 999.99) {
-    if (abs >= 1_000_000_000) {
-      const billions = abs / 1_000_000_000;
-      if (billions > 9.99) {
-        return `${sign}$${Math.round(billions).toLocaleString(undefined, { maximumFractionDigits: 0 })}B`;
-      }
-      return `${sign}$${billions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
-    }
-    if (abs >= 1_000_000) {
-      const millions = abs / 1_000_000;
-      if (millions > 9.99) {
-        return `${sign}$${Math.round(millions).toLocaleString(undefined, { maximumFractionDigits: 0 })}M`;
-      }
-      return `${sign}$${millions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
-    }
-    const thousands = abs / 1000;
-    if (thousands > 9.99) {
-      return `${sign}$${Math.round(thousands).toLocaleString(undefined, { maximumFractionDigits: 0 })}k`;
-    }
-    return `${sign}$${thousands.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}k`;
-  }
+  const compactMag = formatCompactMagnitude(abs);
+  if (compactMag) return `${sign}$${compactMag}`;
   if (abs > TWO_DECIMAL_THRESHOLD) {
     return `${sign}$${formatTwoDecimals(abs, { useGrouping: true })}`;
   }
