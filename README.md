@@ -27,6 +27,7 @@ Try the live demo: https://solana-defi-positions-api.vybenetwork.com
 - **[DeFi positions endpoint →](https://docs.vybenetwork.com/reference/get_defi_accounts_v4_proxy)**
 - **[Wallet token balance endpoint →](https://docs.vybenetwork.com/reference/get_wallet_tokens_v4)**
 - **[GitHub repo →](https://github.com/vybenetwork/solana-defi-positions-api)**
+- **[Telegram →](https://t.me/VybeNetwork_Official)**
 - **[X →](https://x.com/Vybe_Network)**
 
 ---
@@ -255,6 +256,7 @@ async function fetchDefiPositions(ownerAddress: string) {
 
 ## Support
 
+- **Telegram:** [VybeNetwork Official](https://t.me/VybeNetwork_Official)
 - **X:** [@Vybe_Network](https://x.com/Vybe_Network)
 - **GitHub:** [solana-defi-positions-api](https://github.com/vybenetwork/solana-defi-positions-api)
 - **Support ticket:** [Submit a ticket via vybenetwork.com](https://vybenetwork.com)
