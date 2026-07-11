@@ -556,10 +556,10 @@ function formatWholeNumber(abs, { useGrouping = true } = {}) {
 
 /**
  * Compact k / M / B for abs > 999.99.
- * Scaled |unit| > 100 → no decimals; otherwise 2 decimals with trailing zeros stripped.
+ * Scaled |unit| > noDecimalAbove → no decimals; otherwise 2 decimals with trailing zeros stripped.
  * @returns {string | null}
  */
-function formatCompactMagnitude(abs) {
+function formatCompactMagnitude(abs, { noDecimalAbove = 100 } = {}) {
   if (!Number.isFinite(abs) || abs <= COMPACT_MAGNITUDE_THRESHOLD) return null;
   let scaled;
   let suffix;
@@ -573,17 +573,20 @@ function formatCompactMagnitude(abs) {
     scaled = abs / 1000;
     suffix = 'k';
   }
-  if (scaled > 100) {
+  if (scaled > noDecimalAbove) {
     return `${Math.round(scaled).toLocaleString(undefined, { maximumFractionDigits: 0 })}${suffix}`;
   }
   const body = scaled.toFixed(2).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
   return `${body}${suffix}`;
 }
 
-function formatDefiTableUsdFraction(abs, { compact = true, noDecimalAbove = NO_DECIMAL_THRESHOLD } = {}) {
+function formatDefiTableUsdFraction(
+  abs,
+  { compact = true, noDecimalAbove = NO_DECIMAL_THRESHOLD, compactNoDecimalAbove = 100 } = {},
+) {
   if (!Number.isFinite(abs) || abs <= 0) return '0.00';
   if (compact) {
-    const compactMag = formatCompactMagnitude(abs);
+    const compactMag = formatCompactMagnitude(abs, { noDecimalAbove: compactNoDecimalAbove });
     if (compactMag) return compactMag;
   }
   if (abs > noDecimalAbove) {
@@ -656,12 +659,15 @@ function formatLeadingZeroCompact(abs, opts = {}) {
   return `0.0${toSuperscriptDigits(zeroRun)}${mantissa}`;
 }
 
-function formatDefiTableUsd(value, { debt = false, compact = true, noDecimalAbove = NO_DECIMAL_THRESHOLD } = {}) {
+function formatDefiTableUsd(
+  value,
+  { debt = false, compact = true, noDecimalAbove = NO_DECIMAL_THRESHOLD, compactNoDecimalAbove = 100 } = {},
+) {
   const n = toNum(value);
   if (n == null) return '—';
   if (n === 0) return '$0.00';
   const prefix = debt && n < 0 ? '−' : '';
-  return `${prefix}$${formatDefiTableUsdFraction(Math.abs(n), { compact, noDecimalAbove })}`;
+  return `${prefix}$${formatDefiTableUsdFraction(Math.abs(n), { compact, noDecimalAbove, compactNoDecimalAbove })}`;
 }
 
 function formatUsd(value, { debt = false, compact = true } = {}) {
@@ -1417,7 +1423,11 @@ function renderStakeStatus(status) {
 
 function valueCell(row, { debt = false } = {}) {
   const usd = effectiveUsd(row);
-  const formatted = formatDefiTableUsd(usd, { debt, noDecimalAbove: VALUE_NO_DECIMAL_THRESHOLD });
+  const formatted = formatDefiTableUsd(usd, {
+    debt,
+    noDecimalAbove: VALUE_NO_DECIMAL_THRESHOLD,
+    compactNoDecimalAbove: VALUE_NO_DECIMAL_THRESHOLD,
+  });
   const cls = debt && usd < 0 ? 'num defi-value--debt' : usd < 0 ? 'num defi-value--debt' : 'num';
   if (formatted === '—' || !Number.isFinite(usd)) {
     return `<td class="${cls}">—</td>`;
