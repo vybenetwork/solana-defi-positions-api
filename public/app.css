@@ -1619,23 +1619,28 @@ body {
 }
 
 .holders-table-view-switch .trades-fetch-switch-option,
-.wallet-stats-view-switch .trades-fetch-switch-option {
+.wallet-stats-view-switch .trades-fetch-switch-option,
+.summary-view-switch .trades-fetch-switch-option {
   display: inline-flex;
   flex: 1;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding-left: 0.55rem;
+  padding-right: 0.55rem;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   text-align: center;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #71717a;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #a1a1aa;
+  line-height: 1.2;
 }
 
 .view-switch-icon {
   flex-shrink: 0;
-  opacity: 0.9;
+  width: 13px;
+  height: 13px;
+  opacity: 0.85;
 }
 
 .trades-fetch-switch-input:not(:checked) + .trades-fetch-switch-track .trades-fetch-switch-option[data-value="single"] {
@@ -6026,17 +6031,35 @@ html {
 }
 
 .holders-table-view-switch .trades-fetch-switch-track {
-  height: 2.2rem;
-  min-width: 17rem;
+  height: 1.95rem;
+  min-width: 0;
+  width: max-content;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgba(24, 24, 27, 0.95);
+  border-color: rgba(63, 63, 70, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.holders-table-view-switch .trades-fetch-switch-track::after {
+  left: 2px;
+  top: 2px;
+  width: calc((100% - 4px) / 2);
+  height: calc(100% - 4px);
+  border-radius: 6px;
+  border: 0;
+  background: linear-gradient(180deg, #4f8ff7 0%, #3b82f6 100%);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
 }
 
 .holders-table-view-switch--triple .trades-fetch-switch-track {
-  min-width: 28rem;
+  min-width: 0;
+  width: max-content;
   --holders-table-view-index: 0;
 }
 
 .holders-table-view-switch--triple .trades-fetch-switch-track::after {
-  width: calc((100% - 0.5rem) / 3);
+  width: calc((100% - 4px) / 3);
   transform: translateX(calc(var(--holders-table-view-index) * 100%));
 }
 
@@ -6045,11 +6068,11 @@ html {
   border: 0;
   background: transparent;
   cursor: pointer;
-  padding: 0 0.5rem;
+  padding: 0 0.55rem;
 }
 
 .holders-table-view-switch--triple .trades-fetch-switch-option.is-active {
-  color: #e4e4e7;
+  color: #ffffff;
 }
 
 .holders-section-header-actions {
@@ -6065,17 +6088,35 @@ html {
 }
 
 .wallet-stats-view-switch .trades-fetch-switch-track {
-  height: 2.2rem;
-  min-width: 17rem;
+  height: 1.95rem;
+  min-width: 0;
+  width: max-content;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgba(24, 24, 27, 0.95);
+  border-color: rgba(63, 63, 70, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.wallet-stats-view-switch .trades-fetch-switch-track::after {
+  left: 2px;
+  top: 2px;
+  width: calc((100% - 4px) / 2);
+  height: calc(100% - 4px);
+  border-radius: 6px;
+  border: 0;
+  background: linear-gradient(180deg, #4f8ff7 0%, #3b82f6 100%);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
 }
 
 .wallet-stats-view-switch--triple .trades-fetch-switch-track {
-  min-width: 26rem;
+  min-width: 0;
+  width: max-content;
   --wallet-stats-view-index: 1;
 }
 
 .wallet-stats-view-switch--triple .trades-fetch-switch-track::after {
-  width: calc((100% - 0.5rem) / 3);
+  width: calc((100% - 4px) / 3);
   transform: translateX(calc(var(--wallet-stats-view-index) * 100%));
 }
 
@@ -6084,11 +6125,11 @@ html {
   border: 0;
   background: transparent;
   cursor: pointer;
-  padding: 0 0.5rem;
+  padding: 0 0.55rem;
 }
 
 .wallet-stats-view-switch--triple .trades-fetch-switch-option.is-active {
-  color: #e4e4e7;
+  color: #ffffff;
 }
 
 .wallet-stats-view-switch--triple.trades-fetch-switch--locked {
@@ -6096,56 +6137,63 @@ html {
   pointer-events: none;
 }
 
-.wallet-stats-view-switch--dual .trades-fetch-switch-track {
-  min-width: 22rem;
+.wallet-stats-view-switch--dual .trades-fetch-switch-track,
+.holders-table-view-switch--dual .trades-fetch-switch-track,
+.summary-view-switch--dual .trades-fetch-switch-track {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  min-width: 0;
+  width: max-content;
   --wallet-stats-view-index: 0;
-}
-
-.wallet-stats-view-switch--dual .trades-fetch-switch-track::after {
-  width: calc((100% - 0.5rem) / 2);
-  transform: translateX(calc(var(--wallet-stats-view-index) * 100%));
-}
-
-.wallet-stats-view-switch--dual .trades-fetch-switch-option {
-  flex: 1;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  padding: 0 0.5rem;
-}
-
-.wallet-stats-view-switch--dual .trades-fetch-switch-option.is-active {
-  color: #e4e4e7;
-}
-
-.wallet-stats-view-switch--dual.trades-fetch-switch--locked {
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-.holders-table-view-switch--dual .trades-fetch-switch-track {
-  min-width: 22rem;
   --holders-table-view-index: 0;
+  --summary-view-index: 0;
 }
 
 .holders-table-view-switch--dual .trades-fetch-switch-track::after {
-  width: calc((100% - 0.5rem) / 2);
   transform: translateX(calc(var(--holders-table-view-index) * 100%));
 }
 
-.holders-table-view-switch--dual .trades-fetch-switch-option {
-  flex: 1;
+.summary-view-switch--dual .trades-fetch-switch-track::after {
+  transform: translateX(calc(var(--summary-view-index) * 100%));
+}
+
+.wallet-stats-view-switch--dual .trades-fetch-switch-track::after {
+  transform: translateX(calc(var(--wallet-stats-view-index) * 100%));
+}
+
+.wallet-stats-view-switch--dual .trades-fetch-switch-option,
+.holders-table-view-switch--dual .trades-fetch-switch-option,
+.summary-view-switch--dual .trades-fetch-switch-option {
+  flex: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
   border: 0;
   background: transparent;
   cursor: pointer;
-  padding: 0 0.5rem;
+  padding: 0 0.7rem;
+  min-width: max-content;
+  white-space: nowrap;
+  color: #a1a1aa;
 }
 
-.holders-table-view-switch--dual .trades-fetch-switch-option.is-active {
-  color: #e4e4e7;
+.wallet-stats-view-switch--dual .trades-fetch-switch-option.is-active,
+.holders-table-view-switch--dual .trades-fetch-switch-option.is-active,
+.summary-view-switch--dual .trades-fetch-switch-option.is-active {
+  color: #ffffff;
 }
 
-.holders-table-view-switch--dual.trades-fetch-switch--locked {
+.wallet-stats-view-switch--dual .trades-fetch-switch-option.is-active .view-switch-icon,
+.holders-table-view-switch--dual .trades-fetch-switch-option.is-active .view-switch-icon,
+.summary-view-switch--dual .trades-fetch-switch-option.is-active .view-switch-icon {
+  opacity: 1;
+}
+
+.wallet-stats-view-switch--dual.trades-fetch-switch--locked,
+.holders-table-view-switch--dual.trades-fetch-switch--locked,
+.summary-view-switch--dual.trades-fetch-switch--locked {
   opacity: 0.55;
   pointer-events: none;
 }
@@ -6158,45 +6206,31 @@ html {
   justify-content: flex-start;
 }
 
-.wallet-stats-view-switch.trades-fetch-switch {
-  min-width: fit-content;
-}
-
+.wallet-stats-view-switch.trades-fetch-switch,
 .summary-view-switch.trades-fetch-switch {
   min-width: fit-content;
 }
 
 .summary-view-switch .trades-fetch-switch-track {
-  height: 2.2rem;
-  min-width: 18rem;
+  height: 1.95rem;
+  min-width: 0;
+  width: max-content;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgba(24, 24, 27, 0.95);
+  border-color: rgba(63, 63, 70, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-.summary-view-switch--dual .trades-fetch-switch-track {
-  min-width: 22rem;
-  --summary-view-index: 0;
-}
-
-.summary-view-switch--dual .trades-fetch-switch-track::after {
-  width: calc((100% - 0.5rem) / 2);
-  transform: translateX(calc(var(--summary-view-index) * 100%));
-}
-
-.summary-view-switch--dual .trades-fetch-switch-option {
-  flex: 1;
+.summary-view-switch .trades-fetch-switch-track::after {
+  left: 2px;
+  top: 2px;
+  width: calc((100% - 4px) / 2);
+  height: calc(100% - 4px);
+  border-radius: 6px;
   border: 0;
-  background: transparent;
-  cursor: pointer;
-  padding: 0 0.5rem;
-  white-space: nowrap;
-}
-
-.summary-view-switch--dual .trades-fetch-switch-option.is-active {
-  color: #e4e4e7;
-}
-
-.summary-view-switch--dual.trades-fetch-switch--locked {
-  opacity: 0.55;
-  pointer-events: none;
+  background: linear-gradient(180deg, #4f8ff7 0%, #3b82f6 100%);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
 }
 
 #summarySection .section-header-right {
