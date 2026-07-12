@@ -6989,6 +6989,36 @@ html {
   align-items: flex-end;
 }
 
+.defi-multi-amounts--dense-2 {
+  font-size: 85%;
+  gap: 0.17rem;
+}
+
+.defi-multi-amounts--dense-2 .defi-amount-line__logo {
+  width: 11.9px;
+  height: 11.9px;
+}
+
+.defi-multi-amounts--dense-3 {
+  font-size: 80%;
+  gap: 0.14rem;
+}
+
+.defi-multi-amounts--dense-3 .defi-amount-line__logo {
+  width: 11.2px;
+  height: 11.2px;
+}
+
+.defi-multi-amounts--dense-4 {
+  font-size: 75%;
+  gap: 0.12rem;
+}
+
+.defi-multi-amounts--dense-4 .defi-amount-line__logo {
+  width: 10.5px;
+  height: 10.5px;
+}
+
 .defi-amount-line {
   display: inline-flex;
   align-items: center;

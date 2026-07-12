@@ -1404,7 +1404,10 @@ function renderMultiAmounts(row) {
     const label = labels[i] || leg?.displayLabel || '—';
     return renderAmountLineHtml(amount, label, leg?.logo, addresses[i]);
   });
-  return `<div class="defi-multi-amounts">${lines.join('')}</div>`;
+  const n = lines.length;
+  const density =
+    n >= 4 ? ' defi-multi-amounts--dense-4' : n === 3 ? ' defi-multi-amounts--dense-3' : n === 2 ? ' defi-multi-amounts--dense-2' : '';
+  return `<div class="defi-multi-amounts${density}">${lines.join('')}</div>`;
 }
 
 function renderSideBadge(side) {
