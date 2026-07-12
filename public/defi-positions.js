@@ -741,7 +741,10 @@ function formatAmount(value, { stable = false, html = false } = {}) {
 function formatPct(value) {
   const n = toNum(value);
   if (n == null) return '—';
-  return `${n.toFixed(2)}%`;
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '−' : '';
+  if (abs > NO_DECIMAL_THRESHOLD) return `${sign}${formatWholeNumber(abs, { useGrouping: true })}%`;
+  return `${sign}${abs.toFixed(2)}%`;
 }
 
 function escapeHtml(value) {
