@@ -1596,6 +1596,24 @@ function apyCell(row) {
   return `<td class="num defi-apy-col"><span class="${badgeClass}">${escapeHtml(label)}</span></td>`;
 }
 
+/** Leverage badge colors (same pill style as APY). */
+function resolveLeverageBadgeClass(leverage) {
+  const n = toNum(leverage);
+  if (n == null) return '';
+  if (n < 0) return 'swap-pair-chg swap-pair-chg--down';
+  if (n < 2) return 'swap-pair-chg swap-pair-chg--zero-apy';
+  if (n < 5) return 'swap-pair-chg swap-pair-chg--light-up';
+  return 'swap-pair-chg swap-pair-chg--up';
+}
+
+function leverageCell(row) {
+  const n = toNum(row.leverage);
+  if (n == null) return '<td class="num">—</td>';
+  const label = `${n.toFixed(2)}×`;
+  const badgeClass = resolveLeverageBadgeClass(n);
+  return `<td class="num defi-apy-col"><span class="${badgeClass}">${escapeHtml(label)}</span></td>`;
+}
+
 function formatDefiPriceUsd(value) {
   const n = toNum(value);
   if (n == null) return '—';
@@ -1780,7 +1798,7 @@ function buildTableSchema(tableType) {
               ${valueCell(row)}
               ${usdMetricCell(row.collateralValue)}
               ${usdMetricCell(row.pnlValue)}
-              <td class="num">${row.leverage == null ? '—' : `${Number(row.leverage).toFixed(2)}×`}</td>
+              ${leverageCell(row)}
             </tr>
           `;
         },
