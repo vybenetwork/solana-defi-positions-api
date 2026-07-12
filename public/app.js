@@ -1909,10 +1909,55 @@ async function fetchBalances() {
   logoRepairInFlight.clear();
   logoImageLoadedMints.clear();
 
+  let unlocked = false;
+  const unlockUi = () => {
+    if (unlocked) return;
+    unlocked = true;
+    fetchAllBtn.disabled = false;
+    setWalletBalancesLoading(false);
+  };
+
+  const applyTokens = (tokens, { repairLogos = false } = {}) => {
+    recordVybeOriginLogos(tokens);
+    lastTokens = tokens;
+    applySuspiciousValueUsdMask(lastTokens);
+    window.VybeDefiPositions?.setBalanceMeta?.(lastTokens);
+    const totalUsd = lastTokens.reduce((sum, row) => sum + effectiveValueUsd(row), 0);
+    renderSummaryStats(lastTokens, wallet, totalUsd);
+    renderCharts(lastTokens, wallet, totalUsd);
+    renderTable(lastTokens, totalUsd);
+    if (holdersTableViewMode === 'holdings') {
+      holdersMeta.textContent = formatHoldersMetaLoadedText(lastTokens.length);
+    }
+    if (repairLogos) {
+      const repairCandidates = prepareTopLogoRepairQueue(lastTokens);
+      for (const item of repairCandidates) {
+        logoPendingRepairMints.add(item.mintAddress);
+      }
+      for (const item of repairCandidates) {
+        repairTokenLogo(item.mintAddress);
+      }
+    }
+  };
+
+  const upsertToken = (token) => {
+    if (!token?.mintAddress) return;
+    applySuspiciousValueUsdMask([token]);
+    const idx = lastTokens.findIndex((t) => t.mintAddress === token.mintAddress);
+    if (idx >= 0) lastTokens[idx] = token;
+    else lastTokens.push(token);
+    lastTokens = [...lastTokens].sort(compareHoldersTableRows);
+    applyTokens(lastTokens, { repairLogos: false });
+    if (token.mintAddress && !logoImageLoadedMints.has(token.mintAddress)) {
+      logoPendingRepairMints.add(token.mintAddress);
+      repairTokenLogo(token.mintAddress);
+    }
+  };
+
   try {
     const limit = limitSelect.value || '1000';
     const enrichLimit = getTopLogoRepairN();
-    const url = `/api/wallets/${encodeURIComponent(wallet)}/token-balances?enrich=1&limit=${limit}&enrichLimit=${enrichLimit}`;
+    const url = `/api/wallets/${encodeURIComponent(wallet)}/token-balances?stream=1&enrich=1&limit=${limit}&enrichLimit=${enrichLimit}`;
 
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) {
@@ -1928,33 +1973,56 @@ async function fetchBalances() {
       throw new Error(errMsg);
     }
 
-    const data = await res.json();
-    const tokens = data.tokens || [];
-    recordVybeOriginLogos(tokens);
-    lastTokens = tokens;
-    applySuspiciousValueUsdMask(lastTokens);
-    window.VybeDefiPositions?.setBalanceMeta?.(lastTokens);
-    const repairCandidates = prepareTopLogoRepairQueue(lastTokens);
-    for (const item of repairCandidates) {
-      logoPendingRepairMints.add(item.mintAddress);
+    if (!res.body) throw new Error('No response body for balance stream');
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let newlineIdx;
+      while ((newlineIdx = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, newlineIdx).trim();
+        buffer = buffer.slice(newlineIdx + 1);
+        if (!line) continue;
+        let event;
+        try {
+          event = JSON.parse(line);
+        } catch {
+          continue;
+        }
+        if (event.event === 'initial' && Array.isArray(event.tokens)) {
+          applyTokens(event.tokens, { repairLogos: true });
+          unlockUi();
+        } else if (event.event === 'update' && event.token) {
+          upsertToken(event.token);
+        }
+      }
     }
-    const totalUsd = lastTokens.reduce((sum, row) => sum + effectiveValueUsd(row), 0);
-    renderSummaryStats(lastTokens, wallet, totalUsd);
-    renderCharts(lastTokens, wallet, totalUsd);
-    renderTable(lastTokens, totalUsd);
-    for (const item of repairCandidates) {
-      repairTokenLogo(item.mintAddress);
-    }
-    if (holdersTableViewMode === 'holdings') {
-      holdersMeta.textContent = formatHoldersMetaLoadedText(lastTokens.length);
+
+    if (buffer.trim()) {
+      try {
+        const event = JSON.parse(buffer.trim());
+        if (event.event === 'initial' && Array.isArray(event.tokens)) {
+          applyTokens(event.tokens, { repairLogos: true });
+          unlockUi();
+        } else if (event.event === 'update' && event.token) {
+          upsertToken(event.token);
+        }
+      } catch {
+        /* ignore trailing partial */
+      }
     }
 
     await defiPromise.catch(() => {});
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err));
   } finally {
-    fetchAllBtn.disabled = false;
-    setWalletBalancesLoading(false);
+    unlockUi();
+    await defiPromise.catch(() => {});
   }
 }
 
