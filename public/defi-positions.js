@@ -1614,7 +1614,12 @@ function resolveLeverageBadgeClass(leverage) {
 function leverageCell(row) {
   const n = toNum(row.leverage);
   if (n == null) return '<td class="num">—</td>';
-  const label = `${n.toFixed(2)}×`;
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '−' : '';
+  const label =
+    abs > NO_DECIMAL_THRESHOLD
+      ? `${sign}${formatWholeNumber(abs, { useGrouping: true })}×`
+      : `${sign}${abs.toFixed(2)}×`;
   const badgeClass = resolveLeverageBadgeClass(n);
   return `<td class="num defi-apy-col"><span class="${badgeClass}">${escapeHtml(label)}</span></td>`;
 }
