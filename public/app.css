@@ -6578,7 +6578,10 @@ html {
   text-align: center;
 }
 
-.defi-positions-table--leverage th:nth-child(n + 6),
+.defi-positions-table--leverage th:nth-child(n + 4) {
+  text-align: center;
+}
+
 .defi-positions-table--leverage td:nth-child(n + 6) {
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -6660,18 +6663,23 @@ html {
   width: 120px;
 }
 
-.defi-positions-table--asset9 th:nth-child(n + 5):not(:last-child),
+.defi-positions-table--asset9 th:nth-child(n + 4) {
+  text-align: center;
+}
+
 .defi-positions-table--asset9 td:nth-child(n + 5):not(:last-child) {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-.defi-positions-table--asset9 th:last-child,
 .defi-positions-table--asset9 td:last-child {
   text-align: right;
 }
 
-.defi-positions-table--nativeStaking th:nth-child(n + 4),
+.defi-positions-table--nativeStaking th:nth-child(n + 4) {
+  text-align: center;
+}
+
 .defi-positions-table--nativeStaking td:nth-child(n + 4) {
   text-align: right;
 }
@@ -6855,7 +6863,15 @@ html {
   white-space: nowrap;
 }
 
-.defi-positions-table th.num,
+.defi-positions-table th.defi-th-center {
+  text-align: center;
+}
+
+.defi-positions-table th.num {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
 .defi-positions-table td.num {
   text-align: right;
   font-variant-numeric: tabular-nums;
