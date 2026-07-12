@@ -1408,7 +1408,9 @@ function renderSideBadge(side) {
   const s = String(side ?? '').trim().toLowerCase();
   if (!s) return '—';
   const cls = s === 'long' ? 'defi-side-badge--long' : s === 'short' ? 'defi-side-badge--short' : 'defi-side-badge--neutral';
-  return `<span class="defi-side-badge ${cls}">${escapeHtml(s)}</span>`;
+  const arrow = s === 'long' ? '↑' : s === 'short' ? '↓' : '';
+  const label = arrow ? `${arrow} ${s}` : s;
+  return `<span class="defi-side-badge ${cls}">${escapeHtml(label)}</span>`;
 }
 
 function renderStakeStatus(status) {
