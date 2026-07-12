@@ -1665,11 +1665,6 @@ function buildAssetTableSchema(tableType, { amountHeader = 'Amount', rateHeader 
   };
 }
 
-function isLeftAlignedHeaderColumn(colIndex) {
-  // #, Market/Asset/Validator, Description stay left; everything else centers.
-  return colIndex <= 2;
-}
-
 function isNumericHeaderColumn(layout, colIndex) {
   if (layout === 'asset9') return colIndex >= 4 && colIndex <= 7;
   // Stake…MEV numeric; Status + Account right-aligned to match cell content
@@ -1728,10 +1723,7 @@ function renderTableHeader(schema) {
   const layout = schema.layout || 'default';
   return schema.columns
     .map((col, index) => {
-      const classes = [];
-      if (!isLeftAlignedHeaderColumn(index)) classes.push('defi-th-center');
-      if (isNumericHeaderColumn(layout, index)) classes.push('num');
-      const cls = classes.length ? ` class="${classes.join(' ')}"` : '';
+      const cls = isNumericHeaderColumn(layout, index) ? ' class="num"' : '';
       return `<th${cls}>${escapeHtml(col)}</th>`;
     })
     .join('');
