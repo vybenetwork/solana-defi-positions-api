@@ -951,6 +951,10 @@ async function fetchRepairedLogo(mint, force) {
 async function repairTokenLogo(mint, options = {}) {
   if (logoRepairInFlight.has(mint)) return;
   if (tokenSkipsLogoRepair(mint)) return;
+  if (options.force !== true) {
+    if (logoFailedMints.has(mint) || logoRepairAttemptedMints.has(mint)) return;
+    if (logoImageLoadedMints.has(mint)) return;
+  }
   const existingIdx = lastTokens.findIndex((row) => row.mintAddress === mint);
   const existingLocal =
     existingIdx >= 0 && isLocalCachedLogoUrl(lastTokens[existingIdx].logoUrl)
@@ -1006,7 +1010,14 @@ function prepareTopLogoRepairQueue(tokens) {
   if (topN <= 0) return [];
   const sorted = [...tokens].sort((a, b) => effectiveValueUsd(b) - effectiveValueUsd(a));
   return sorted
-    .filter((item) => !isLocalCachedLogoUrl(item.logoUrl) && !item.skipLogoEnrich)
+    .filter(
+      (item) =>
+        !isLocalCachedLogoUrl(item.logoUrl) &&
+        !item.skipLogoEnrich &&
+        !logoFailedMints.has(item.mintAddress) &&
+        !logoRepairAttemptedMints.has(item.mintAddress) &&
+        !logoImageLoadedMints.has(item.mintAddress),
+    )
     .slice(0, topN);
 }
 
@@ -2065,6 +2076,9 @@ async function fetchBalances() {
     if (
       token.mintAddress &&
       !logoImageLoadedMints.has(token.mintAddress) &&
+      !logoFailedMints.has(token.mintAddress) &&
+      !logoRepairAttemptedMints.has(token.mintAddress) &&
+      !logoRepairInFlight.has(token.mintAddress) &&
       !isLocalCachedLogoUrl(token.logoUrl)
     ) {
       logoPendingRepairMints.add(token.mintAddress);
