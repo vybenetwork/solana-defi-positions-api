@@ -2068,7 +2068,7 @@ async function fetchBalances() {
 const HOLDERS_META_PLACEHOLDER = 'Load a wallet to see token balances ranked by USD value, with 1d/7d price change, market cap, and data source.';
 
 function formatHoldersMetaLoadedText(tokensCount) {
-  return `${tokensCount} tokens · RPC amounts + Vybe merge · Vybe token-details for category, supply, volume, and 1d/7d price change.`;
+  return `${tokensCount} tokens · Vybe wallet balances · Vybe token-details for category, supply, volume, and 1d/7d price change.`;
 }
 
 function updateHoldersSectionMeta(view = holdersTableViewMode) {
