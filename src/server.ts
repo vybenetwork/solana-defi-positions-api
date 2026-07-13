@@ -21,7 +21,6 @@ import {
   WALLET_TOKEN_BALANCE_LIMIT,
 } from './api/wallet-balance.js';
 import { resolveTokenMeta } from './api/resolve-token-meta.js';
-import { repairTokenIcon } from './api/repair-token-icon.js';
 import { getWalletDefiPositions, sumDefiPositionsUsd } from './api/wallet-defi-positions.js';
 import { cachedMetaToApiResponse } from './api/token-meta-api.js';
 import {
@@ -37,7 +36,6 @@ import {
 } from './api/hydrate-defi-symbols.js';
 import { materializeLogoHintsSequential } from './api/materialize-token-logo.js';
 import { getRuntimeIconDir, getRuntimeProtocolIconDir } from './token-icon-cache.js';
-import { warmupHttpProxyPool } from './api/http-proxy-fetch.js';
 
 loadEnv();
 
@@ -153,23 +151,6 @@ app.get('/api/wallets/:ownerAddress/token-balances', async (req: Request, res: R
   }
 });
 
-/** GET /api/token/:mint/logo — Jupiter (non-pump) or pump.fun metadata; caches locally. */
-app.get('/api/token/:mint/logo', async (req: Request, res: Response) => {
-  try {
-    const rawMint = req.params.mint;
-    const mint = (Array.isArray(rawMint) ? rawMint[0] : rawMint ?? '').trim();
-    if (!mint) return res.status(400).json({ error: 'Mint address required' });
-
-    const force = qBool(req, 'force', false);
-    const logoUrl = await repairTokenIcon(mint, { force });
-    // 200 with null — missing logos are common; avoid browser 404 console noise.
-    res.json({ logoUrl: logoUrl ?? null });
-  } catch (err) {
-    const status = (err as { response?: { status?: number } })?.response?.status ?? 500;
-    res.status(status).json({ error: toHumanReadableError(err) });
-  }
-});
-
 /** GET /api/token/:mint — resolve metadata and USD price (Jupiter → pump.fun → Vybe; ?preferVybe=1 → Vybe → Jupiter). */
 app.get('/api/token/:mint', async (req: Request, res: Response) => {
   try {
@@ -193,7 +174,7 @@ app.get('/api/token/:mint', async (req: Request, res: Response) => {
 /**
  * POST /api/tokens/enrich-symbols
  * Body: { mints: string[] } (max 20).
- * Resolves Vybe token-details → Jupiter (rotating proxy) one-by-one on the server.
+ * Resolves Vybe token-details → Jupiter one-by-one on the server.
  * ?stream=1 (default) emits NDJSON {event:"token",token} then {event:"done"}.
  */
 app.post('/api/tokens/enrich-symbols', async (req: Request, res: Response) => {
@@ -357,7 +338,6 @@ app.use(
 );
 
 async function main(): Promise<void> {
-  await warmupHttpProxyPool();
   app.listen(port, () => {
     console.log(
       `[defi-positions-api] listening on http://localhost:${port} (Vybe data: ${VYBE_DATA_API_BASE}, RPC: ${getSolanaRpcProviderLabel()})`,

@@ -1,6 +1,6 @@
 /**
  * Hydrate DeFi position rows with cached token symbol/name/logo from disk,
- * and enrich missing mints via Vybe → Jupiter (rotating proxy).
+ * and enrich missing mints via Vybe → Jupiter.
  */
 
 import type { AxiosInstance } from 'axios';
