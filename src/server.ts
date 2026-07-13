@@ -29,14 +29,15 @@ import {
   enrichDefiSymbolsSequential,
 } from './api/enrich-defi-symbols.js';
 import {
+  DEFI_LOGO_MATERIALIZE_LIMIT,
   hydrateDefiPlatformsFromDiskCache,
   materializeDefiPlatformLogos,
   stripRemoteDefiPlatformLogos,
   collectDefiLogoEnrichPending,
 } from './api/hydrate-defi-symbols.js';
 import { materializeLogoHintsSequential } from './api/materialize-token-logo.js';
+import { getRuntimeIconDir, getRuntimeProtocolIconDir } from './token-icon-cache.js';
 import { warmupHttpProxyPool } from './api/http-proxy-fetch.js';
-import { getRuntimeIconDir } from './token-icon-cache.js';
 
 loadEnv();
 
@@ -290,10 +291,17 @@ app.get('/api/wallets/:ownerAddress/defi-positions', async (req: Request, res: R
     const platformsRaw = Array.isArray(payload.data) ? payload.data : [];
     const { platforms: hydratedPlatforms, hydrated, stillMissing } =
       hydrateDefiPlatformsFromDiskCache(platformsRaw);
-    const logoEnrichPending = collectDefiLogoEnrichPending(hydratedPlatforms, 40);
+    const logoEnrichPending = collectDefiLogoEnrichPending(
+      hydratedPlatforms,
+      DEFI_LOGO_MATERIALIZE_LIMIT,
+    );
     // Snapshot with remote URL hints for background download, then strip for the response.
     const logoWarmSnapshot = JSON.parse(JSON.stringify(hydratedPlatforms)) as unknown[];
-    void materializeDefiPlatformLogos(logoWarmSnapshot, { limit: 40, concurrency: 8 }).catch((err) => {
+    void materializeDefiPlatformLogos(logoWarmSnapshot, {
+      limit: DEFI_LOGO_MATERIALIZE_LIMIT,
+      concurrency: 8,
+      allowRepair: true,
+    }).catch((err) => {
       console.warn(
         `[defi-positions] background logo materialize failed: ${err instanceof Error ? err.message : err}`,
       );
@@ -321,6 +329,7 @@ app.get('/api/wallets/:ownerAddress/defi-positions', async (req: Request, res: R
 });
 
 app.use('/cached/token-icons', express.static(getRuntimeIconDir(), { maxAge: '7d' }));
+app.use('/cached/protocol-icons', express.static(getRuntimeProtocolIconDir(), { maxAge: '7d' }));
 
 async function main(): Promise<void> {
   await warmupHttpProxyPool();

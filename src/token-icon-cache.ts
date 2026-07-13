@@ -13,10 +13,14 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const DATA_DIR = path.join(ROOT_DIR, 'data');
 const PUBLIC_ICON_DIR = path.join(ROOT_DIR, 'public', 'data', 'token-icons');
 const RUNTIME_ICON_DIR = path.join(DATA_DIR, 'token-icons');
+const PUBLIC_PROTOCOL_ICON_DIR = path.join(ROOT_DIR, 'public', 'data', 'protocol-icons');
+const RUNTIME_PROTOCOL_ICON_DIR = path.join(DATA_DIR, 'protocol-icons');
 const META_CACHE_PATH = path.join(DATA_DIR, 'token-meta-cache.json');
 
 export const PUBLIC_ICON_WEB_PREFIX = '/data/token-icons';
 export const RUNTIME_ICON_WEB_PREFIX = '/cached/token-icons';
+export const PUBLIC_PROTOCOL_ICON_WEB_PREFIX = '/data/protocol-icons';
+export const RUNTIME_PROTOCOL_ICON_WEB_PREFIX = '/cached/protocol-icons';
 
 export interface CachedTokenMeta {
   mint: string;
@@ -98,7 +102,12 @@ function extFromContentType(ct: string): string {
 
 function isLocalIconUrl(url: string | undefined): boolean {
   if (!url) return false;
-  return url.startsWith(PUBLIC_ICON_WEB_PREFIX) || url.startsWith(RUNTIME_ICON_WEB_PREFIX);
+  return (
+    url.startsWith(PUBLIC_ICON_WEB_PREFIX) ||
+    url.startsWith(RUNTIME_ICON_WEB_PREFIX) ||
+    url.startsWith(PUBLIC_PROTOCOL_ICON_WEB_PREFIX) ||
+    url.startsWith(RUNTIME_PROTOCOL_ICON_WEB_PREFIX)
+  );
 }
 
 /** True when logoUrl is a path served by this app (not a remote CDN). */
@@ -328,12 +337,17 @@ async function downloadAndCacheIcon(
 export async function ensureTokenIconCached(
   mint: string,
   remoteUrl: string | undefined,
+  options: { force?: boolean } = {},
 ): Promise<string | undefined> {
   const m = mint.trim();
   if (!m) return undefined;
 
-  const existing = findExistingIcon(m);
-  if (existing) return existing.webPath;
+  if (options.force === true) {
+    removeTokenIconFiles(m);
+  } else {
+    const existing = findExistingIcon(m);
+    if (existing) return existing.webPath;
+  }
 
   const url = (remoteUrl ?? '').trim();
   if (!url) return undefined;
@@ -341,6 +355,120 @@ export async function ensureTokenIconCached(
 
   fs.mkdirSync(RUNTIME_ICON_DIR, { recursive: true });
   return downloadAndCacheIcon(m, url);
+}
+
+function sanitizeProtocolId(platformId: string): string {
+  return platformId
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 80);
+}
+
+function findExistingProtocolIcon(platformId: string): { webPath: string; filePath: string } | null {
+  const id = sanitizeProtocolId(platformId);
+  if (!id) return null;
+  for (const [dir, prefix] of [
+    [PUBLIC_PROTOCOL_ICON_DIR, PUBLIC_PROTOCOL_ICON_WEB_PREFIX],
+    [RUNTIME_PROTOCOL_ICON_DIR, RUNTIME_PROTOCOL_ICON_WEB_PREFIX],
+  ] as const) {
+    if (!fs.existsSync(dir)) continue;
+    const files = fs.readdirSync(dir);
+    const hit = files.find((f) => f === id || f.startsWith(`${id}.`));
+    if (!hit) continue;
+    const filePath = path.join(dir, hit);
+    if (!isValidIconFile(filePath)) {
+      removeInvalidIconFile(filePath);
+      continue;
+    }
+    return { webPath: `${prefix}/${hit}`, filePath };
+  }
+  return null;
+}
+
+export function hasCachedProtocolIcon(platformId: string): boolean {
+  return findExistingProtocolIcon(platformId) != null;
+}
+
+export function getCachedProtocolIconWebPath(platformId: string): string | undefined {
+  return findExistingProtocolIcon(platformId)?.webPath;
+}
+
+export function removeProtocolIconFiles(platformId: string): void {
+  const id = sanitizeProtocolId(platformId);
+  if (!id) return;
+  for (const dir of [PUBLIC_PROTOCOL_ICON_DIR, RUNTIME_PROTOCOL_ICON_DIR]) {
+    if (!fs.existsSync(dir)) continue;
+    for (const f of fs.readdirSync(dir)) {
+      if (f === id || f.startsWith(`${id}.`)) {
+        try {
+          fs.unlinkSync(path.join(dir, f));
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+  }
+}
+
+async function downloadAndCacheProtocolIcon(
+  platformId: string,
+  remoteUrl: string,
+  depth = 0,
+): Promise<string | undefined> {
+  if (depth > 2) return undefined;
+  const id = sanitizeProtocolId(platformId);
+  if (!id) return undefined;
+
+  for (const tryUrl of iconFetchUrls(remoteUrl)) {
+    const fetched = await fetchIconBytes(tryUrl);
+    if (!fetched) continue;
+    const { buf, contentType } = fetched;
+
+    if (isImageBuffer(buf)) {
+      const ext = iconExtension(buf, contentType, tryUrl);
+      const fileName = `${id}${ext}`;
+      const filePath = path.join(RUNTIME_PROTOCOL_ICON_DIR, fileName);
+      fs.mkdirSync(RUNTIME_PROTOCOL_ICON_DIR, { recursive: true });
+      fs.writeFileSync(filePath, buf);
+      return `${RUNTIME_PROTOCOL_ICON_WEB_PREFIX}/${fileName}`;
+    }
+
+    const nestedImageUrl = imageUrlFromMetadataJson(buf);
+    if (nestedImageUrl) {
+      const nested = await downloadAndCacheProtocolIcon(id, nestedImageUrl, depth + 1);
+      if (nested) return nested;
+    }
+  }
+  return undefined;
+}
+
+export async function ensureProtocolIconCached(
+  platformId: string,
+  remoteUrl: string | undefined,
+  options: { force?: boolean } = {},
+): Promise<string | undefined> {
+  const id = sanitizeProtocolId(platformId);
+  if (!id) return undefined;
+
+  if (options.force === true) {
+    removeProtocolIconFiles(id);
+  } else {
+    const existing = findExistingProtocolIcon(id);
+    if (existing) return existing.webPath;
+  }
+
+  const url = (remoteUrl ?? '').trim();
+  if (!url) return undefined;
+  if (isLocalIconUrl(url)) return url;
+
+  fs.mkdirSync(RUNTIME_PROTOCOL_ICON_DIR, { recursive: true });
+  return downloadAndCacheProtocolIcon(id, url);
+}
+
+export function getRuntimeProtocolIconDir(): string {
+  return RUNTIME_PROTOCOL_ICON_DIR;
 }
 
 function vybeDecimals(token: Record<string, unknown>): number | undefined {

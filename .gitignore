@@ -3,6 +3,7 @@ dist/
 .env
 data/token-meta-cache.json
 data/token-icons/
+data/protocol-icons/
 
 # Keep locally only (removed from repo) — same as solana-quote-swap-api
 deploy/

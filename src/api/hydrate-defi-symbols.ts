@@ -9,6 +9,10 @@ import {
   hasCachedTokenIcon,
   getCachedTokenIconWebPath,
   isLocalCachedIconUrl,
+  hasCachedProtocolIcon,
+  getCachedProtocolIconWebPath,
+  ensureProtocolIconCached,
+  removeProtocolIconFiles,
   type CachedTokenMeta,
 } from '../token-icon-cache.js';
 import { isMintLikeLabel } from './token-label.js';
@@ -17,7 +21,11 @@ import {
   enrichDefiSymbolsSequential,
   type DefiSymbolEnrichToken,
 } from './enrich-defi-symbols.js';
+import { getMintLogoOverride, getPlatformLogoOverride } from './logo-overrides.js';
 import { materializeTokenLogoLocal } from './materialize-token-logo.js';
+
+/** Cap network logo downloads per DeFi response (mint + protocol). */
+export const DEFI_LOGO_MATERIALIZE_LIMIT = 500;
 
 const DUST_USD_THRESHOLD = 0.1;
 
@@ -267,6 +275,17 @@ export function stripRemoteDefiPlatformLogos(platforms: unknown[]): unknown[] {
   const list = Array.isArray(platforms) ? platforms : [];
   for (const platform of list) {
     if (!platform || typeof platform !== 'object') continue;
+    const p = platform as Record<string, unknown>;
+    const platformId = String(p.platformId ?? '').trim();
+    const platformLogo = String(p.platformLogourl ?? '').trim();
+    if (platformId && hasCachedProtocolIcon(platformId)) {
+      p.platformLogourl = getCachedProtocolIconWebPath(platformId) ?? null;
+    } else if (isLocalCachedIconUrl(platformLogo)) {
+      p.platformLogourl = platformLogo;
+    } else {
+      p.platformLogourl = null;
+    }
+
     for (const section of (platform as { sections?: unknown[] }).sections || []) {
       if (!section || typeof section !== 'object') continue;
       for (const raw of (section as { rows?: unknown[] }).rows || []) {
@@ -295,7 +314,7 @@ export function stripRemoteDefiPlatformLogos(platforms: unknown[]): unknown[] {
 /** Mints that still need a local logo after hydrate — include remote URL hints for download. */
 export function collectDefiLogoEnrichPending(
   platforms: unknown[],
-  limit = 40,
+  limit = DEFI_LOGO_MATERIALIZE_LIMIT,
 ): Array<{ mint: string; logoUrl: string | null }> {
   type Hit = { mint: string; logoUrl: string | null; usd: number };
   const byMint = new Map<string, Hit>();
@@ -312,15 +331,18 @@ export function collectDefiLogoEnrichPending(
         for (let i = 0; i < addresses.length; i++) {
           const mint = addresses[i]!;
           if (!mint) continue;
-          if (hasCachedTokenIcon(mint)) continue;
+          if (hasCachedTokenIcon(mint) && !getMintLogoOverride(mint)) continue;
           const rawLogo = String(logos[i] ?? '').trim() || null;
-          if (rawLogo && isLocalCachedIconUrl(rawLogo)) continue;
+          if (rawLogo && isLocalCachedIconUrl(rawLogo) && !getMintLogoOverride(mint)) continue;
           const usd = legUsd(row, i);
           const prev = byMint.get(mint);
+          const hint =
+            getMintLogoOverride(mint) ||
+            (rawLogo && !isLocalCachedIconUrl(rawLogo) ? rawLogo : null);
           if (!prev || usd > prev.usd) {
             byMint.set(mint, {
               mint,
-              logoUrl: rawLogo && !isLocalCachedIconUrl(rawLogo) ? rawLogo : null,
+              logoUrl: hint,
               usd,
             });
           }
@@ -334,18 +356,97 @@ export function collectDefiLogoEnrichPending(
     .map(({ mint, logoUrl }) => ({ mint, logoUrl }));
 }
 
+async function materializeProtocolLogos(
+  platforms: unknown[],
+  options?: { concurrency?: number },
+): Promise<number> {
+  const list = Array.isArray(platforms) ? platforms : [];
+  const concurrency = Math.max(1, options?.concurrency ?? 8);
+  type Hit = { platformId: string; remote: string | null };
+  const byId = new Map<string, Hit>();
+
+  for (const platform of list) {
+    if (!platform || typeof platform !== 'object') continue;
+    const p = platform as Record<string, unknown>;
+    const platformId = String(p.platformId ?? '').trim();
+    if (!platformId) continue;
+    const forced = getPlatformLogoOverride(platformId);
+    const remote = forced || String(p.platformLogourl ?? '').trim() || null;
+    if (!forced && hasCachedProtocolIcon(platformId)) continue;
+    if (!forced && remote && isLocalCachedIconUrl(remote)) continue;
+    if (!forced && !remote) continue;
+    byId.set(platformId.toLowerCase(), { platformId, remote: forced || remote });
+  }
+
+  const queue = [...byId.values()];
+  const localById = new Map<string, string | null>();
+  let next = 0;
+  const workers = Array.from({ length: Math.min(concurrency, Math.max(1, queue.length)) }, async () => {
+    for (;;) {
+      const i = next;
+      next += 1;
+      if (i >= queue.length) return;
+      const hit = queue[i]!;
+      const forced = getPlatformLogoOverride(hit.platformId);
+      if (forced) {
+        const existing = getCachedProtocolIconWebPath(hit.platformId);
+        const needsForce = !existing || existing.toLowerCase().endsWith('.svg') || existing.toLowerCase().endsWith('.jpg');
+        // Twitter JPG / SVG → force preferred PNG for Pyth and similar overrides.
+        if (needsForce) removeProtocolIconFiles(hit.platformId);
+        localById.set(
+          hit.platformId.toLowerCase(),
+          (await ensureProtocolIconCached(hit.platformId, forced, { force: needsForce })) ?? null,
+        );
+      } else {
+        localById.set(
+          hit.platformId.toLowerCase(),
+          (await ensureProtocolIconCached(hit.platformId, hit.remote || undefined)) ?? null,
+        );
+      }
+    }
+  });
+  await Promise.all(workers);
+
+  let materialized = 0;
+  for (const platform of list) {
+    if (!platform || typeof platform !== 'object') continue;
+    const p = platform as Record<string, unknown>;
+    const platformId = String(p.platformId ?? '').trim();
+    if (!platformId) continue;
+    let local: string | null = null;
+    if (hasCachedProtocolIcon(platformId)) {
+      local = getCachedProtocolIconWebPath(platformId) ?? null;
+    } else if (localById.has(platformId.toLowerCase())) {
+      local = localById.get(platformId.toLowerCase()) ?? null;
+    }
+    const prev = String(p.platformLogourl ?? '').trim();
+    if (local && local !== prev) {
+      p.platformLogourl = local;
+      materialized += 1;
+    } else if (!local || !isLocalCachedIconUrl(local)) {
+      p.platformLogourl = null;
+    } else {
+      p.platformLogourl = local;
+    }
+  }
+  return materialized;
+}
+
 /**
- * Download remote DeFi row logos onto the server and rewrite every logo field to a
- * local /cached path (or empty). Caps network downloads; always strips remotes.
+ * Download remote DeFi row + protocol logos onto the server and rewrite every logo
+ * field to a local /cached path (or empty). Caps network downloads; always strips remotes.
  * Prefer running this in the background — do not await on the request path.
  */
 export async function materializeDefiPlatformLogos(
   platforms: unknown[],
-  options?: { limit?: number; concurrency?: number },
+  options?: { limit?: number; concurrency?: number; allowRepair?: boolean },
 ): Promise<{ platforms: unknown[]; materialized: number }> {
   const list = Array.isArray(platforms) ? platforms : [];
-  const limit = Math.max(0, options?.limit ?? 40);
+  const limit = Math.max(0, options?.limit ?? DEFI_LOGO_MATERIALIZE_LIMIT);
   const concurrency = Math.max(1, options?.concurrency ?? 8);
+  const allowRepair = options?.allowRepair === true;
+
+  const protocolMaterialized = await materializeProtocolLogos(list, { concurrency });
 
   type LogoHit = { mint: string; remote: string | null; usd: number };
   const byMint = new Map<string, LogoHit>();
@@ -362,9 +463,9 @@ export async function materializeDefiPlatformLogos(
         for (let i = 0; i < addresses.length; i++) {
           const mint = addresses[i]!;
           if (!mint) continue;
-          if (hasCachedTokenIcon(mint)) continue;
-          const remote = String(logos[i] ?? '').trim() || null;
-          if (remote && isLocalCachedIconUrl(remote)) continue;
+          if (hasCachedTokenIcon(mint) && !getMintLogoOverride(mint)) continue;
+          const remote = getMintLogoOverride(mint) || String(logos[i] ?? '').trim() || null;
+          if (remote && isLocalCachedIconUrl(remote) && !getMintLogoOverride(mint)) continue;
           const usd = legUsd(row, i);
           const prev = byMint.get(mint);
           if (!prev || usd > prev.usd) {
@@ -384,12 +485,15 @@ export async function materializeDefiPlatformLogos(
       next += 1;
       if (i >= queue.length) return;
       const hit = queue[i]!;
-      localByMint.set(hit.mint, await materializeTokenLogoLocal(hit.mint, hit.remote));
+      localByMint.set(
+        hit.mint,
+        await materializeTokenLogoLocal(hit.mint, hit.remote, { allowRepair }),
+      );
     }
   });
   await Promise.all(workers);
 
-  let materialized = 0;
+  let materialized = protocolMaterialized;
   for (const platform of list) {
     if (!platform || typeof platform !== 'object') continue;
     for (const section of (platform as { sections?: unknown[] }).sections || []) {

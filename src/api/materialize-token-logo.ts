@@ -8,8 +8,10 @@ import {
   hasCachedTokenIcon,
   isLocalCachedIconUrl,
   readTokenMetaCache,
+  removeTokenIconFiles,
   writeTokenMetaCache,
 } from '../token-icon-cache.js';
+import { getMintLogoOverride } from './logo-overrides.js';
 import { repairTokenIcon } from './repair-token-icon.js';
 
 function persistLocalLogoOnMeta(mint: string, localPath: string): void {
@@ -38,6 +40,19 @@ export async function materializeTokenLogoLocal(
 ): Promise<string | null> {
   const m = mint.trim();
   if (!m) return null;
+
+  const forced = getMintLogoOverride(m);
+  if (forced) {
+    const existing = hasCachedTokenIcon(m) ? getCachedTokenIconWebPath(m) : undefined;
+    // Replace stale SVG (or missing) with the forced PNG override.
+    const needsForce = !existing || existing.toLowerCase().endsWith('.svg');
+    if (needsForce) removeTokenIconFiles(m);
+    const local = await ensureTokenIconCached(m, forced, { force: needsForce });
+    if (local) {
+      persistLocalLogoOnMeta(m, local);
+      return local;
+    }
+  }
 
   if (hasCachedTokenIcon(m)) {
     const existing = getCachedTokenIconWebPath(m) ?? null;

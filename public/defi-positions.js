@@ -41,6 +41,17 @@ const USD_MAGNITUDE_BAR_COLORS = {
 };
 const SOLSCAN_TOKEN = 'https://solscan.io/token/';
 const TOKEN_PLACEHOLDER = '/token-placeholder.png';
+
+function isLocalLogoUrl(url) {
+  const u = String(url || '').trim();
+  return (
+    u.startsWith('/cached/token-icons/') ||
+    u.startsWith('/data/token-icons/') ||
+    u.startsWith('/cached/protocol-icons/') ||
+    u.startsWith('/data/protocol-icons/')
+  );
+}
+
 const DEFI_META_PLACEHOLDER = 'Load a wallet to see DeFi positions from the Vybe API.';
 const DEFI_PLACEHOLDER_ROW_COUNT = 3;
 const DEFI_PLACEHOLDER_SECTIONS = [
@@ -286,7 +297,7 @@ function resolveLegFields(symbol, name, logo, mint) {
   let sym = isValidLabel(symbol, mint) && !looksTruncatedLabel(symbol) ? stripPoweredByJito(symbol) : '';
   let nm = isValidLabel(name, mint) ? stripPoweredByJito(name) : '';
   let lg = cleanStr(logo);
-  if (lg && !(lg.startsWith('/cached/token-icons/') || lg.startsWith('/data/token-icons/'))) {
+  if (lg && !isLocalLogoUrl(lg)) {
     lg = '';
   }
 
@@ -297,7 +308,7 @@ function resolveLegFields(symbol, name, logo, mint) {
     if (!nm && isValidLabel(bal.name, mint)) nm = stripPoweredByJito(bal.name);
     if (!lg && bal.logo) {
       const balLogo = cleanStr(bal.logo);
-      if (balLogo.startsWith('/cached/token-icons/') || balLogo.startsWith('/data/token-icons/')) {
+      if (isLocalLogoUrl(balLogo)) {
         lg = balLogo;
       }
     }
@@ -415,7 +426,7 @@ function applyFetchedTokenMeta(mint, data) {
   const symbol = cleanStr(data.symbol);
   const name = cleanStr(data.name);
   let logo = cleanStr(data.logoUrl || data.logourl);
-  if (logo && !(logo.startsWith('/cached/token-icons/') || logo.startsWith('/data/token-icons/'))) {
+  if (logo && !isLocalLogoUrl(logo)) {
     logo = '';
   }
   const cached = cacheSymbolForMint(m, symbol);
@@ -434,7 +445,7 @@ function patchPlatformLogo(mint, logoUrl) {
   const m = cleanStr(mint);
   const logo = cleanStr(logoUrl);
   if (!m || !logo) return false;
-  if (!(logo.startsWith('/cached/token-icons/') || logo.startsWith('/data/token-icons/'))) return false;
+  if (!isLocalLogoUrl(logo)) return false;
   if (!lastPayload?.platforms) return false;
   let patched = false;
   for (const platform of lastPayload.platforms) {
@@ -616,7 +627,7 @@ function collectMissingLogoCandidates(payload) {
     const mint = cleanStr(item?.mint);
     if (!mint || logoEnrichAttempted.has(mint)) continue;
     const existingLogo = balanceMetaByMint.get(mint)?.logo || '';
-    if (existingLogo.startsWith('/cached/token-icons/') || existingLogo.startsWith('/data/token-icons/')) {
+    if (isLocalLogoUrl(existingLogo)) {
       continue;
     }
     byMint.set(mint, {
@@ -635,11 +646,11 @@ function collectMissingLogoCandidates(payload) {
           const mint = cleanStr(addresses[i]);
           if (!mint || logoEnrichAttempted.has(mint)) continue;
           const rowLogo = cleanStr(logos[i]);
-          if (rowLogo.startsWith('/cached/token-icons/') || rowLogo.startsWith('/data/token-icons/')) {
+          if (isLocalLogoUrl(rowLogo)) {
             continue;
           }
           const balLogo = balanceMetaByMint.get(mint)?.logo || '';
-          if (balLogo.startsWith('/cached/token-icons/') || balLogo.startsWith('/data/token-icons/')) {
+          if (isLocalLogoUrl(balLogo)) {
             continue;
           }
           const usd = legUsdValue(row, i);
@@ -2132,7 +2143,8 @@ function renderPlatform(platform, index) {
   const pid = platformId(platform, index);
   const platformExpanded = isPlatformDustExpanded(pid);
   const hiddenDustCount = hideDustEnabled() && !platformExpanded ? platformHiddenDustCount(platform) : 0;
-  const logo = platform.platformLogourl || TOKEN_PLACEHOLDER;
+  const platformLogoRaw = cleanStr(platform.platformLogourl);
+  const logo = isLocalLogoUrl(platformLogoRaw) ? platformLogoRaw : TOKEN_PLACEHOLDER;
   const website = String(platform.platformWebsite || '').trim();
   const title = platform.platform || platform.platformId || `Platform ${index + 1}`;
   const labels = Array.isArray(platform.platformLabels) ? platform.platformLabels.filter(Boolean) : [];
