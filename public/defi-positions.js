@@ -44,6 +44,7 @@ const TOKEN_PLACEHOLDER = '/token-placeholder.png';
 
 function isLocalLogoUrl(url) {
   const u = String(url || '').trim();
+  if (!u || u.includes(',')) return false;
   return (
     u.startsWith('/cached/token-icons/') ||
     u.startsWith('/data/token-icons/') ||
@@ -219,7 +220,29 @@ function asArray(value) {
 
 function cleanStr(value) {
   if (value == null) return '';
+  // Arrays stringified as "a,b" — never coerce logo/symbol arrays that way.
+  if (Array.isArray(value)) return '';
   return String(value).trim();
+}
+
+/** First usable leg value; never falls back to the whole array (avoids "url," URLs). */
+function pickLegValue(value, index = 0) {
+  const parts = asArray(value);
+  const at = parts[index];
+  if (at != null && !Array.isArray(at) && String(at).trim() !== '') return at;
+  for (const part of parts) {
+    if (part != null && !Array.isArray(part) && String(part).trim() !== '') return part;
+  }
+  return '';
+}
+
+function normalizeLogoUrl(logo) {
+  if (Array.isArray(logo)) return normalizeLogoUrl(pickLegValue(logo, 0));
+  const lg = cleanStr(logo);
+  // Reject Array.prototype.toString leftovers like "/cached/…png," or "a,b".
+  if (!lg || lg.includes(',')) return '';
+  if (!isLocalLogoUrl(lg)) return '';
+  return lg;
 }
 
 function looksLikeAddressOrMint(text, mint) {
@@ -380,10 +403,7 @@ function resolveLegFields(symbol, name, logo, mint) {
   const durable = mint ? window.VybeMintMetaCache?.get?.(mint) : null;
   let sym = isValidLabel(symbol, mint) && !looksTruncatedLabel(symbol) ? stripPoweredByJito(symbol) : '';
   let nm = isValidLabel(name, mint) ? stripPoweredByJito(name) : '';
-  let lg = cleanStr(logo);
-  if (lg && !isLocalLogoUrl(lg)) {
-    lg = '';
-  }
+  let lg = normalizeLogoUrl(logo);
 
   if (bal) {
     if (!sym && isValidLabel(bal.symbol, mint) && !looksTruncatedLabel(bal.symbol)) {
@@ -1521,9 +1541,9 @@ function resolvePoolAssetTitle(row) {
   if (!isMultiAssetRow(row)) {
     const mint = asArray(row.address)[0] || row.address;
     const leg = resolveLegFields(
-      asArray(row.symbol)[0] ?? row.symbol,
-      asArray(row.name)[0] ?? row.name,
-      asArray(row.logourl)[0] ?? row.logourl,
+      pickLegValue(row.symbol, 0),
+      pickLegValue(row.name, 0),
+      pickLegValue(row.logourl ?? row.logoUrl, 0),
       mint,
     );
     return leg.displayLabel || '';
@@ -1594,7 +1614,12 @@ function accountCell(row) {
 
 function renderSingleTokenCell(row) {
   const mint = asArray(row.address)[0] || row.address;
-  const leg = resolveLegFields(row.symbol, row.name, asArray(row.logourl)[0] ?? row.logourl, mint);
+  const leg = resolveLegFields(
+    pickLegValue(row.symbol, 0),
+    pickLegValue(row.name, 0),
+    pickLegValue(row.logourl ?? row.logoUrl, 0),
+    mint,
+  );
   return `
     <div class="defi-token-cell">
       <img class="defi-token-logo" src="${escapeHtml(leg.logo)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />
@@ -1678,7 +1703,7 @@ function formatAmountSymbolLabel(label, mint) {
 function renderAmountLineHtml(amount, label, logo, mint) {
   const symbolLabel = formatAmountSymbolLabel(label, mint);
   const tone = amountTokenToneClass(mint, symbolLabel);
-  const logoSrc = cleanStr(logo) || TOKEN_PLACEHOLDER;
+  const logoSrc = normalizeLogoUrl(logo) || TOKEN_PLACEHOLDER;
   const amountText = formatAmount(amount, { stable: isStableToken(mint, symbolLabel), html: true });
   return `<span class="defi-amount-line ${tone}"><span class="defi-amount-line__value">${amountText}</span> <span class="defi-amount-line__symbol">${escapeHtml(symbolLabel)}</span><img class="defi-amount-line__logo" src="${escapeHtml(logoSrc)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" /></span>`;
 }
@@ -1854,9 +1879,9 @@ function amountCell(row, { debt = false } = {}) {
   const cls = debt && amount != null && amount < 0 ? 'num defi-value--debt defi-amounts-col' : 'num defi-amounts-col';
   const mint = asArray(row.address)[0] || row.address;
   const leg = resolveLegFields(
-    asArray(row.symbol)[0] ?? row.symbol,
-    asArray(row.name)[0] ?? row.name,
-    asArray(row.logourl)[0] ?? row.logourl,
+    pickLegValue(row.symbol, 0),
+    pickLegValue(row.name, 0),
+    pickLegValue(row.logourl ?? row.logoUrl, 0),
     mint,
   );
   if (!leg.displayLabel || leg.displayLabel === 'Unknown') {
