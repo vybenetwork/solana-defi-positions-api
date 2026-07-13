@@ -948,6 +948,16 @@ async function fetchRepairedLogo(mint, force) {
   }
 }
 
+function applyClientMintMeta(token) {
+  if (!token || typeof token !== 'object') return token;
+  window.VybeMintMetaCache?.hydrateToken?.(token);
+  return token;
+}
+
+function rememberClientMintMeta(token) {
+  window.VybeMintMetaCache?.rememberToken?.(token);
+}
+
 async function repairTokenLogo(mint, options = {}) {
   if (logoRepairInFlight.has(mint)) return;
   if (tokenSkipsLogoRepair(mint)) return;
@@ -956,15 +966,29 @@ async function repairTokenLogo(mint, options = {}) {
     if (logoImageLoadedMints.has(mint)) return;
   }
   const existingIdx = lastTokens.findIndex((row) => row.mintAddress === mint);
-  const existingLocal =
+  let existingLocal =
     existingIdx >= 0 && isLocalCachedLogoUrl(lastTokens[existingIdx].logoUrl)
       ? lastTokens[existingIdx].logoUrl.trim()
       : '';
-  // Stream/enrich already gave a local path — show it; don't run /logo repair.
+  if (!existingLocal && options.force !== true) {
+    const durableLogo = window.VybeMintMetaCache?.get?.(mint)?.logoUrl;
+    if (durableLogo && isLocalCachedLogoUrl(durableLogo)) {
+      existingLocal = durableLogo.trim();
+      if (existingIdx >= 0) {
+        lastTokens[existingIdx] = {
+          ...lastTokens[existingIdx],
+          ...window.VybeMintMetaCache.get(mint),
+          logoUrl: existingLocal,
+        };
+      }
+    }
+  }
+  // Stream/enrich/client cache already gave a local path — show it; don't run /logo repair.
   if (existingLocal && options.force !== true) {
     logoFailedMints.delete(mint);
     logoPendingRepairMints.delete(mint);
     logoSrcAssignedMints.add(mint);
+    if (existingIdx >= 0) rememberClientMintMeta(lastTokens[existingIdx]);
     updateTableAfterLogoChange();
     return;
   }
@@ -987,6 +1011,7 @@ async function repairTokenLogo(mint, options = {}) {
     const idx = lastTokens.findIndex((row) => row.mintAddress === mint);
     if (idx < 0) return;
     lastTokens[idx] = { ...lastTokens[idx], logoUrl: logo };
+    rememberClientMintMeta(lastTokens[idx]);
     logoFailedMints.delete(mint);
     logoImageLoadedMints.delete(mint);
     logoSrcAssignedMints.add(mint);
@@ -2037,9 +2062,15 @@ async function fetchBalances() {
   };
 
   const applyTokens = (tokens, { repairLogos = false } = {}) => {
-    recordVybeOriginLogos(tokens);
-    lastTokens = tokens;
+    const hydrated = (Array.isArray(tokens) ? tokens : []).map((row) => {
+      const copy = { ...row };
+      applyClientMintMeta(copy);
+      return copy;
+    });
+    recordVybeOriginLogos(hydrated);
+    lastTokens = hydrated;
     applySuspiciousValueUsdMask(lastTokens);
+    for (const row of lastTokens) rememberClientMintMeta(row);
     window.VybeDefiPositions?.setBalanceMeta?.(lastTokens);
     const totalUsd = lastTokens.reduce((sum, row) => sum + effectiveValueUsd(row), 0);
     renderSummaryStats(lastTokens, wallet, totalUsd);
@@ -2061,18 +2092,25 @@ async function fetchBalances() {
 
   const upsertToken = (token) => {
     if (!token?.mintAddress) return;
+    applyClientMintMeta(token);
     applySuspiciousValueUsdMask([token]);
     const idx = lastTokens.findIndex((t) => t.mintAddress === token.mintAddress);
-    if (idx >= 0) lastTokens[idx] = token;
-    else lastTokens.push(token);
+    if (idx >= 0) {
+      const prev = lastTokens[idx];
+      if (!isLocalCachedLogoUrl(token.logoUrl) && isLocalCachedLogoUrl(prev?.logoUrl)) {
+        token.logoUrl = prev.logoUrl;
+      }
+      lastTokens[idx] = token;
+    } else lastTokens.push(token);
     lastTokens = [...lastTokens].sort(compareHoldersTableRows);
     if (isLocalCachedLogoUrl(token.logoUrl)) {
       logoFailedMints.delete(token.mintAddress);
       logoSrcAssignedMints.add(token.mintAddress);
       logoPendingRepairMints.delete(token.mintAddress);
+      rememberClientMintMeta(token);
     }
     applyTokens(lastTokens, { repairLogos: false });
-    // Only repair when the stream left us without a local icon.
+    // Only repair when stream + client cache left us without a local icon.
     if (
       token.mintAddress &&
       !logoImageLoadedMints.has(token.mintAddress) &&

@@ -270,6 +270,8 @@ function getCachedSymbol(mint) {
 function harvestSymbolsFromRow(row) {
   const symbols = asArray(row.symbol);
   const addresses = asArray(row.address);
+  const names = asArray(row.name);
+  const logos = asArray(row.logourl ?? row.logoUrl);
   const n = Math.max(symbols.length, addresses.length);
   for (let i = 0; i < n; i++) {
     const mint = cleanStr(addresses[i]);
@@ -277,6 +279,11 @@ function harvestSymbolsFromRow(row) {
     if (isValidLabel(symbols[i], mint) && !looksTruncatedLabel(symbols[i])) {
       cacheSymbolForMint(mint, symbols[i]);
     }
+    window.VybeMintMetaCache?.put?.(mint, {
+      symbol: symbols[i],
+      name: names[i],
+      logoUrl: logos[i],
+    });
   }
 }
 
@@ -291,9 +298,86 @@ function harvestSymbolsFromPayload(payload) {
   }
 }
 
+/** Seed session maps + payload rows from durable browser mint meta before enrich/repair. */
+function hydrateClientMintMeta(payload) {
+  const cache = window.VybeMintMetaCache;
+  if (!cache?.get) return;
+
+  const mints = new Set();
+  const platforms = Array.isArray(payload?.platforms) ? payload.platforms : [];
+  for (const platform of platforms) {
+    for (const section of platform.sections || []) {
+      for (const row of section.rows || []) {
+        const addresses = asArray(row.address);
+        const symbols = asArray(row.symbol);
+        const names = asArray(row.name);
+        const logos = asArray(row.logourl ?? row.logoUrl);
+        const multi =
+          addresses.length > 1 ||
+          symbols.length > 1 ||
+          names.length > 1 ||
+          logos.length > 1 ||
+          Array.isArray(row.symbol) ||
+          Array.isArray(row.name) ||
+          Array.isArray(row.logourl) ||
+          Array.isArray(row.logoUrl);
+
+        for (let i = 0; i < addresses.length; i++) {
+          const mint = cleanStr(addresses[i]);
+          if (!mint) continue;
+          mints.add(mint);
+          const hit = cache.get(mint);
+          if (!hit) continue;
+
+          if (hit.symbol && (!isValidLabel(symbols[i], mint) || looksTruncatedLabel(symbols[i]))) {
+            if (!multi && i === 0) row.symbol = hit.symbol;
+            else {
+              while (symbols.length < addresses.length) symbols.push('');
+              symbols[i] = hit.symbol;
+              row.symbol = symbols;
+            }
+          }
+          if (hit.name && !isValidLabel(names[i], mint)) {
+            if (!multi && i === 0) row.name = hit.name;
+            else {
+              while (names.length < addresses.length) names.push('');
+              names[i] = hit.name;
+              row.name = names;
+            }
+          }
+          if (hit.logoUrl && !isLocalLogoUrl(logos[i])) {
+            if (!multi && i === 0) {
+              row.logourl = hit.logoUrl;
+              row.logoUrl = hit.logoUrl;
+            } else {
+              while (logos.length < addresses.length) logos.push('');
+              logos[i] = hit.logoUrl;
+              row.logourl = logos;
+              row.logoUrl = logos;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for (const mint of mints) {
+    const hit = cache.get(mint);
+    if (!hit) continue;
+    if (hit.symbol) cacheSymbolForMint(mint, hit.symbol);
+    const prev = balanceMetaByMint.get(mint) || { symbol: '', name: '', logo: '' };
+    balanceMetaByMint.set(mint, {
+      symbol: hit.symbol || prev.symbol,
+      name: hit.name || prev.name,
+      logo: hit.logoUrl || prev.logo,
+    });
+  }
+}
+
 /** Fill missing symbol/name/logo from wallet balances + shared symbol cache. */
 function resolveLegFields(symbol, name, logo, mint) {
   const bal = mint ? balanceMetaByMint.get(mint) : null;
+  const durable = mint ? window.VybeMintMetaCache?.get?.(mint) : null;
   let sym = isValidLabel(symbol, mint) && !looksTruncatedLabel(symbol) ? stripPoweredByJito(symbol) : '';
   let nm = isValidLabel(name, mint) ? stripPoweredByJito(name) : '';
   let lg = cleanStr(logo);
@@ -312,6 +396,14 @@ function resolveLegFields(symbol, name, logo, mint) {
         lg = balLogo;
       }
     }
+  }
+
+  if (durable) {
+    if (!sym && isValidLabel(durable.symbol, mint) && !looksTruncatedLabel(durable.symbol)) {
+      sym = stripPoweredByJito(durable.symbol);
+    }
+    if (!nm && isValidLabel(durable.name, mint)) nm = stripPoweredByJito(durable.name);
+    if (!lg && isLocalLogoUrl(durable.logoUrl)) lg = cleanStr(durable.logoUrl);
   }
 
   if (!sym) {
@@ -347,6 +439,7 @@ function setBalanceMeta(tokens) {
     return 0;
   }
   for (const token of tokens) {
+    window.VybeMintMetaCache?.hydrateToken?.(token);
     const mint = cleanStr(token.mintAddress || token.address);
     if (!mint) continue;
     const symbol = cleanStr(token.symbol);
@@ -354,17 +447,11 @@ function setBalanceMeta(tokens) {
     const logo = cleanStr(token.logoUrl || token.logourl);
     balanceMetaByMint.set(mint, { symbol, name, logo });
     cacheSymbolForMint(mint, symbol);
+    window.VybeMintMetaCache?.rememberToken?.(token);
   }
   balancesFetched = true;
   if (lastPayload) renderPlatforms(lastPayload);
   return balanceMetaByMint.size;
-}
-
-function legUsdValue(row, index) {
-  if (Array.isArray(row?.usdValue)) {
-    return Math.abs(toNum(row.usdValue[index]) ?? 0);
-  }
-  return absUsd(row);
 }
 
 function mintNeedsSymbol(mint, symbolHint) {
@@ -374,7 +461,25 @@ function mintNeedsSymbol(mint, symbolHint) {
   const bal = balanceMetaByMint.get(m);
   if (bal && isValidLabel(bal.symbol, m) && !looksTruncatedLabel(bal.symbol)) return false;
   if (isValidLabel(symbolHint, m) && !looksTruncatedLabel(symbolHint)) return false;
+  const durable = window.VybeMintMetaCache?.get?.(m);
+  if (durable?.symbol && isValidLabel(durable.symbol, m) && !looksTruncatedLabel(durable.symbol)) {
+    cacheSymbolForMint(m, durable.symbol);
+    const prev = balanceMetaByMint.get(m) || { symbol: '', name: '', logo: '' };
+    balanceMetaByMint.set(m, {
+      symbol: durable.symbol,
+      name: durable.name || prev.name,
+      logo: durable.logoUrl || prev.logo,
+    });
+    return false;
+  }
   return true;
+}
+
+function legUsdValue(row, index) {
+  if (Array.isArray(row?.usdValue)) {
+    return Math.abs(toNum(row.usdValue[index]) ?? 0);
+  }
+  return absUsd(row);
 }
 
 /**
@@ -437,6 +542,11 @@ function applyFetchedTokenMeta(mint, data) {
     logo: logo || prev.logo,
   };
   balanceMetaByMint.set(m, next);
+  window.VybeMintMetaCache?.put?.(m, {
+    symbol: next.symbol,
+    name: next.name,
+    logoUrl: next.logo,
+  });
   const logoChanged = Boolean(next.logo && next.logo !== prev.logo);
   return cached || logoChanged || Boolean(next.symbol && next.symbol !== prev.symbol);
 }
@@ -630,6 +740,12 @@ function collectMissingLogoCandidates(payload) {
     if (isLocalLogoUrl(existingLogo)) {
       continue;
     }
+    const durableLogo = window.VybeMintMetaCache?.get?.(mint)?.logoUrl || '';
+    if (isLocalLogoUrl(durableLogo)) {
+      applyFetchedTokenMeta(mint, { mint, logoUrl: durableLogo });
+      patchPlatformLogo(mint, durableLogo);
+      continue;
+    }
     byMint.set(mint, {
       mint,
       logoUrl: cleanStr(item?.logoUrl) || null,
@@ -651,6 +767,12 @@ function collectMissingLogoCandidates(payload) {
           }
           const balLogo = balanceMetaByMint.get(mint)?.logo || '';
           if (isLocalLogoUrl(balLogo)) {
+            continue;
+          }
+          const durableLogo = window.VybeMintMetaCache?.get?.(mint)?.logoUrl || '';
+          if (isLocalLogoUrl(durableLogo)) {
+            applyFetchedTokenMeta(mint, { mint, logoUrl: durableLogo });
+            patchPlatformLogo(mint, durableLogo);
             continue;
           }
           const usd = legUsdValue(row, i);
@@ -2370,6 +2492,7 @@ async function loadDefiPositions() {
       throw new Error(payload.error || `DeFi request failed (${res.status})`);
     }
     lastPayload = payload;
+    hydrateClientMintMeta(payload);
     harvestSymbolsFromPayload(payload);
     renderPlatforms(payload);
     queueMissingSymbolEnrichment();
