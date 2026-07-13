@@ -28,7 +28,13 @@ import {
   DEFI_SYMBOL_ENRICH_LIMIT,
   enrichDefiSymbolsSequential,
 } from './api/enrich-defi-symbols.js';
-import { hydrateDefiPlatformsFromDiskCache } from './api/hydrate-defi-symbols.js';
+import {
+  hydrateDefiPlatformsFromDiskCache,
+  materializeDefiPlatformLogos,
+  stripRemoteDefiPlatformLogos,
+  collectDefiLogoEnrichPending,
+} from './api/hydrate-defi-symbols.js';
+import { materializeLogoHintsSequential } from './api/materialize-token-logo.js';
 import { warmupHttpProxyPool } from './api/http-proxy-fetch.js';
 import { getRuntimeIconDir } from './token-icon-cache.js';
 
@@ -217,6 +223,62 @@ app.post('/api/tokens/enrich-symbols', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * POST /api/tokens/materialize-logos
+ * Body: { items: [{ mint, logoUrl? }] } — download remotes (or repair) to /cached/token-icons.
+ * ?stream=1 (default) emits NDJSON {event:"token",token:{mint,logoUrl}} then {event:"done"}.
+ */
+app.post('/api/tokens/materialize-logos', async (req: Request, res: Response) => {
+  try {
+    const items = Array.isArray(req.body?.items)
+      ? req.body.items
+      : Array.isArray(req.body?.mints)
+        ? (req.body.mints as unknown[]).map((mint) => ({ mint, logoUrl: null }))
+        : [];
+    if (items.length === 0) {
+      return res.status(400).json({ error: 'items array required (max 40)' });
+    }
+    const useStream = qBool(req, 'stream', true);
+    const allowRepair = qBool(req, 'repair', true);
+
+    if (useStream) {
+      res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('X-Accel-Buffering', 'no');
+      await materializeLogoHintsSequential(
+        items,
+        async (token) => {
+          if (!res.writableEnded) {
+            res.write(`${JSON.stringify({ event: 'token', token })}\n`);
+            const flushable = res as unknown as { flush?: () => void };
+            flushable.flush?.();
+          }
+        },
+        { allowRepair, concurrency: 8, limit: 40 },
+      );
+      if (!res.writableEnded) {
+        res.write(`${JSON.stringify({ event: 'done' })}\n`);
+        res.end();
+      }
+      return;
+    }
+
+    const tokens = await materializeLogoHintsSequential(items, undefined, {
+      allowRepair,
+      concurrency: 8,
+      limit: 40,
+    });
+    res.json({ tokens });
+  } catch (err) {
+    if (!res.headersSent) {
+      const status = (err as { response?: { status?: number } })?.response?.status ?? 500;
+      res.status(status).json({ error: toHumanReadableError(err) });
+    } else {
+      res.end();
+    }
+  }
+});
+
 /** GET /api/wallets/:ownerAddress/defi-positions — LP, lending, staking across DeFi protocols */
 app.get('/api/wallets/:ownerAddress/defi-positions', async (req: Request, res: Response) => {
   try {
@@ -226,7 +288,17 @@ app.get('/api/wallets/:ownerAddress/defi-positions', async (req: Request, res: R
 
     const payload = await getWalletDefiPositions(dataHttp, ownerAddress);
     const platformsRaw = Array.isArray(payload.data) ? payload.data : [];
-    const { platforms, hydrated, stillMissing } = hydrateDefiPlatformsFromDiskCache(platformsRaw);
+    const { platforms: hydratedPlatforms, hydrated, stillMissing } =
+      hydrateDefiPlatformsFromDiskCache(platformsRaw);
+    const logoEnrichPending = collectDefiLogoEnrichPending(hydratedPlatforms, 40);
+    // Snapshot with remote URL hints for background download, then strip for the response.
+    const logoWarmSnapshot = JSON.parse(JSON.stringify(hydratedPlatforms)) as unknown[];
+    void materializeDefiPlatformLogos(logoWarmSnapshot, { limit: 40, concurrency: 8 }).catch((err) => {
+      console.warn(
+        `[defi-positions] background logo materialize failed: ${err instanceof Error ? err.message : err}`,
+      );
+    });
+    const platforms = stripRemoteDefiPlatformLogos(hydratedPlatforms);
     const totalDefiValueUsd =
       payload.totalDefiValueUsd != null && String(payload.totalDefiValueUsd).trim() !== ''
         ? Number(payload.totalDefiValueUsd)
@@ -240,6 +312,7 @@ app.get('/api/wallets/:ownerAddress/defi-positions', async (req: Request, res: R
       symbolCacheHydrated: hydrated,
       // stillMissing is already capped to 20 uncached mints (cache hits excluded)
       symbolEnrichPending: stillMissing,
+      logoEnrichPending,
     });
   } catch (err) {
     const status = (err as { response?: { status?: number } })?.response?.status ?? 500;

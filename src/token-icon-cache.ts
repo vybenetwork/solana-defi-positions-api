@@ -101,6 +101,11 @@ function isLocalIconUrl(url: string | undefined): boolean {
   return url.startsWith(PUBLIC_ICON_WEB_PREFIX) || url.startsWith(RUNTIME_ICON_WEB_PREFIX);
 }
 
+/** True when logoUrl is a path served by this app (not a remote CDN). */
+export function isLocalCachedIconUrl(url: string | null | undefined): boolean {
+  return isLocalIconUrl(url?.trim() || undefined);
+}
+
 function isImageBuffer(buf: Buffer): boolean {
   if (buf.length < 12) return false;
   if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return true;

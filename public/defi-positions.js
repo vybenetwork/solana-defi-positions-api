@@ -237,19 +237,6 @@ function stripPoweredByJito(label) {
   return s.replace(/\s*[-–—]\s*Powered by Jito\b/gi, '').trim();
 }
 
-/** Parse Description like "wSOL/bSOL" into symbol parts when it looks like a valid pair. */
-function parseDescriptionPairParts(sectionName) {
-  const s = cleanStr(sectionName);
-  if (!s || s === '—') return null;
-  const parts = s
-    .split('/')
-    .map((p) => p.trim())
-    .filter(Boolean);
-  if (parts.length < 2) return null;
-  if (parts.some((p) => looksTruncatedLabel(p) || looksLikeAddressOrMint(p) || p.length > 24)) return null;
-  return parts;
-}
-
 function cacheSymbolForMint(mint, symbol) {
   const m = cleanStr(mint);
   const s = cleanStr(symbol);
@@ -280,13 +267,6 @@ function harvestSymbolsFromRow(row) {
       cacheSymbolForMint(mint, symbols[i]);
     }
   }
-  const pairParts = parseDescriptionPairParts(row.sectionName);
-  if (!pairParts) return;
-  for (let i = 0; i < Math.min(pairParts.length, addresses.length); i++) {
-    const mint = cleanStr(addresses[i]);
-    if (!mint) continue;
-    cacheSymbolForMint(mint, pairParts[i]);
-  }
 }
 
 function harvestSymbolsFromPayload(payload) {
@@ -306,13 +286,21 @@ function resolveLegFields(symbol, name, logo, mint) {
   let sym = isValidLabel(symbol, mint) && !looksTruncatedLabel(symbol) ? stripPoweredByJito(symbol) : '';
   let nm = isValidLabel(name, mint) ? stripPoweredByJito(name) : '';
   let lg = cleanStr(logo);
+  if (lg && !(lg.startsWith('/cached/token-icons/') || lg.startsWith('/data/token-icons/'))) {
+    lg = '';
+  }
 
   if (bal) {
     if (!sym && isValidLabel(bal.symbol, mint) && !looksTruncatedLabel(bal.symbol)) {
       sym = stripPoweredByJito(bal.symbol);
     }
     if (!nm && isValidLabel(bal.name, mint)) nm = stripPoweredByJito(bal.name);
-    if (!lg && bal.logo) lg = bal.logo;
+    if (!lg && bal.logo) {
+      const balLogo = cleanStr(bal.logo);
+      if (balLogo.startsWith('/cached/token-icons/') || balLogo.startsWith('/data/token-icons/')) {
+        lg = balLogo;
+      }
+    }
   }
 
   if (!sym) {
@@ -426,7 +414,10 @@ function applyFetchedTokenMeta(mint, data) {
   if (!m || !data || typeof data !== 'object') return false;
   const symbol = cleanStr(data.symbol);
   const name = cleanStr(data.name);
-  const logo = cleanStr(data.logoUrl || data.logourl);
+  let logo = cleanStr(data.logoUrl || data.logourl);
+  if (logo && !(logo.startsWith('/cached/token-icons/') || logo.startsWith('/data/token-icons/'))) {
+    logo = '';
+  }
   const cached = cacheSymbolForMint(m, symbol);
   const prev = balanceMetaByMint.get(m) || { symbol: '', name: '', logo: '' };
   const next = {
@@ -435,7 +426,41 @@ function applyFetchedTokenMeta(mint, data) {
     logo: logo || prev.logo,
   };
   balanceMetaByMint.set(m, next);
-  return cached || Boolean(next.symbol && next.symbol !== prev.symbol);
+  const logoChanged = Boolean(next.logo && next.logo !== prev.logo);
+  return cached || logoChanged || Boolean(next.symbol && next.symbol !== prev.symbol);
+}
+
+function patchPlatformLogo(mint, logoUrl) {
+  const m = cleanStr(mint);
+  const logo = cleanStr(logoUrl);
+  if (!m || !logo) return false;
+  if (!(logo.startsWith('/cached/token-icons/') || logo.startsWith('/data/token-icons/'))) return false;
+  if (!lastPayload?.platforms) return false;
+  let patched = false;
+  for (const platform of lastPayload.platforms) {
+    for (const section of platform.sections || []) {
+      for (const row of section.rows || []) {
+        const addresses = asArray(row.address);
+        const logos = asArray(row.logourl ?? row.logoUrl);
+        const multi = addresses.length > 1 || logos.length > 1 || Array.isArray(row.logourl) || Array.isArray(row.logoUrl);
+        for (let i = 0; i < addresses.length; i++) {
+          if (cleanStr(addresses[i]) !== m) continue;
+          if (!multi && i === 0) {
+            row.logourl = logo;
+            row.logoUrl = logo;
+            patched = true;
+            continue;
+          }
+          while (logos.length < addresses.length) logos.push('');
+          logos[i] = logo;
+          row.logourl = logos;
+          row.logoUrl = logos;
+          patched = true;
+        }
+      }
+    }
+  }
+  return patched;
 }
 
 /** Backend: Vybe token-details → Jupiter via rotating proxy, sequential. Streams NDJSON updates. */
@@ -527,6 +552,139 @@ function queueMissingSymbolEnrichment() {
   if (!lastPayload) return;
   const generation = ++symbolEnrichGeneration;
   void runMissingSymbolEnrichment(generation);
+}
+
+let logoEnrichGeneration = 0;
+const logoEnrichAttempted = new Set();
+
+async function fetchLogosFromBackend(items, onToken) {
+  const res = await fetch('/api/tokens/materialize-logos?stream=1&repair=1', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' },
+    body: JSON.stringify({ items }),
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `logo materialize HTTP ${res.status}`);
+  }
+
+  if (!res.body || typeof res.body.getReader !== 'function') {
+    const data = await res.json().catch(() => null);
+    const tokens = Array.isArray(data?.tokens) ? data.tokens : [];
+    for (const token of tokens) onToken(token);
+    return;
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let nl;
+    while ((nl = buffer.indexOf('\n')) >= 0) {
+      const line = buffer.slice(0, nl).trim();
+      buffer = buffer.slice(nl + 1);
+      if (!line) continue;
+      let event;
+      try {
+        event = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      if (event?.event === 'token' && event.token) onToken(event.token);
+    }
+  }
+  const tail = buffer.trim();
+  if (tail) {
+    try {
+      const event = JSON.parse(tail);
+      if (event?.event === 'token' && event.token) onToken(event.token);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+function collectMissingLogoCandidates(payload) {
+  /** @type {Map<string, { mint: string, logoUrl: string | null, usd: number }>} */
+  const byMint = new Map();
+  const pending = Array.isArray(payload?.logoEnrichPending) ? payload.logoEnrichPending : [];
+  for (const item of pending) {
+    const mint = cleanStr(item?.mint);
+    if (!mint || logoEnrichAttempted.has(mint)) continue;
+    const existingLogo = balanceMetaByMint.get(mint)?.logo || '';
+    if (existingLogo.startsWith('/cached/token-icons/') || existingLogo.startsWith('/data/token-icons/')) {
+      continue;
+    }
+    byMint.set(mint, {
+      mint,
+      logoUrl: cleanStr(item?.logoUrl) || null,
+      usd: 0,
+    });
+  }
+  const platforms = Array.isArray(payload?.platforms) ? payload.platforms : [];
+  for (const platform of platforms) {
+    for (const section of platform.sections || []) {
+      for (const row of section.rows || []) {
+        const addresses = asArray(row.address);
+        const logos = asArray(row.logourl ?? row.logoUrl);
+        for (let i = 0; i < addresses.length; i++) {
+          const mint = cleanStr(addresses[i]);
+          if (!mint || logoEnrichAttempted.has(mint)) continue;
+          const rowLogo = cleanStr(logos[i]);
+          if (rowLogo.startsWith('/cached/token-icons/') || rowLogo.startsWith('/data/token-icons/')) {
+            continue;
+          }
+          const balLogo = balanceMetaByMint.get(mint)?.logo || '';
+          if (balLogo.startsWith('/cached/token-icons/') || balLogo.startsWith('/data/token-icons/')) {
+            continue;
+          }
+          const usd = legUsdValue(row, i);
+          const prev = byMint.get(mint);
+          if (!prev || usd > prev.usd) {
+            byMint.set(mint, {
+              mint,
+              logoUrl: rowLogo && !rowLogo.startsWith('/') ? rowLogo : prev?.logoUrl || null,
+              usd,
+            });
+          }
+        }
+      }
+    }
+  }
+  return [...byMint.values()].sort((a, b) => b.usd - a.usd).slice(0, 40);
+}
+
+async function runMissingLogoEnrichment(generation) {
+  if (!lastPayload) return;
+  const items = collectMissingLogoCandidates(lastPayload);
+  if (items.length === 0) return;
+  for (const item of items) logoEnrichAttempted.add(item.mint);
+
+  try {
+    await fetchLogosFromBackend(items, (token) => {
+      if (generation !== logoEnrichGeneration) return;
+      const mint = cleanStr(token.mint);
+      const logo = cleanStr(token.logoUrl);
+      if (!mint || !logo) return;
+      const metaChanged = applyFetchedTokenMeta(mint, { mint, logoUrl: logo });
+      const rowChanged = patchPlatformLogo(mint, logo);
+      if ((metaChanged || rowChanged) && lastPayload && generation === logoEnrichGeneration) {
+        renderPlatforms(lastPayload);
+      }
+    });
+  } catch (err) {
+    console.warn('[defi-logo-enrich]', err instanceof Error ? err.message : err);
+  }
+}
+
+function queueMissingLogoEnrichment() {
+  if (!lastPayload) return;
+  const generation = ++logoEnrichGeneration;
+  void runMissingLogoEnrichment(generation);
 }
 
 /** Above this absolute value (and below k/M/B), use exactly 2 decimal places. */
@@ -1246,10 +1404,7 @@ function resolvePoolAssetTitle(row) {
   for (let i = 0; i < legs; i++) {
     resolved.push(resolveLegFields(symbols[i], names[i], logos[i], addresses[i]));
   }
-  const hasTruncated = resolved.some((leg) => looksTruncatedLabel(leg.displayLabel));
-  const pairParts = hasTruncated ? parseDescriptionPairParts(row.sectionName) : null;
   const labels = resolvePairDisplayLabels(row, resolved).filter((l) => l && l !== 'Unknown');
-  if (pairParts) return pairParts.join(' / ');
   if (labels.length > 0) return [...new Set(labels)].join(' / ');
   return 'LP position';
 }
@@ -1318,15 +1473,8 @@ function renderSingleTokenCell(row) {
   `;
 }
 
-function resolvePairDisplayLabels(row, resolvedLegs) {
-  const labels = resolvedLegs.map((leg) => leg.displayLabel);
-  if (!labels.some((label) => looksTruncatedLabel(label))) return labels;
-  const pairParts = parseDescriptionPairParts(row.sectionName);
-  if (!pairParts) return labels;
-  return labels.map((label, i) => {
-    if (looksTruncatedLabel(label) && pairParts[i]) return pairParts[i];
-    return label;
-  });
+function resolvePairDisplayLabels(_row, resolvedLegs) {
+  return resolvedLegs.map((leg) => leg.displayLabel);
 }
 
 function renderPairTokenCell(row) {
@@ -1383,11 +1531,23 @@ function amountTokenToneClass(mint, symbol) {
   return 'defi-amount-line--other';
 }
 
+/** Amount / Amounts / Debt: truncated or mint-like symbols → first 4 chars only. */
+function formatAmountSymbolLabel(label, mint) {
+  const s = cleanStr(label);
+  if (!s || s === '—') return s;
+  if (looksTruncatedLabel(s) || looksLikeAddressOrMint(s, mint)) {
+    const head = s.split(/\.\.\.|…/)[0].trim();
+    return (head || s).slice(0, 4);
+  }
+  return s;
+}
+
 function renderAmountLineHtml(amount, label, logo, mint) {
-  const tone = amountTokenToneClass(mint, label);
+  const symbolLabel = formatAmountSymbolLabel(label, mint);
+  const tone = amountTokenToneClass(mint, symbolLabel);
   const logoSrc = cleanStr(logo) || TOKEN_PLACEHOLDER;
-  const amountText = formatAmount(amount, { stable: isStableToken(mint, label), html: true });
-  return `<span class="defi-amount-line ${tone}"><span class="defi-amount-line__value">${amountText}</span> <span class="defi-amount-line__symbol">${escapeHtml(label)}</span><img class="defi-amount-line__logo" src="${escapeHtml(logoSrc)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" /></span>`;
+  const amountText = formatAmount(amount, { stable: isStableToken(mint, symbolLabel), html: true });
+  return `<span class="defi-amount-line ${tone}"><span class="defi-amount-line__value">${amountText}</span> <span class="defi-amount-line__symbol">${escapeHtml(symbolLabel)}</span><img class="defi-amount-line__logo" src="${escapeHtml(logoSrc)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" /></span>`;
 }
 
 function renderMultiAmounts(row) {
@@ -2170,6 +2330,8 @@ function resetDefiPlaceholder() {
   balancesFetched = false;
   symbolEnrichGeneration += 1;
   symbolEnrichAttempted.clear();
+  logoEnrichGeneration += 1;
+  logoEnrichAttempted.clear();
   expandedDustPlatforms.clear();
   if (defiSummaryLabel) defiSummaryLabel.textContent = '—';
   if (defiLastUpdatedValue) defiLastUpdatedValue.textContent = '—';
@@ -2199,6 +2361,7 @@ async function loadDefiPositions() {
     harvestSymbolsFromPayload(payload);
     renderPlatforms(payload);
     queueMissingSymbolEnrichment();
+    queueMissingLogoEnrichment();
   } catch (err) {
     resetDefiPlaceholder();
     showDefiError(err instanceof Error ? err.message : String(err));

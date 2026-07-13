@@ -6,6 +6,9 @@
 import type { AxiosInstance } from 'axios';
 import {
   getCachedTokenMetaFromDisk,
+  hasCachedTokenIcon,
+  getCachedTokenIconWebPath,
+  isLocalCachedIconUrl,
   type CachedTokenMeta,
 } from '../token-icon-cache.js';
 import { isMintLikeLabel } from './token-label.js';
@@ -14,6 +17,7 @@ import {
   enrichDefiSymbolsSequential,
   type DefiSymbolEnrichToken,
 } from './enrich-defi-symbols.js';
+import { materializeTokenLogoLocal } from './materialize-token-logo.js';
 
 const DUST_USD_THRESHOLD = 0.1;
 
@@ -60,10 +64,14 @@ function metaToPatch(meta: CachedTokenMeta): { symbol: string; name: string; log
     return null;
   }
   const name = String(meta.name ?? '').trim();
+  const mint = String(meta.mint ?? '').trim();
+  const localLogo =
+    (hasCachedTokenIcon(mint) ? getCachedTokenIconWebPath(mint) : undefined) ||
+    (isLocalCachedIconUrl(meta.logoUrl) ? meta.logoUrl?.trim() : undefined);
   return {
     symbol,
     name: name && !isMintLikeLabel(name, meta.mint) ? name : symbol,
-    logoUrl: meta.logoUrl?.trim() || undefined,
+    logoUrl: localLogo,
   };
 }
 
@@ -84,6 +92,9 @@ function patchRowLeg(
       row.name = patch.name;
     }
     if (patch.logoUrl && !String(row.logourl ?? row.logoUrl ?? '').trim()) {
+      row.logourl = patch.logoUrl;
+      row.logoUrl = patch.logoUrl;
+    } else if (patch.logoUrl && !isLocalCachedIconUrl(String(row.logourl ?? row.logoUrl ?? ''))) {
       row.logourl = patch.logoUrl;
       row.logoUrl = patch.logoUrl;
     }
@@ -230,6 +241,189 @@ export function hydrateDefiPlatformsFromDiskCache(platforms: unknown[]): {
   // Only uncached mints count toward the enrich queue limit of 20
   const stillMissing = pickEnrichQueue(uncached, DEFI_SYMBOL_ENRICH_LIMIT);
   return { platforms: list, hydrated, stillMissing };
+}
+
+function setLegLogo(row: Record<string, unknown>, index: number, logoUrl: string | null): void {
+  const addresses = asArray(row.address);
+  const logos = asArray(row.logourl ?? row.logoUrl);
+  const multi = addresses.length > 1 || logos.length > 1 || Array.isArray(row.logourl) || Array.isArray(row.logoUrl);
+  if (!multi && index === 0) {
+    row.logourl = logoUrl;
+    row.logoUrl = logoUrl;
+    return;
+  }
+  while (logos.length < Math.max(addresses.length, index + 1)) logos.push('');
+  logos[index] = logoUrl ?? '';
+  row.logourl = logos;
+  row.logoUrl = logos;
+}
+
+/**
+ * Instant: keep only already-cached local logo paths. Strips remote CDNs so the
+ * browser never loads them. Does not download (use materializeDefiPlatformLogos
+ * in the background to warm the cache for the next request).
+ */
+export function stripRemoteDefiPlatformLogos(platforms: unknown[]): unknown[] {
+  const list = Array.isArray(platforms) ? platforms : [];
+  for (const platform of list) {
+    if (!platform || typeof platform !== 'object') continue;
+    for (const section of (platform as { sections?: unknown[] }).sections || []) {
+      if (!section || typeof section !== 'object') continue;
+      for (const raw of (section as { rows?: unknown[] }).rows || []) {
+        if (!raw || typeof raw !== 'object') continue;
+        const row = raw as Record<string, unknown>;
+        const addresses = asArray(row.address).map((a) => String(a ?? '').trim());
+        const logos = asArray(row.logourl ?? row.logoUrl);
+        const n = Math.max(addresses.length, logos.length, 1);
+        for (let i = 0; i < n; i++) {
+          const mint = String(addresses[i] ?? '').trim();
+          let local: string | null = null;
+          if (mint && hasCachedTokenIcon(mint)) {
+            local = getCachedTokenIconWebPath(mint) ?? null;
+          } else {
+            const current = String(logos[i] ?? row.logourl ?? row.logoUrl ?? '').trim();
+            local = isLocalCachedIconUrl(current) ? current : null;
+          }
+          setLegLogo(row, i, local);
+        }
+      }
+    }
+  }
+  return list;
+}
+
+/** Mints that still need a local logo after hydrate — include remote URL hints for download. */
+export function collectDefiLogoEnrichPending(
+  platforms: unknown[],
+  limit = 40,
+): Array<{ mint: string; logoUrl: string | null }> {
+  type Hit = { mint: string; logoUrl: string | null; usd: number };
+  const byMint = new Map<string, Hit>();
+  const list = Array.isArray(platforms) ? platforms : [];
+  for (const platform of list) {
+    if (!platform || typeof platform !== 'object') continue;
+    for (const section of (platform as { sections?: unknown[] }).sections || []) {
+      if (!section || typeof section !== 'object') continue;
+      for (const raw of (section as { rows?: unknown[] }).rows || []) {
+        if (!raw || typeof raw !== 'object') continue;
+        const row = raw as Record<string, unknown>;
+        const addresses = asArray(row.address).map((a) => String(a ?? '').trim());
+        const logos = asArray(row.logourl ?? row.logoUrl);
+        for (let i = 0; i < addresses.length; i++) {
+          const mint = addresses[i]!;
+          if (!mint) continue;
+          if (hasCachedTokenIcon(mint)) continue;
+          const rawLogo = String(logos[i] ?? '').trim() || null;
+          if (rawLogo && isLocalCachedIconUrl(rawLogo)) continue;
+          const usd = legUsd(row, i);
+          const prev = byMint.get(mint);
+          if (!prev || usd > prev.usd) {
+            byMint.set(mint, {
+              mint,
+              logoUrl: rawLogo && !isLocalCachedIconUrl(rawLogo) ? rawLogo : null,
+              usd,
+            });
+          }
+        }
+      }
+    }
+  }
+  return [...byMint.values()]
+    .sort((a, b) => b.usd - a.usd)
+    .slice(0, Math.max(0, limit))
+    .map(({ mint, logoUrl }) => ({ mint, logoUrl }));
+}
+
+/**
+ * Download remote DeFi row logos onto the server and rewrite every logo field to a
+ * local /cached path (or empty). Caps network downloads; always strips remotes.
+ * Prefer running this in the background — do not await on the request path.
+ */
+export async function materializeDefiPlatformLogos(
+  platforms: unknown[],
+  options?: { limit?: number; concurrency?: number },
+): Promise<{ platforms: unknown[]; materialized: number }> {
+  const list = Array.isArray(platforms) ? platforms : [];
+  const limit = Math.max(0, options?.limit ?? 40);
+  const concurrency = Math.max(1, options?.concurrency ?? 8);
+
+  type LogoHit = { mint: string; remote: string | null; usd: number };
+  const byMint = new Map<string, LogoHit>();
+
+  for (const platform of list) {
+    if (!platform || typeof platform !== 'object') continue;
+    for (const section of (platform as { sections?: unknown[] }).sections || []) {
+      if (!section || typeof section !== 'object') continue;
+      for (const raw of (section as { rows?: unknown[] }).rows || []) {
+        if (!raw || typeof raw !== 'object') continue;
+        const row = raw as Record<string, unknown>;
+        const addresses = asArray(row.address).map((a) => String(a ?? '').trim());
+        const logos = asArray(row.logourl ?? row.logoUrl);
+        for (let i = 0; i < addresses.length; i++) {
+          const mint = addresses[i]!;
+          if (!mint) continue;
+          if (hasCachedTokenIcon(mint)) continue;
+          const remote = String(logos[i] ?? '').trim() || null;
+          if (remote && isLocalCachedIconUrl(remote)) continue;
+          const usd = legUsd(row, i);
+          const prev = byMint.get(mint);
+          if (!prev || usd > prev.usd) {
+            byMint.set(mint, { mint, remote, usd });
+          }
+        }
+      }
+    }
+  }
+
+  const queue = [...byMint.values()].sort((a, b) => b.usd - a.usd).slice(0, limit);
+  const localByMint = new Map<string, string | null>();
+  let next = 0;
+  const workers = Array.from({ length: Math.min(concurrency, Math.max(1, queue.length)) }, async () => {
+    for (;;) {
+      const i = next;
+      next += 1;
+      if (i >= queue.length) return;
+      const hit = queue[i]!;
+      localByMint.set(hit.mint, await materializeTokenLogoLocal(hit.mint, hit.remote));
+    }
+  });
+  await Promise.all(workers);
+
+  let materialized = 0;
+  for (const platform of list) {
+    if (!platform || typeof platform !== 'object') continue;
+    for (const section of (platform as { sections?: unknown[] }).sections || []) {
+      if (!section || typeof section !== 'object') continue;
+      for (const raw of (section as { rows?: unknown[] }).rows || []) {
+        if (!raw || typeof raw !== 'object') continue;
+        const row = raw as Record<string, unknown>;
+        const addresses = asArray(row.address).map((a) => String(a ?? '').trim());
+        const logos = asArray(row.logourl ?? row.logoUrl);
+        for (let i = 0; i < addresses.length; i++) {
+          const mint = addresses[i]!;
+          if (!mint) continue;
+          let local: string | null = null;
+          if (hasCachedTokenIcon(mint)) {
+            local = getCachedTokenIconWebPath(mint) ?? null;
+          } else if (localByMint.has(mint)) {
+            local = localByMint.get(mint) ?? null;
+          } else {
+            const current = String(logos[i] ?? '').trim();
+            local = isLocalCachedIconUrl(current) ? current : null;
+          }
+          const prev = String(logos[i] ?? '').trim();
+          if (local !== prev) {
+            setLegLogo(row, i, local);
+            if (local) materialized += 1;
+          } else if (prev && !isLocalCachedIconUrl(prev)) {
+            setLegLogo(row, i, null);
+          }
+        }
+      }
+    }
+  }
+
+  return { platforms: list, materialized };
 }
 
 /**
