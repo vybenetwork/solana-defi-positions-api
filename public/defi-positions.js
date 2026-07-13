@@ -867,10 +867,11 @@ function formatWholeNumber(abs, { useGrouping = true } = {}) {
 
 /**
  * Compact k / M / B for abs > 999.99.
- * Scaled |unit| > noDecimalAbove → no decimals; otherwise 2 decimals with trailing zeros stripped.
+ * Scaled |unit| > noDecimalAbove → no decimals; otherwise 2 decimals
+ * (trailing zeros kept when alwaysTwoDecimals, else stripped).
  * @returns {string | null}
  */
-function formatCompactMagnitude(abs, { noDecimalAbove = 100 } = {}) {
+function formatCompactMagnitude(abs, { noDecimalAbove = 100, alwaysTwoDecimals = false } = {}) {
   if (!Number.isFinite(abs) || abs <= COMPACT_MAGNITUDE_THRESHOLD) return null;
   let scaled;
   let suffix;
@@ -887,7 +888,9 @@ function formatCompactMagnitude(abs, { noDecimalAbove = 100 } = {}) {
   if (scaled > noDecimalAbove) {
     return `${Math.round(scaled).toLocaleString(undefined, { maximumFractionDigits: 0 })}${suffix}`;
   }
-  const body = scaled.toFixed(2).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
+  const body = alwaysTwoDecimals
+    ? scaled.toFixed(2)
+    : scaled.toFixed(2).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
   return `${body}${suffix}`;
 }
 
@@ -1012,7 +1015,10 @@ function formatAmount(value, { stable = false, html = false } = {}) {
   const sign = n < 0 ? '−' : '';
   const abs = Math.abs(n);
 
-  const compactMag = formatCompactMagnitude(abs);
+  const compactMag = formatCompactMagnitude(abs, {
+    noDecimalAbove: 99.99,
+    alwaysTwoDecimals: true,
+  });
   if (compactMag) return `${sign}${compactMag}`;
 
   // Above 99.99 until k/M/B → whole numbers only.
