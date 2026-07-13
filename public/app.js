@@ -841,17 +841,17 @@ function aggregateWalletTaxonomy(tokens) {
     topCategory: topCat ? { name: topCat[0], count: topCat[1].count, usd: topCat[1].usd } : null,
     topSubcategory: topSub ? { name: topSub[0], count: topSub[1].count, usd: topSub[1].usd } : null,
     topCategoryLine: topCat
-      ? `${topCat[0]} · ${topCat[1].count} token(s) · ${formatUsd(topCat[1].usd)}`
+      ? `${topCat[0]} · ${topCat[1].count} ${formatTokenCountWord(topCat[1].count)} · ${formatUsd(topCat[1].usd)}`
       : '—',
     topSubcategoryLine: topSub
-      ? `${topSub[0]} · ${topSub[1].count} token(s) · ${formatUsd(topSub[1].usd)}`
+      ? `${topSub[0]} · ${topSub[1].count} ${formatTokenCountWord(topSub[1].count)} · ${formatUsd(topSub[1].usd)}`
       : '—',
   };
 }
 
 function formatTopTaxonomyStatHtml(entry) {
   if (!entry) return escapeHtmlText('—');
-  const tokenWord = entry.count === 1 ? 'token' : 'tokens';
+  const tokenWord = formatTokenCountWord(entry.count);
   const meta = `${entry.count.toLocaleString()} ${tokenWord} · ${formatUsd(entry.usd)}`;
   return `<span class="token-stat-top-taxonomy-name">${escapeHtmlText(entry.name)}</span><span class="token-stat-top-taxonomy-meta">${escapeHtmlText(meta)}</span>`;
 }
@@ -1301,12 +1301,12 @@ function buildWalletSummarySections(data) {
         rows: [
           {
             key: 'supply',
-            label: 'Unique categories',
+            label: 'Total categories',
             valueHtml: formatOverviewCountSuffixHtml(data.uniqueCategories, 'Categories'),
           },
           {
             key: 'usdVol24h',
-            label: 'Unique subcategories',
+            label: 'Total subcategories',
             valueHtml: formatOverviewCountSuffixHtml(data.uniqueSubcategories, 'Subcategories'),
           },
         ],
@@ -1350,11 +1350,11 @@ function buildWalletSummaryPlaceholderHtml() {
   });
 }
 
-function formatOverviewPositionCountHtml(count, { short = false } = {}) {
+function formatOverviewPositionCountHtml(count) {
   if (count == null) return escapeHtmlText('—');
   const n = Number(count);
   if (!Number.isFinite(n)) return escapeHtmlText('—');
-  const word = short ? 'pos' : n === 1 ? 'Position' : 'Positions';
+  const word = n === 1 ? 'Position' : 'Positions';
   return `${escapeHtmlText(n.toLocaleString())} <span class="token-stat-count-suffix">${escapeHtmlText(word)}</span>`;
 }
 
@@ -1379,12 +1379,12 @@ function buildDefiSummarySections(data) {
           {
             key: 'verified',
             label: 'Native',
-            valueHtml: formatOverviewPositionCountHtml(data.nativeCount, { short: true }),
+            valueHtml: formatOverviewPositionCountHtml(data.nativeCount),
           },
           {
             key: 'price1d',
             label: 'Dust',
-            valueHtml: formatOverviewPositionCountHtml(data.dustCount, { short: true }),
+            valueHtml: formatOverviewPositionCountHtml(data.dustCount),
           },
         ],
       },
@@ -1416,12 +1416,12 @@ function buildDefiSummarySections(data) {
         rows: [
           {
             key: 'supply',
-            label: 'Unique categories',
+            label: 'Total categories',
             valueHtml: formatOverviewCountSuffixHtml(data.uniqueCategories, 'Categories'),
           },
           {
             key: 'usdVol24h',
-            label: 'Unique subcategories',
+            label: 'Total subcategories',
             valueHtml: formatOverviewCountSuffixHtml(data.uniqueSubcategories, 'Subcategories'),
           },
         ],
@@ -1578,7 +1578,8 @@ function formatHoldingValueUsdCellHtml(valueUsd) {
 function formatBandTotalUsd(n) {
   const num = toNum(n);
   if (!Number.isFinite(num) || num <= 0) return '$0';
-  return `$${formatRoundedValue(num)}`;
+  // Full through $9999; then k/M/B with always 2 decimals ($10.00k, $1.36M).
+  return formatPortfolioStatUsd(num);
 }
 
 function formatTokenCountWord(count) {
@@ -1770,6 +1771,15 @@ function setSummaryView(mode) {
   syncVisibleLoaders();
 }
 
+/** Keep Summary / Stats / Table tabs on the same DeFi vs holdings side. */
+function setLinkedPageView(mode) {
+  const holdingsMode = mode === 'nondefi' || mode === 'holdings' ? 'holdings' : 'defi';
+  const summaryMode = holdingsMode === 'holdings' ? 'nondefi' : 'defi';
+  setSummaryView(summaryMode);
+  setWalletStatsView(holdingsMode);
+  setHoldersTableView(holdingsMode);
+}
+
 function setWalletStatsView(mode) {
   walletStatsViewMode = mode;
   const showDefi = mode === 'defi';
@@ -1836,7 +1846,7 @@ function renderCharts(tokens, wallet, totalUsd) {
       slicePct: bucket.slices[i],
       shareLabel: ' of tokens',
       usdLine: formatUsd(bucket.usd[i]),
-      amountLine: `${count} token(s)`,
+      amountLine: `${count} ${formatTokenCountWord(count)}`,
     });
   }).join('');
 
@@ -1845,7 +1855,7 @@ function renderCharts(tokens, wallet, totalUsd) {
   portfolioPieInsight.textContent = buildPriceChangePieInsight(bucket, tokens.length);
 
   if (holdingsStatsMeta) {
-    holdingsStatsMeta.textContent = `Wallet holdings: ${tokens.length} token(s) · profitability pie and USD value bands.`;
+    holdingsStatsMeta.textContent = `Wallet holdings: ${tokens.length} ${formatTokenCountWord(tokens.length)} · profitability pie and USD value bands.`;
   }
 
   renderUsdBars(tokens);
@@ -2245,28 +2255,27 @@ function setHoldersTableView(mode) {
 }
 
 function initViewSwitchers() {
-  setHoldersTableView('defi');
-  setWalletStatsView('defi');
+  setLinkedPageView('defi');
   holdersTableViewSwitchRoot?.addEventListener('click', (event) => {
     const btn = event.target.closest('[data-view]');
     if (!btn || btn.disabled) return;
     const mode = btn.dataset.view;
     if (!mode) return;
-    setHoldersTableView(mode);
+    setLinkedPageView(mode);
   });
   walletStatsViewSwitchRoot?.addEventListener('click', (event) => {
     const btn = event.target.closest('[data-view]');
     if (!btn || btn.disabled) return;
     const mode = btn.dataset.view;
     if (!mode) return;
-    setWalletStatsView(mode);
+    setLinkedPageView(mode);
   });
   summaryViewSwitchRoot?.addEventListener('click', (event) => {
     const btn = event.target.closest('[data-view]');
     if (!btn || btn.disabled) return;
     const mode = btn.dataset.view;
     if (!mode) return;
-    setSummaryView(mode);
+    setLinkedPageView(mode);
   });
 }
 
@@ -2275,7 +2284,6 @@ renderDefiSummaryPlaceholder();
 renderWalletSummaryPlaceholder();
 renderHoldersTablePlaceholder();
 updateHoldersSectionMeta('defi');
-setSummaryView('defi');
 hydrateHoldersSummaryLabelIcons();
 initLogoRepairSettings();
 initViewSwitchers();

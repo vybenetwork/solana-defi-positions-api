@@ -31,7 +31,7 @@ const DEFI_CATEGORY_LABELS = {
   default: 'Other',
 };
 const DEFI_TIER_LEGEND_SVG_VOLUME =
-  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12h12M4 9h8M6 6h4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+  '<svg class="token-tier-metric__svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 12h4v8H3v-8zm7-4h4v12h-4V8zm7 6h4v6h-4v-6z"/></svg>';
 const USD_MAGNITUDE_BAR_COLORS = {
   red: '#ef4444',
   orange: '#fb923c',
@@ -1100,7 +1100,27 @@ function formatRoundedValue(n) {
 function formatBandTotalUsd(n) {
   const num = toNum(n);
   if (!Number.isFinite(num) || num <= 0) return '$0';
-  return `$${formatRoundedValue(num)}`;
+  const abs = Math.abs(num);
+  const sign = num < 0 ? '−' : '';
+  // Full through $9999; then k/M/B with always 2 decimals ($10.00k, $1.36M).
+  if (abs <= 9999) return `${sign}$${formatRoundedValue(abs)}`;
+
+  let scaled;
+  let suffix;
+  if (abs >= 1e12) {
+    scaled = abs / 1e12;
+    suffix = 'T';
+  } else if (abs >= 1e9) {
+    scaled = abs / 1e9;
+    suffix = 'B';
+  } else if (abs >= 1e6) {
+    scaled = abs / 1e6;
+    suffix = 'M';
+  } else {
+    scaled = abs / 1e3;
+    suffix = 'k';
+  }
+  return `${sign}$${scaled.toFixed(2)}${suffix}`;
 }
 
 function defiCategoryLabel(key) {
