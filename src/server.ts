@@ -36,6 +36,10 @@ import {
 } from './api/hydrate-defi-symbols.js';
 import { materializeLogoHintsSequential } from './api/materialize-token-logo.js';
 import { getRuntimeIconDir, getRuntimeProtocolIconDir } from './token-icon-cache.js';
+import {
+  buildInternalCachedPortfolio,
+  listCachedInternalWallets,
+} from './api/internal-cached-portfolio.js';
 
 loadEnv();
 
@@ -268,6 +272,150 @@ app.post('/api/tokens/materialize-logos', async (req: Request, res: Response) =>
   }
 });
 
+type PortfolioCategory = {
+  id: string;
+  label: string;
+  valueUsd: number;
+  count: number;
+  kind: 'wallet' | 'defi';
+};
+
+function normalizeCategoryId(raw: string | null | undefined): string {
+  const s = String(raw || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '');
+  if (!s) return 'other';
+  if (s.includes('lend') || s === 'supplied' || s === 'borrowlend') return 'lending';
+  if (s.includes('borrow')) return 'borrowing';
+  if (s.includes('liquid') || s === 'lp') return 'liquidity';
+  if (s.includes('stake') || s === 'nativestaking') return 'staked';
+  if (s.includes('farm')) return 'farming';
+  if (s.includes('vault')) return 'vault';
+  if (s.includes('reward')) return 'rewards';
+  if (s.includes('lever')) return 'leverage';
+  if (s.includes('vest')) return 'vesting';
+  if (s.includes('deposit')) return 'deposit';
+  if (s.includes('limit') || s.includes('trade') || s.includes('order')) return 'orders';
+  if (s.includes('margin')) return 'margin';
+  if (s.includes('airdrop')) return 'airdrop';
+  if (s === 'wallet' || s === 'wallettokens') return 'wallet';
+  return s;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  wallet: 'Wallet',
+  lending: 'Lending',
+  borrowing: 'Borrowing',
+  liquidity: 'Liquidity',
+  staked: 'Staked',
+  farming: 'Farming',
+  vault: 'Vault',
+  rewards: 'Rewards',
+  leverage: 'Leverage',
+  vesting: 'Vesting',
+  deposit: 'Deposit',
+  orders: 'Orders',
+  margin: 'Margin',
+  airdrop: 'Airdrop',
+  other: 'Other',
+};
+
+function bumpCategory(
+  map: Map<string, PortfolioCategory>,
+  id: string,
+  valueUsd: number,
+  count = 1,
+  kind: 'wallet' | 'defi' = 'defi',
+): void {
+  const key = normalizeCategoryId(id);
+  const prev = map.get(key);
+  const usd = Number.isFinite(valueUsd) ? valueUsd : 0;
+  if (prev) {
+    prev.valueUsd += usd;
+    prev.count += count;
+    return;
+  }
+  map.set(key, {
+    id: key,
+    label: CATEGORY_LABELS[key] || key.charAt(0).toUpperCase() + key.slice(1),
+    valueUsd: usd,
+    count,
+    kind: key === 'wallet' ? 'wallet' : kind,
+  });
+}
+
+async function buildDefiPlatformsPayload(ownerAddress: string) {
+  const payload = await getWalletDefiPositions(dataHttp, ownerAddress);
+  const platformsRaw = Array.isArray(payload.data) ? payload.data : [];
+  const { platforms: hydratedPlatforms, hydrated, stillMissing } =
+    hydrateDefiPlatformsFromDiskCache(platformsRaw);
+  const logoEnrichPending = collectDefiLogoEnrichPending(
+    hydratedPlatforms,
+    DEFI_LOGO_MATERIALIZE_LIMIT,
+  );
+  const logoWarmSnapshot = JSON.parse(JSON.stringify(hydratedPlatforms)) as unknown[];
+  void materializeDefiPlatformLogos(logoWarmSnapshot, {
+    limit: DEFI_LOGO_MATERIALIZE_LIMIT,
+    concurrency: 8,
+    allowRepair: true,
+  }).catch((err) => {
+    console.warn(
+      `[defi-positions] background logo materialize failed: ${err instanceof Error ? err.message : err}`,
+    );
+  });
+  const platforms = stripRemoteDefiPlatformLogos(hydratedPlatforms);
+  const totalDefiValueUsd =
+    payload.totalDefiValueUsd != null && String(payload.totalDefiValueUsd).trim() !== ''
+      ? Number(payload.totalDefiValueUsd)
+      : sumDefiPositionsUsd(platforms as Parameters<typeof sumDefiPositionsUsd>[0]);
+  return {
+    platforms,
+    totalDefiValueUsd: Number.isFinite(totalDefiValueUsd) ? totalDefiValueUsd : 0,
+    platformCount: platforms.length,
+    symbolCacheHydrated: hydrated,
+    symbolEnrichPending: stillMissing,
+    logoEnrichPending,
+  };
+}
+
+/**
+ * GET /api/wallets/:ownerAddress/portfolio
+ * Internal Vybe showcase: served from benchmark caches (Rocks balances + Internal DeFi).
+ * Metadata-only enrichment from cached Public Vybe + Jupiter (symbol/name/logo/decimals/category).
+ * Never borrows price / amount / USD from Public or Jupiter.
+ */
+app.get('/api/wallets/:ownerAddress/portfolio', async (req: Request, res: Response) => {
+  try {
+    const rawOwner = req.params.ownerAddress;
+    const ownerAddress = (Array.isArray(rawOwner) ? rawOwner[0] : rawOwner ?? '').trim();
+    if (!ownerAddress) return res.status(400).json({ error: 'Wallet address required' });
+
+    const cached = buildInternalCachedPortfolio(ownerAddress);
+    if (!cached) {
+      return res.status(404).json({
+        error: `No Internal cache for ${ownerAddress}. Demo wallets: ${listCachedInternalWallets().slice(0, 3).join(', ')}…`,
+        wallets: listCachedInternalWallets(),
+      });
+    }
+
+    const limitRaw = qNum(req, 'limit');
+    if (limitRaw != null && limitRaw > 0) {
+      cached.balances.tokens = cached.balances.tokens.slice(0, limitRaw);
+      cached.balances.tokenCount = cached.balances.tokens.length;
+    }
+
+    res.json(cached);
+  } catch (err) {
+    const status = (err as { response?: { status?: number } })?.response?.status ?? 500;
+    res.status(status).json({ error: toHumanReadableError(err) });
+  }
+});
+
+app.get('/api/internal-cache/wallets', (_req: Request, res: Response) => {
+  res.json({ wallets: listCachedInternalWallets(), source: 'internal-cache' });
+});
+
 /** GET /api/wallets/:ownerAddress/defi-positions — LP, lending, staking across DeFi protocols */
 app.get('/api/wallets/:ownerAddress/defi-positions', async (req: Request, res: Response) => {
   try {
@@ -275,40 +423,15 @@ app.get('/api/wallets/:ownerAddress/defi-positions', async (req: Request, res: R
     const ownerAddress = (Array.isArray(rawOwner) ? rawOwner[0] : rawOwner ?? '').trim();
     if (!ownerAddress) return res.status(400).json({ error: 'Wallet address required' });
 
-    const payload = await getWalletDefiPositions(dataHttp, ownerAddress);
-    const platformsRaw = Array.isArray(payload.data) ? payload.data : [];
-    const { platforms: hydratedPlatforms, hydrated, stillMissing } =
-      hydrateDefiPlatformsFromDiskCache(platformsRaw);
-    const logoEnrichPending = collectDefiLogoEnrichPending(
-      hydratedPlatforms,
-      DEFI_LOGO_MATERIALIZE_LIMIT,
-    );
-    // Snapshot with remote URL hints for background download, then strip for the response.
-    const logoWarmSnapshot = JSON.parse(JSON.stringify(hydratedPlatforms)) as unknown[];
-    void materializeDefiPlatformLogos(logoWarmSnapshot, {
-      limit: DEFI_LOGO_MATERIALIZE_LIMIT,
-      concurrency: 8,
-      allowRepair: true,
-    }).catch((err) => {
-      console.warn(
-        `[defi-positions] background logo materialize failed: ${err instanceof Error ? err.message : err}`,
-      );
-    });
-    const platforms = stripRemoteDefiPlatformLogos(hydratedPlatforms);
-    const totalDefiValueUsd =
-      payload.totalDefiValueUsd != null && String(payload.totalDefiValueUsd).trim() !== ''
-        ? Number(payload.totalDefiValueUsd)
-        : sumDefiPositionsUsd(platforms as Parameters<typeof sumDefiPositionsUsd>[0]);
-
+    const built = await buildDefiPlatformsPayload(ownerAddress);
     res.json({
       ownerAddress,
-      platforms,
-      totalDefiValueUsd: Number.isFinite(totalDefiValueUsd) ? totalDefiValueUsd : 0,
-      platformCount: platforms.length,
-      symbolCacheHydrated: hydrated,
-      // stillMissing is already capped to 20 uncached mints (cache hits excluded)
-      symbolEnrichPending: stillMissing,
-      logoEnrichPending,
+      platforms: built.platforms,
+      totalDefiValueUsd: built.totalDefiValueUsd,
+      platformCount: built.platformCount,
+      symbolCacheHydrated: built.symbolCacheHydrated,
+      symbolEnrichPending: built.symbolEnrichPending,
+      logoEnrichPending: built.logoEnrichPending,
     });
   } catch (err) {
     const status = (err as { response?: { status?: number } })?.response?.status ?? 500;

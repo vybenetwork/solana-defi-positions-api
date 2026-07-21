@@ -1,0 +1,1167 @@
+/* DeFi positions tables (1:1) */
+.mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.table-wrap--defi-section { overflow-x: auto; width: 100%; max-width: 100%; }
+
+/* === app.css:1962-2007 === */
+.token-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+  line-height: 0;
+  flex-shrink: 0;
+  padding: 0.1rem;
+  margin: -0.1rem;
+}
+
+.token-badge-tip {
+  display: none;
+  position: absolute;
+  left: calc(100% + 0.4rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  padding: 0.32rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #3f3f46;
+  background: #18181b;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  color: #e4e4e7;
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.token-badge--has-tip:hover .token-badge-tip,
+.token-badge--has-tip:focus-visible .token-badge-tip {
+  display: block;
+}
+
+.token-badge__svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.token-badge--verified .token-badge__svg {
+  filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.35));
+}
+
+/* === app.css:3012-3018 === */
+.defi-positions-table tbody tr.defi-row--placeholder {
+  opacity: 0.72;
+}
+
+.defi-platform-card--placeholder {
+  pointer-events: none;
+}
+
+/* === app.css:3159-3182 === */
+.holders-mint-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #7dd3fc;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 0.22rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  line-height: 1.1;
+  transition:
+    color 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.holders-mint-link:hover {
+  color: #bae6fd;
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.45);
+  text-decoration: none;
+}
+
+/* === app.css:3718-3754 === */
+.trade-volume-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  height: 14px;
+  vertical-align: middle;
+}
+
+.trade-volume-bar {
+  display: block;
+  width: 3px;
+  border-radius: 1px;
+  background: #3f3f46;
+}
+
+.trade-volume-bar:nth-child(1) { height: 4px; }
+.trade-volume-bar:nth-child(2) { height: 6px; }
+.trade-volume-bar:nth-child(3) { height: 8px; }
+.trade-volume-bar:nth-child(4) { height: 10px; }
+.trade-volume-bar:nth-child(5) { height: 12px; }
+
+.trades-cell-with-volume {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.trades-cell-with-volume__main {
+  min-width: 0;
+}
+
+.trades-cell-with-volume__bars {
+  flex-shrink: 0;
+}
+
+/* === app.css:3798-3829 === */
+.holders-usd-tier {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.holders-usd-tier--red {
+  color: #ef4444;
+}
+
+.holders-usd-tier--orange {
+  color: #fb923c;
+}
+
+.holders-usd-tier--yellow {
+  color: #facc15;
+}
+
+.holders-usd-tier--light-green {
+  color: #86efac;
+}
+
+.holders-usd-tier--mid-green {
+  color: #4ade80;
+}
+
+.holders-usd-tier--green {
+  color: #22c55e;
+}
+
+.holders-usd-tier--dark-green {
+  color: #16a34a;
+}
+
+/* === app.css:4875-4955 === */
+.swap-pair-chg {
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.12rem 0.24rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+  line-height: 1.15;
+}
+
+.swap-pair-chg--up {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.2);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.swap-pair-chg--light-up {
+  color: #86efac;
+  border-color: rgba(134, 239, 172, 0.25);
+  background: rgba(134, 239, 172, 0.08);
+}
+
+.swap-pair-chg--down {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.2);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.swap-pair-chg--muted {
+  color: #52525b;
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.swap-pair-chg--breaking-even {
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.25);
+  background: rgba(96, 165, 250, 0.08);
+}
+
+.swap-pair-chg--missing {
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.25);
+  background: rgba(96, 165, 250, 0.08);
+}
+
+.swap-pair-chg--missing-7d {
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.3);
+  background: rgba(250, 204, 21, 0.1);
+}
+
+.swap-pair-chg--zero-apy {
+  color: #ea580c;
+  border-color: rgba(234, 88, 12, 0.4);
+  background: rgba(234, 88, 12, 0.14);
+}
+
+.swap-pair-chg--dust-apy {
+  color: #fdba74;
+  border-color: rgba(253, 186, 116, 0.4);
+  background: rgba(253, 186, 116, 0.12);
+}
+
+/* Dead rows: 1d missing chip matches 7d missing styling */
+#holdersTable tbody tr.holders-row--dead .swap-pair-chg--missing {
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.3);
+  background: rgba(250, 204, 21, 0.1);
+}
+
+.swap-pair-chg--faded {
+  opacity: 0.5;
+}
+
+.swap-pair-chg--dead {
+  color: #fb923c;
+  border-color: rgba(251, 146, 60, 0.3);
+  background: rgba(251, 146, 60, 0.12);
+}
+
+/* === app.css:6324-7209 === */
+/* DeFi positions demo */
+.defi-platforms-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.defi-platform-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(15, 15, 18, 0.65);
+  overflow: hidden;
+}
+
+.defi-platform-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.defi-platform-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.defi-platform-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.defi-platform-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+  margin: 0 0 0.35rem;
+}
+
+.defi-platform-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f4f4f5;
+}
+
+.defi-platform-labels {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.defi-platform-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  font-size: 0.78rem;
+  color: #a1a1aa;
+}
+
+.defi-platform-id {
+  color: #71717a;
+}
+
+.defi-platform-label {
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d4d4d8;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.defi-platform-label--defi {
+  color: #67e8f9;
+  border-color: rgba(103, 232, 249, 0.4);
+  background: rgba(103, 232, 249, 0.1);
+}
+
+.defi-platform-label--borrow-lend {
+  color: #fb7185;
+  border-color: rgba(251, 113, 133, 0.4);
+  background: rgba(251, 113, 133, 0.1);
+}
+
+.defi-platform-label--staking {
+  color: #a78bfa;
+  border-color: rgba(167, 139, 250, 0.4);
+  background: rgba(167, 139, 250, 0.1);
+}
+
+.defi-platform-label--liquidity {
+  color: #22d3ee;
+  border-color: rgba(34, 211, 238, 0.4);
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.defi-platform-label--farming {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.defi-platform-label--perps {
+  color: #f472b6;
+  border-color: rgba(244, 114, 182, 0.4);
+  background: rgba(244, 114, 182, 0.1);
+}
+
+.defi-platform-label--vault {
+  color: #c4b5fd;
+  border-color: rgba(196, 181, 253, 0.4);
+  background: rgba(196, 181, 253, 0.1);
+}
+
+.defi-platform-label--rewards {
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.4);
+  background: rgba(250, 204, 21, 0.1);
+}
+
+.defi-platform-label--default {
+  color: #e4e4e7;
+  border-color: rgba(228, 228, 231, 0.28);
+  background: rgba(228, 228, 231, 0.08);
+}
+
+.defi-platform-link {
+  color: #93c5fd;
+  text-decoration: none;
+}
+
+.defi-platform-link:hover {
+  text-decoration: underline;
+}
+
+.defi-platform-total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.defi-platform-header-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.85rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.defi-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin: 0 0 0.65rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #d4d4d8;
+}
+
+.defi-section-title__lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.defi-section-title__text {
+  color: #e4e4e7;
+}
+
+.defi-section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.defi-section-icon__svg {
+  width: 100%;
+  height: 100%;
+}
+
+.defi-section-icon--rewards { color: #facc15; }
+.defi-section-icon--staked { color: #a78bfa; }
+.defi-section-icon--lending { color: #60a5fa; }
+.defi-section-icon--borrowing { color: #f87171; }
+.defi-section-icon--vesting { color: #fb923c; }
+.defi-section-icon--liquidity { color: #22d3ee; }
+.defi-section-icon--farming { color: #4ade80; }
+.defi-section-icon--vault { color: #c4b5fd; }
+.defi-section-icon--deposit { color: #93c5fd; }
+.defi-section-icon--nativeStaking { color: #34d399; }
+.defi-section-icon--leverage { color: #f472b6; }
+.defi-section-icon--positions { color: #a1a1aa; }
+.defi-section-icon--everythingElse { color: #fb923c; }
+
+.token-tier-card__title-icon.defi-section-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.defi-platform-dust-btn {
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #a1a1aa;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.defi-platform-dust-btn:hover {
+  color: #e4e4e7;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.defi-platform-dust-btn--active {
+  color: #fde68a;
+  border-color: rgba(234, 179, 8, 0.35);
+  background: rgba(234, 179, 8, 0.08);
+}
+
+.defi-platform-total-label {
+  font-size: 0.72rem;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.defi-platform-total-value {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #86efac;
+}
+
+.defi-platform-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 1.15rem 1.15rem;
+  overflow-x: auto;
+}
+
+.defi-platform-sections .table-wrap--defi-section {
+  overflow-x: auto;
+  max-height: none;
+}
+
+.defi-section-block + .defi-section-block {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.defi-positions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  table-layout: fixed;
+}
+
+.defi-positions-table--asset9 {
+  min-width: 62.25rem;
+}
+
+.defi-positions-table--nativeStaking {
+  min-width: 57.5rem;
+}
+
+.defi-positions-table--leverage {
+  min-width: 46rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-market {
+  width: 7.25rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-desc,
+.defi-positions-table--leverage td.defi-section-name-col {
+  width: 5.25rem;
+  min-width: 5.25rem;
+  max-width: 5.25rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-side {
+  width: 4.5rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-size {
+  width: 7rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-usd {
+  width: 5.75rem;
+}
+
+.defi-positions-table--leverage .defi-col-lev-x {
+  width: 4.25rem;
+}
+
+.defi-positions-table--leverage th:nth-child(5),
+.defi-positions-table--leverage td:nth-child(5) {
+  text-align: center;
+}
+
+.defi-positions-table--leverage th:nth-child(n + 6),
+.defi-positions-table--leverage td:nth-child(n + 6) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.defi-positions-table .defi-col-index {
+  width: 2rem;
+}
+
+.defi-positions-table .defi-col-asset {
+  width: 10rem;
+}
+
+/* 1/3 wider Pool/assets when any row has 3+ symbols (e.g. wSOL / EURC / RAY) */
+.defi-positions-table--wide-asset .defi-col-asset {
+  width: 13.333rem;
+}
+
+.defi-positions-table--asset9.defi-positions-table--wide-asset {
+  min-width: 62.25rem;
+}
+
+.defi-positions-table .defi-col-section-name {
+  width: 192px;
+  min-width: 172px;
+  max-width: 192px;
+}
+
+.defi-positions-table td.defi-section-name-col {
+  width: 192px;
+  min-width: 172px;
+  max-width: 192px;
+  box-sizing: border-box;
+}
+
+/* 3+ symbols in Pool/assets: allow Description to shrink to 132px */
+.defi-positions-table--wide-asset .defi-col-section-name,
+.defi-positions-table--wide-asset td.defi-section-name-col {
+  width: 132px;
+  min-width: 132px;
+  max-width: 192px;
+}
+
+.defi-positions-table--nativeStaking .defi-col-section-name,
+.defi-positions-table--nativeStaking td.defi-section-name-col {
+  width: 117px;
+  min-width: 117px;
+  max-width: 117px;
+}
+
+.defi-positions-table .defi-col-section-type {
+  width: 110px;
+  max-width: 110px;
+}
+
+.defi-positions-table td.defi-section-type-col {
+  width: 110px;
+  max-width: 110px;
+  box-sizing: border-box;
+}
+
+.defi-positions-table .defi-col-qty {
+  width: 10rem;
+}
+
+.defi-positions-table .defi-col-price {
+  width: 5rem;
+}
+
+.defi-positions-table .defi-col-value {
+  width: 7.01rem;
+}
+
+.defi-positions-table .defi-col-rate {
+  width: 5.75rem;
+}
+
+.defi-positions-table .defi-col-account {
+  width: 120px;
+}
+
+.defi-positions-table--asset9 th:nth-child(n + 5):not(:last-child),
+.defi-positions-table--asset9 td:nth-child(n + 5):not(:last-child) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.defi-positions-table--asset9 th:last-child,
+.defi-positions-table--asset9 td:last-child {
+  text-align: right;
+}
+
+.defi-positions-table--nativeStaking th:nth-child(n + 4),
+.defi-positions-table--nativeStaking td:nth-child(n + 4) {
+  text-align: right;
+}
+
+.defi-positions-table td.defi-amounts-col {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.defi-positions-table td.defi-apy-col,
+.defi-positions-table td.defi-status-col {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.defi-positions-table td.defi-status-col {
+  text-align: right;
+}
+
+.defi-section-meta-col {
+  color: #a1a1aa;
+  font-size: 0.78rem;
+}
+
+.defi-section-meta-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.defi-section-type-badge {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #d4d4d8;
+  font-size: 0.72rem;
+  vertical-align: middle;
+}
+
+.defi-account-col {
+  max-width: 120px;
+  overflow: visible;
+}
+
+.defi-positions-table td.defi-account-col {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+.defi-positions-table td.defi-account-col:hover,
+.defi-positions-table td.defi-account-col:focus-within {
+  z-index: 40;
+}
+
+.defi-account-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 120px;
+  overflow: visible;
+}
+
+.defi-account-cell > .holders-mint-link {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.defi-account-more {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  padding: 0.08rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: default;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.defi-account-more-tip {
+  pointer-events: auto;
+  white-space: normal;
+  min-width: 0;
+  line-height: 1.45;
+  left: auto;
+  right: 0;
+  top: auto;
+  bottom: 100%;
+  transform: none;
+  z-index: 50;
+  /* Transparent shell: padding is the hover bridge into the panel */
+  padding: 0 0 0.2rem;
+  margin: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.defi-account-more-tip__panel {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.28rem;
+  width: max-content;
+  max-width: min(22rem, 70vw);
+  min-width: 0;
+  padding: 0.28rem 0.35rem;
+  border-radius: 6px;
+  border: 1px solid #3f3f46;
+  background: #18181b;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  /* Grow leftward from the +N badge */
+  margin-left: auto;
+}
+
+.defi-account-more-tip .holders-mint-link {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.16rem 0.4rem;
+  flex-shrink: 0;
+}
+
+.defi-account-more:hover .defi-account-more-tip,
+.defi-account-more:focus-within .defi-account-more-tip {
+  display: block;
+}
+
+.defi-positions-table td.defi-price-cell {
+  color: #86efac;
+}
+
+.defi-positions-table .defi-price-zero-run,
+.defi-amount-line__value .defi-price-zero-run {
+  font-size: 0.62em;
+  font-weight: 500;
+  line-height: 0;
+  vertical-align: super;
+  margin-left: 0.03em;
+  color: inherit;
+  opacity: 0.85;
+}
+
+.defi-positions-table .defi-price-usd-suffix {
+  margin-left: 0.2em;
+  font-size: 0.82em;
+  font-weight: 450;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+}
+
+.defi-positions-table th,
+.defi-positions-table td {
+  padding: 0.3rem 0.65rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.defi-positions-table th {
+  color: #a1a1aa;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.defi-positions-table th.num,
+.defi-positions-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Amounts: show full value + symbol + logo (override td.num clipping) */
+.defi-positions-table td.num.defi-amounts-col {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.defi-token-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  margin-right: 8px;
+}
+
+.defi-token-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.defi-token-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 120px;
+}
+
+.defi-token-symbol {
+  font-weight: 600;
+  color: #f4f4f5;
+}
+
+.defi-token-name {
+  font-size: 0.72rem;
+  color: #71717a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.defi-empty-section,
+.defi-empty-state {
+  margin: 0;
+  padding: 0.75rem 0;
+  color: #71717a;
+  font-size: 0.88rem;
+}
+
+.defi-summary-item--total .trades-summary-value {
+  color: #86efac;
+}
+
+.defi-positions-section .section-header,
+#holdersSection .section-header {
+  justify-content: flex-start;
+}
+
+.defi-hide-dust-switch.trades-fetch-switch {
+  min-width: fit-content;
+}
+
+.defi-hide-dust-switch .trades-fetch-switch-track {
+  height: 2.2rem;
+  min-width: 14rem;
+}
+
+.defi-section-meta {
+  margin-left: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #71717a;
+}
+
+.defi-value--debt {
+  color: #f87171;
+}
+
+.defi-positions-table td.defi-value-col {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.defi-positions-table td.defi-value-col .trade-volume-bars {
+  height: 0.88em;
+}
+
+.defi-positions-table td.defi-value-col .trade-volume-bar {
+  width: 0.147em;
+  min-width: 1px;
+}
+
+.defi-positions-table td.defi-value-col .trade-volume-bar:nth-child(1) { height: 0.32em; }
+.defi-positions-table td.defi-value-col .trade-volume-bar:nth-child(2) { height: 0.46em; }
+.defi-positions-table td.defi-value-col .trade-volume-bar:nth-child(3) { height: 0.6em; }
+.defi-positions-table td.defi-value-col .trade-volume-bar:nth-child(4) { height: 0.74em; }
+.defi-positions-table td.defi-value-col .trade-volume-bar:nth-child(5) { height: 0.88em; }
+
+.defi-token-cell--pair .defi-token-logo-stack {
+  position: relative;
+  width: 34px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.defi-token-logo--stacked {
+  position: absolute;
+  top: 0;
+  left: calc(var(--stack-index, 0) * 10px);
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(15, 15, 18, 0.95);
+}
+
+.defi-multi-amounts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  align-items: flex-end;
+}
+
+.defi-multi-amounts--dense-2 {
+  font-size: 85%;
+  gap: 0.17rem;
+}
+
+.defi-multi-amounts--dense-2 .defi-amount-line__logo {
+  width: 11.9px;
+  height: 11.9px;
+}
+
+.defi-multi-amounts--dense-3 {
+  font-size: 80%;
+  gap: 0.14rem;
+}
+
+.defi-multi-amounts--dense-3 .defi-amount-line__logo {
+  width: 11.2px;
+  height: 11.2px;
+}
+
+.defi-multi-amounts--dense-4 {
+  font-size: 75%;
+  gap: 0.12rem;
+}
+
+.defi-multi-amounts--dense-4 .defi-amount-line__logo {
+  width: 10.5px;
+  height: 10.5px;
+}
+
+.defi-amount-line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.28rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+}
+
+.defi-amount-line__value,
+.defi-amount-line__symbol {
+  font-weight: 400;
+}
+
+.defi-amount-line__logo {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.defi-amount-line--stable,
+.defi-amount-line--stable .defi-amount-line__value,
+.defi-amount-line--stable .defi-amount-line__symbol {
+  color: #86efac;
+}
+
+.defi-amount-line--sol,
+.defi-amount-line--sol .defi-amount-line__value,
+.defi-amount-line--sol .defi-amount-line__symbol {
+  color: #c4b5fd;
+}
+
+.defi-amount-line--other,
+.defi-amount-line--other .defi-amount-line__value,
+.defi-amount-line--other .defi-amount-line__symbol {
+  color: #facc15;
+}
+
+.defi-account-links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.defi-positions-table td.num .swap-pair-chg,
+.defi-positions-table td.defi-status-col .swap-pair-chg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.defi-side-badge {
+  display: inline-flex;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.defi-side-badge--long {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+}
+
+.defi-side-badge--short {
+  background: rgba(248, 113, 113, 0.15);
+  color: #fca5a5;
+}
+
+.defi-side-badge--neutral {
+  background: rgba(161, 161, 170, 0.15);
+  color: #d4d4d8;
+}
+
+.defi-stake-status {
+  font-size: 0.78rem;
+  color: #a1a1aa;
+}
+
+.defi-dust-toggle {
+  margin-top: 0.55rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #a1a1aa;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.defi-dust-toggle:hover {
+  color: #e4e4e7;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.defi-dust-toggle--active {
+  color: #fde68a;
+  border-color: rgba(234, 179, 8, 0.35);
+}
+
+.defi-dust-only {
+  padding: 0.35rem 0 0.5rem;
+}
+
+.defi-positions-table--leverage td:nth-child(3),
+.defi-positions-table--borrowed td:nth-child(5),
+.defi-positions-table--borrowed td:nth-child(7) {
+  color: #f87171;
+}
+
+
+/* Hard size locks — prevent natural PNG/SVG blowout in GUI */
+.defi-positions-table img.defi-token-logo,
+.defi-token-logo {
+  width: 24px !important;
+  height: 24px !important;
+  max-width: 24px !important;
+  max-height: 24px !important;
+  object-fit: cover;
+}
+.defi-token-logo--stacked {
+  width: 22px !important;
+  height: 22px !important;
+  max-width: 22px !important;
+  max-height: 22px !important;
+}
+.defi-amount-line__logo {
+  width: 14px !important;
+  height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+}
+.defi-section-icon,
+.defi-section-icon__svg {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+.defi-section-icon__svg {
+  display: block;
+}
+.defi-platform-sections {
+  background: transparent;
+}
+.acc-body .defi-platform-sections {
+  padding: 0.85rem 0.75rem 1.1rem;
+}

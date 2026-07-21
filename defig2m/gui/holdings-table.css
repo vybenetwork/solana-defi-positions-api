@@ -1,0 +1,610 @@
+/* Spot holdings = main app holders table layout */
+
+.spot-holdings .token-header {
+  margin-bottom: 0;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.spot-holdings .token-header-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.spot-holdings .token-logo-slot {
+  width: 28px;
+  height: 28px;
+}
+
+.spot-holdings .token-logo {
+  width: 28px;
+  height: 28px;
+}
+
+.spot-holdings .token-logo--loading .loading-spinner {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+.spot-holdings .token-header .symbol {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  font-size: 0.92rem;
+  line-height: 1.15;
+}
+
+.token-symbol-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.token-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+  line-height: 0;
+  flex-shrink: 0;
+  padding: 0.1rem;
+  margin: -0.1rem;
+}
+
+.token-badge-tip {
+  display: none;
+  position: absolute;
+  left: calc(100% + 0.4rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  padding: 0.32rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #3f3f46;
+  background: #18181b;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  color: #e4e4e7;
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.token-badge--has-tip:hover .token-badge-tip,
+.token-badge--has-tip:focus-visible .token-badge-tip {
+  display: block;
+}
+
+.token-badge__svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.token-badge--verified .token-badge__svg {
+  filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.35));
+}
+
+.spot-holdings .token-header .name {
+  font-size: 0.62rem;
+  margin-top: 0.1rem;
+  line-height: 1.15;
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.holders-summary-item--categorised .token-badge-tip {
+  left: calc(100% + 0.35rem);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: normal;
+  max-width: 14rem;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.holders-summary-label-badge .token-badge__svg,
+.holders-summary-label-badge__svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+#spotHoldingsTable {
+  table-layout: fixed;
+}
+
+#spotHoldingsTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #18181b;
+  font-size: calc(0.56rem * 1.15);
+  line-height: 1.1;
+  font-weight: 500;
+  color: #a1a1aa;
+  padding: 0.28rem 0.26rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #3f3f46;
+  box-shadow: 0 1px 0 #3f3f46, 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+#spotHoldingsTable thead th .holders-th-sublabel {
+  font-size: 0.75em;
+  color: #60a5fa;
+  font-weight: 500;
+}
+
+#spotHoldingsTable td {
+  padding: 0.25rem 0.26rem;
+  font-size: calc(0.66rem * 1.15);
+  vertical-align: middle;
+}
+
+#spotHoldingsTable tbody tr td {
+  border-bottom: 1px solid rgba(63, 63, 70, 0.35);
+  background: transparent;
+  transition: background 0.12s ease;
+}
+
+#spotHoldingsTable th:nth-child(1),
+#spotHoldingsTable td:nth-child(1),
+#spotHoldingsTable th:nth-child(3),
+#spotHoldingsTable td:nth-child(3) {
+  text-align: left;
+}
+
+#spotHoldingsTable th:not(:nth-child(1)):not(:nth-child(3)),
+#spotHoldingsTable td:not(:nth-child(1)):not(:nth-child(3)) {
+  text-align: center;
+}
+
+#spotHoldingsTable th:nth-child(1),
+#spotHoldingsTable td:nth-child(1) {
+  width: 64px;
+  max-width: 64px;
+}
+
+#spotHoldingsTable th:nth-child(3),
+#spotHoldingsTable td:nth-child(3) {
+  width: 11rem;
+  max-width: 11rem;
+}
+
+#spotHoldingsTable th:nth-child(6),
+#spotHoldingsTable td:nth-child(6) {
+  min-width: 9.1rem;
+  width: 9.1rem;
+  max-width: 9.1rem;
+}
+
+#spotHoldingsTable tbody tr.holders-row--placeholder {
+  opacity: 0.72;
+}
+
+#spotHoldingsTable tbody tr.holders-row--profitable {
+  background: rgba(74, 222, 128, 0.04);
+}
+
+#spotHoldingsTable tbody tr.holders-row--breaking_even {
+  background: rgba(96, 165, 250, 0.04);
+}
+
+#spotHoldingsTable tbody tr.holders-row--losing {
+  background: rgba(248, 113, 113, 0.04);
+}
+
+#spotHoldingsTable tbody tr.holders-row--dead {
+  background: rgba(251, 146, 60, 0.05);
+}
+
+#spotHoldingsTable tbody tr.holders-row--profitable:hover {
+  background: rgba(74, 222, 128, 0.08);
+}
+
+#spotHoldingsTable tbody tr.holders-row--breaking_even:hover {
+  background: rgba(96, 165, 250, 0.08);
+}
+
+#spotHoldingsTable tbody tr.holders-row--losing:hover {
+  background: rgba(248, 113, 113, 0.08);
+}
+
+#spotHoldingsTable tbody tr.holders-row--dead:hover {
+  background: rgba(251, 146, 60, 0.09);
+}
+
+#spotHoldingsTable tbody tr:hover {
+  position: relative;
+  z-index: 1;
+}
+
+.holders-rank-col {
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.holders-rank-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.holders-rank-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(63, 63, 70, 0.45);
+  background: linear-gradient(155deg, rgba(28, 28, 34, 0.92) 0%, rgba(14, 14, 17, 0.98) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 2px 6px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.holders-rank-badge--profitable {
+  color: #4ade80;
+}
+
+.holders-rank-badge--breaking_even {
+  color: #60a5fa;
+}
+
+.holders-rank-badge--losing {
+  color: #f87171;
+}
+
+.holders-rank-badge--dead {
+  color: #fb923c;
+}
+
+.holders-rank-badge__svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.holders-rank-num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.holders-rank-num--profitable {
+  color: #4ade80;
+}
+
+.holders-rank-num--breaking_even {
+  color: #60a5fa;
+}
+
+.holders-rank-num--losing {
+  color: #f87171;
+}
+
+.holders-rank-num--dead {
+  color: #fb923c;
+}
+
+.holders-price-changes {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+}
+
+#spotHoldingsTable .holders-amount-cell {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.holders-price-source {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.holders-price-source__icon,
+.holders-price-source__vybe-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  display: block;
+  border-radius: 3px;
+  object-fit: contain;
+}
+
+.holders-mint-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #7dd3fc;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 0.22rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  line-height: 1.1;
+  transition:
+    color 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.holders-mint-link:hover {
+  color: #bae6fd;
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.45);
+  text-decoration: none;
+}
+
+.holders-mint-link__icon {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  opacity: 0.95;
+}
+
+#spotHoldingsTable .holders-mint-col {
+  color: #7dd3fc;
+}
+
+#spotHoldingsTable .amount-usdc {
+  color: #86efac;
+}
+
+#spotHoldingsTable .amount-sol {
+  color: #c4b5fd;
+}
+
+#spotHoldingsTable .amount-other-value,
+#spotHoldingsTable .amount-other-symbol {
+  color: #facc15;
+}
+
+.holders-portfolio-pct {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.holders-portfolio-pie {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.holders-portfolio-pie::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #18181b;
+}
+
+.holders-portfolio-pct-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+#spotHoldingsTable tr:hover td {
+  background: transparent;
+}
+
+.holders-mcap-supply-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.12rem;
+  line-height: 1.2;
+}
+
+.holders-mcap-supply-mcap {
+  font-weight: 600;
+}
+
+.holders-mcap-supply-supply {
+  color: #facc15;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.holders-mcap-supply-col,
+.holders-vol-col {
+  vertical-align: middle;
+}
+
+#spotHoldingsTable th:nth-child(8),
+#spotHoldingsTable td:nth-child(8),
+#spotHoldingsTable th:nth-child(9),
+#spotHoldingsTable td:nth-child(9) {
+  display: none !important;
+}
+
+#spotHoldingsTable .holders-price-col,
+#spotHoldingsTable .holders-mcap-supply-col,
+#spotHoldingsTable .holders-vol-col {
+  overflow: hidden;
+}
+
+#spotHoldingsTable .holders-table-price {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+#spotHoldingsTable .trades-cell-with-volume {
+  flex-wrap: nowrap;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#spotHoldingsTable td:nth-child(5) .trades-cell-with-volume__bars,
+#spotHoldingsTable td:nth-child(5) .trades-cell-with-volume__main,
+#spotHoldingsTable td:nth-child(8) .trades-cell-with-volume__bars,
+#spotHoldingsTable td:nth-child(8) .trades-cell-with-volume__main,
+#spotHoldingsTable td:nth-child(9) .trades-cell-with-volume__bars,
+#spotHoldingsTable td:nth-child(9) .trades-cell-with-volume__main {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+#spotHoldingsTable td:nth-child(5) .trade-volume-bars,
+#spotHoldingsTable td:nth-child(8) .trade-volume-bars,
+#spotHoldingsTable td:nth-child(9) .trade-volume-bars {
+  height: 1.1em;
+  align-items: flex-end;
+  align-self: center;
+}
+
+#spotHoldingsTable td:nth-child(5) .trade-volume-bar,
+#spotHoldingsTable td:nth-child(8) .trade-volume-bar,
+#spotHoldingsTable td:nth-child(9) .trade-volume-bar {
+  width: 0.22em;
+  border-radius: 0.05em;
+}
+
+#spotHoldingsTable td:nth-child(5) .trade-volume-bar:nth-child(1),
+#spotHoldingsTable td:nth-child(8) .trade-volume-bar:nth-child(1),
+#spotHoldingsTable td:nth-child(9) .trade-volume-bar:nth-child(1) { height: 0.35em; }
+
+#spotHoldingsTable td:nth-child(5) .trade-volume-bar:nth-child(2),
+#spotHoldingsTable td:nth-child(8) .trade-volume-bar:nth-child(2),
+#spotHoldingsTable td:nth-child(9) .trade-volume-bar:nth-child(2) { height: 0.5em; }
+
+#spotHoldingsTable td:nth-child(5) .trade-volume-bar:nth-child(3),
+#spotHoldingsTable td:nth-child(8) .trade-volume-bar:nth-child(3),
+#spotHoldingsTable td:nth-child(9) .trade-volume-bar:nth-child(3) { height: 0.65em; }
+
+#spotHoldingsTable td:nth-child(5) .trade-volume-bar:nth-child(4),
+#spotHoldingsTable td:nth-child(8) .trade-volume-bar:nth-child(4),
+#spotHoldingsTable td:nth-child(9) .trade-volume-bar:nth-child(4) { height: 0.8em; }
+
+#spotHoldingsTable td:nth-child(5) .trade-volume-bar:nth-child(5),
+#spotHoldingsTable td:nth-child(8) .trade-volume-bar:nth-child(5),
+#spotHoldingsTable td:nth-child(9) .trade-volume-bar:nth-child(5) { height: 0.95em; }
+
+.holders-value-usd {
+  color: #86efac;
+}
+
+.holders-value-usd-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.holders-value-usd-bag {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.holders-value-usd-bag__svg {
+  width: 11px;
+  height: 15px;
+  display: block;
+}
+
+.holders-value-usd-amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.holders-hbar-meta .holders-value-usd {
+  margin-left: 0.35rem;
+}
+
+.holders-change-col,
+.holders-portfolio-col {
+  vertical-align: middle;
+}
+
+.holders-table-price {
+  color: #86efac;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+#spotHoldingsTable .holders-table-price .holders-price-zero-run {
+  font-size: 0.62em;
+  font-weight: 500;
+  line-height: 0;
+  vertical-align: super;
+  margin-left: 0.03em;
+  color: inherit;
+  opacity: 0.85;
+}
+
+.holders-price-changes .swap-pair-chg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 70px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+#spotHoldingsTable tbody tr.holders-row--dead .swap-pair-chg--missing {
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.3);
+  background: rgba(250, 204, 21, 0.1);
+}
+
+#spotHoldingsTable th:nth-child(3),
+#spotHoldingsTable td:nth-child(3) {
+  text-align: left !important;
+}
+
+#spotHoldingsTable th:nth-child(4),
+#spotHoldingsTable td:nth-child(4),
+#spotHoldingsTable th:nth-child(5),
+#spotHoldingsTable td:nth-child(5) {
+  text-align: right !important;
+}
+
+.defi-account-cell > .holders-mint-link {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.defi-account-more-tip .holders-mint-link {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.16rem 0.4rem;
+  flex-shrink: 0;
+}

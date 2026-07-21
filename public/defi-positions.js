@@ -1933,8 +1933,7 @@ function resolveApyBadgeClass(apy) {
 
 function formatApyLabel(apy) {
   const n = toNum(apy);
-  if (n == null) return null;
-  if (n === 0) return '0%';
+  if (n == null || n === 0) return null;
   if (Math.abs(n) < 0.01) return '0.001%';
   return formatPct(n);
 }
@@ -1942,7 +1941,7 @@ function formatApyLabel(apy) {
 function apyCell(row) {
   const label = formatApyLabel(row.apy);
   if (label == null) {
-    return '<td class="num defi-apy-col"><span class="swap-pair-chg swap-pair-chg--missing">No APY</span></td>';
+    return '<td class="num defi-apy-col">—</td>';
   }
   const badgeClass = resolveApyBadgeClass(row.apy);
   return `<td class="num defi-apy-col"><span class="${badgeClass}">${escapeHtml(label)}</span></td>`;

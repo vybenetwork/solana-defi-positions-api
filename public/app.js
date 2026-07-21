@@ -563,12 +563,12 @@ function changeChipTierClass(pct) {
 }
 
 function formatMissingChangeChipHtml(label, inheritPct = null) {
-  const placeholder = label === '7d:' ? '----' : '---';
-  if (label === '7d:' && hasValidPriceChangePct(inheritPct)) {
+  const placeholder = label === '7D:' ? '----' : '---';
+  if (label === '7D:' && hasValidPriceChangePct(inheritPct)) {
     const cls = `${changeChipTierClass(Number(inheritPct))} swap-pair-chg--faded`;
     return `<span class="swap-pair-chg ${cls}">${escapeHtmlText(label)} ${placeholder}</span>`;
   }
-  const cls = label === '7d:' ? 'swap-pair-chg--missing-7d' : 'swap-pair-chg--missing';
+  const cls = label === '7D:' ? 'swap-pair-chg--missing-7d' : 'swap-pair-chg--missing';
   return `<span class="swap-pair-chg ${cls}">${escapeHtmlText(label)} ${placeholder}</span>`;
 }
 
@@ -589,12 +589,12 @@ function formatChangeColumnHtml(t) {
   const has7d = hasValidPriceChangePct(t.priceChange7dPct);
 
   if (!has1d && !has7d) {
-    return `<div class="holders-price-changes">${formatMissingChangeChipHtml('1d:')}${formatMissingChangeChipHtml('7d:')}</div>`;
+    return `<div class="holders-price-changes">${formatMissingChangeChipHtml('1D:')}${formatMissingChangeChipHtml('7D:')}</div>`;
   }
 
   const chips = [
-    has1d ? formatPriceChangeChipHtml('1d:', t.priceChange1dPct) : formatMissingChangeChipHtml('1d:', has7d ? t.priceChange7dPct : null),
-    has7d ? formatPriceChangeChipHtml('7d:', t.priceChange7dPct) : formatMissingChangeChipHtml('7d:', has1d ? t.priceChange1dPct : null),
+    has1d ? formatPriceChangeChipHtml('1D:', t.priceChange1dPct) : formatMissingChangeChipHtml('1D:', has7d ? t.priceChange7dPct : null),
+    has7d ? formatPriceChangeChipHtml('7D:', t.priceChange7dPct) : formatMissingChangeChipHtml('7D:', has1d ? t.priceChange1dPct : null),
   ];
 
   return `<div class="holders-price-changes">${chips.join('')}</div>`;
