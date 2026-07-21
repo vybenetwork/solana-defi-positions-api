@@ -1947,6 +1947,12 @@ function apyCell(row) {
   return `<td class="num defi-apy-col"><span class="${badgeClass}">${escapeHtml(label)}</span></td>`;
 }
 
+function mevCell(row) {
+  const n = toNum(row.mevValueUsd);
+  if (n == null || n === 0) return '<td class="num">—</td>';
+  return `<td class="num">${formatUsd(n)}</td>`;
+}
+
 /** Leverage badge colors (same pill style as APY). */
 function resolveLeverageBadgeClass(leverage) {
   const n = toNum(leverage);
@@ -2130,7 +2136,7 @@ function buildTableSchema(tableType) {
               ${priceCell(row)}
               ${valueCell(row)}
               ${apyCell(row)}
-              <td class="num">${row.mevValueUsd == null ? '—' : formatUsd(row.mevValueUsd)}</td>
+              ${mevCell(row)}
               <td class="defi-status-col">${renderStakeStatus(row.stakeStatus)}</td>
               ${accountCell(row)}
             </tr>
