@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://solana-defi-positions-api.vybenetwork.com/sitemap.xml
