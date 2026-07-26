@@ -1648,7 +1648,7 @@ function renderSingleTokenCell(row) {
   );
   return `
     <div class="defi-token-cell">
-      <img class="defi-token-logo" src="${escapeHtml(leg.logo)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />
+      <img class="defi-token-logo" src="${escapeHtml(leg.logo)}" alt="${escapeHtml(leg.displayLabel || 'Token')} logo" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />
       <div class="defi-token-text">
         <span class="defi-token-symbol">${escapeHtml(leg.displayLabel)}</span>
         ${leg.secondaryName ? `<span class="defi-token-name">${escapeHtml(leg.secondaryName)}</span>` : ''}
@@ -1675,12 +1675,12 @@ function renderPairTokenCell(row) {
   const logoHtml = resolved
     .slice(0, 3)
     .map((leg, i) => {
-      return `<img class="defi-token-logo defi-token-logo--stacked" style="--stack-index:${i}" src="${escapeHtml(leg.logo)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />`;
+      return `<img class="defi-token-logo defi-token-logo--stacked" style="--stack-index:${i}" src="${escapeHtml(leg.logo)}" alt="${escapeHtml(leg.displayLabel || 'Token')} logo" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />`;
     })
     .join('');
   return `
     <div class="defi-token-cell defi-token-cell--pair">
-      <div class="defi-token-logo-stack" aria-hidden="true">${logoHtml || `<img class="defi-token-logo" src="${TOKEN_PLACEHOLDER}" alt="" />`}</div>
+      <div class="defi-token-logo-stack" aria-hidden="true">${logoHtml || `<img class="defi-token-logo" src="${TOKEN_PLACEHOLDER}" alt="Token logo placeholder" />`}</div>
       <div class="defi-token-text">
         <span class="defi-token-symbol">${escapeHtml(title)}</span>
         <span class="defi-token-name">Liquidity pool</span>
@@ -1731,7 +1731,7 @@ function renderAmountLineHtml(amount, label, logo, mint) {
   const tone = amountTokenToneClass(mint, symbolLabel);
   const logoSrc = normalizeLogoUrl(logo) || TOKEN_PLACEHOLDER;
   const amountText = formatAmount(amount, { stable: isStableToken(mint, symbolLabel), html: true });
-  return `<span class="defi-amount-line ${tone}"><span class="defi-amount-line__value">${amountText}</span> <span class="defi-amount-line__symbol">${escapeHtml(symbolLabel)}</span><img class="defi-amount-line__logo" src="${escapeHtml(logoSrc)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" /></span>`;
+  return `<span class="defi-amount-line ${tone}"><span class="defi-amount-line__value">${amountText}</span> <span class="defi-amount-line__symbol">${escapeHtml(symbolLabel)}</span><img class="defi-amount-line__logo" src="${escapeHtml(logoSrc)}" alt="${escapeHtml(symbolLabel || 'Token')} logo" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" /></span>`;
 }
 
 function renderMultiAmounts(row) {
@@ -2362,7 +2362,7 @@ function renderPlatform(platform, index) {
   return `
     <article class="defi-platform-card">
       <header class="defi-platform-header">
-        <img class="defi-platform-logo" src="${escapeHtml(logo)}" alt="" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />
+        <img class="defi-platform-logo" src="${escapeHtml(logo)}" alt="${escapeHtml(title)} logo" loading="lazy" decoding="async" onerror="this.src='${TOKEN_PLACEHOLDER}'" />
         <div class="defi-platform-heading">
           <div class="defi-platform-title-row">
             <h2 class="defi-platform-title">${escapeHtml(title)}</h2>
