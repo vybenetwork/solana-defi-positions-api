@@ -423,6 +423,7 @@ app.get('/api/wallets/:ownerAddress/defi-positions', async (req: Request, res: R
     const ownerAddress = (Array.isArray(rawOwner) ? rawOwner[0] : rawOwner ?? '').trim();
     if (!ownerAddress) return res.status(400).json({ error: 'Wallet address required' });
 
+    const started = Date.now();
     const built = await buildDefiPlatformsPayload(ownerAddress);
     res.json({
       ownerAddress,
@@ -432,6 +433,7 @@ app.get('/api/wallets/:ownerAddress/defi-positions', async (req: Request, res: R
       symbolCacheHydrated: built.symbolCacheHydrated,
       symbolEnrichPending: built.symbolEnrichPending,
       logoEnrichPending: built.logoEnrichPending,
+      tookMs: Date.now() - started,
     });
   } catch (err) {
     const status = (err as { response?: { status?: number } })?.response?.status ?? 500;

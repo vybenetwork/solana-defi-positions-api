@@ -1359,35 +1359,77 @@ function formatOverviewPositionCountHtml(count) {
   return `${escapeHtmlText(n.toLocaleString())} <span class="token-stat-count-suffix">${escapeHtmlText(word)}</span>`;
 }
 
+function formatOverviewProtocolCountHtml(count) {
+  if (count == null) return escapeHtmlText('—');
+  const n = Number(count);
+  if (!Number.isFinite(n)) return escapeHtmlText('—');
+  const word = n === 1 ? 'Protocol' : 'Protocols';
+  return `${escapeHtmlText(n.toLocaleString())} <span class="token-stat-count-suffix">${escapeHtmlText(word)}</span>`;
+}
+
+function formatOverviewNativeRowsHtml(count) {
+  if (count == null) return escapeHtmlText('—');
+  const n = Number(count);
+  if (!Number.isFinite(n)) return escapeHtmlText('—');
+  const word = n === 1 ? 'Native row' : 'Native rows';
+  return `${escapeHtmlText(n.toLocaleString())} <span class="token-stat-count-suffix">${escapeHtmlText(word)}</span>`;
+}
+
+function formatOverviewDustRowsHtml(count) {
+  if (count == null) return escapeHtmlText('—');
+  const n = Number(count);
+  if (!Number.isFinite(n)) return escapeHtmlText('—');
+  const word = n === 1 ? 'Dust row' : 'Dust rows';
+  return `${escapeHtmlText(n.toLocaleString())} <span class="token-stat-count-suffix">${escapeHtmlText(word)}</span>`;
+}
+
+function formatCacheLatencyHtml(tookMs) {
+  if (tookMs == null) return escapeHtmlText('—');
+  const n = Number(tookMs);
+  if (!Number.isFinite(n)) return escapeHtmlText('—');
+  return `${escapeHtmlText(Math.round(n).toLocaleString())} <span class="token-stat-count-suffix">ms</span>`;
+}
+
+function formatTopProtocolStatHtml(protocol) {
+  if (!protocol?.label) return escapeHtmlText('—');
+  const logo = String(protocol.logoUrl || '').trim();
+  const logoHtml = logo
+    ? `<img class="token-stat-protocol-logo" src="${escapeHtmlAttr(logo)}" alt="" loading="lazy" decoding="async" onerror="this.remove()" />`
+    : '';
+  return `${logoHtml}<span class="token-stat-protocol-name">${escapeHtmlText(protocol.label)}</span>`;
+}
+
+function formatTopCategoryNameHtml(entry) {
+  if (!entry?.name) return escapeHtmlText('—');
+  return escapeHtmlText(entry.name);
+}
+
 function buildDefiSummarySections(data) {
   const overview = {
     icon: WALLET_SECTION_ICONS.overview,
     title: 'Overview',
     theme: 'overview',
-    rowGroups: [
+    rowsLayout: '2col',
+    rows: [
       {
-        rows: [
-          {
-            key: 'category',
-            label: 'Total DeFi Positions Loaded',
-            valueHtml: formatOverviewPositionCountHtml(data.positionsCount),
-          },
-        ],
+        key: 'category',
+        label: 'Positions',
+        valueHtml: formatOverviewPositionCountHtml(data.positionsCount),
       },
       {
-        rowsLayout: '2col',
-        rows: [
-          {
-            key: 'verified',
-            label: 'Native',
-            valueHtml: formatOverviewPositionCountHtml(data.nativeCount),
-          },
-          {
-            key: 'price1d',
-            label: 'Dust',
-            valueHtml: formatOverviewPositionCountHtml(data.dustCount),
-          },
-        ],
+        key: 'verified',
+        label: 'Protocols',
+        valueHtml: formatOverviewProtocolCountHtml(data.protocolsCount),
+      },
+      {
+        key: 'decimals',
+        label: 'Native',
+        valueHtml: formatOverviewNativeRowsHtml(data.nativeCount),
+      },
+      {
+        key: 'price1d',
+        label: 'Dust',
+        valueHtml: formatOverviewDustRowsHtml(data.dustCount),
       },
     ],
   };
@@ -1398,49 +1440,43 @@ function buildDefiSummarySections(data) {
     rowsLayout: '2col',
     rows: [
       { key: 'priceUsd', label: 'Estimated USD', valueHtml: walletStatUsdWithTotalHtml(data.totalUsd) },
-      { key: 'marketCap', label: 'Verified USD', valueHtml: walletStatUsdWithTotalHtml(data.verifiedUsd) },
-      { key: 'price1d', label: 'Unverified USD', valueHtml: walletStatUsdWithTotalHtml(data.unverifiedUsd) },
+      { key: 'marketCap', label: 'Claimable', valueHtml: walletStatUsdHtml(data.claimableUsd) },
+      { key: 'price1d', label: 'Top protocol', valueHtml: formatTopProtocolStatHtml(data.topProtocol) },
       {
         key: 'price7d',
-        label: 'Unpriced USD',
-        valueHtml: walletStatUsdWithTotalHtml(data.unpricedUsd),
+        label: 'Top proto. USD',
+        valueHtml: walletStatUsdHtml(data.topProtocolUsd),
       },
     ],
   };
   const taxonomy = {
     icon: WALLET_SECTION_ICONS.holdings,
-    title: 'Categories & Labels',
+    title: 'Categories',
     theme: 'supply',
-    rowGroups: [
+    rowsLayout: '2col',
+    rows: [
       {
-        rowsLayout: '2col',
-        rows: [
-          {
-            key: 'supply',
-            label: 'Total categories',
-            valueHtml: formatOverviewCountSuffixHtml(data.uniqueCategories, 'Categories'),
-          },
-          {
-            key: 'usdVol24h',
-            label: 'Total subcategories',
-            valueHtml: formatOverviewCountSuffixHtml(data.uniqueSubcategories, 'Subcategories'),
-          },
-        ],
+        key: 'supply',
+        label: 'Total categories',
+        valueHtml:
+          data.uniqueCategories == null
+            ? escapeHtmlText('—')
+            : escapeHtmlText(Number(data.uniqueCategories).toLocaleString()),
       },
       {
-        rowsLayout: '2col',
-        rows: [
-          {
-            key: 'tokenVol24h',
-            label: 'Top category',
-            valueHtml: formatTopTaxonomyStatHtml(data.topCategory),
-          },
-          {
-            key: 'topPnlCohortVol',
-            label: 'Top subcategory',
-            valueHtml: formatTopTaxonomyStatHtml(data.topSubcategory),
-          },
-        ],
+        key: 'usdVol24h',
+        label: 'Cache latency',
+        valueHtml: formatCacheLatencyHtml(data.tookMs),
+      },
+      {
+        key: 'tokenVol24h',
+        label: 'Top category',
+        valueHtml: formatTopCategoryNameHtml(data.topCategory),
+      },
+      {
+        key: 'topPnlCohortVol',
+        label: 'Top cat. USD',
+        valueHtml: walletStatUsdHtml(data.topCategoryUsd),
       },
     ],
   };
@@ -1450,16 +1486,17 @@ function buildDefiSummarySections(data) {
 function buildDefiSummaryPlaceholderHtml() {
   return buildDefiSummarySections({
     positionsCount: null,
+    protocolsCount: null,
     nativeCount: null,
     dustCount: null,
     totalUsd: null,
-    verifiedUsd: null,
-    unverifiedUsd: null,
-    unpricedUsd: null,
+    claimableUsd: null,
+    topProtocol: null,
+    topProtocolUsd: null,
     uniqueCategories: null,
-    uniqueSubcategories: null,
+    tookMs: null,
     topCategory: null,
-    topSubcategory: null,
+    topCategoryUsd: null,
   });
 }
 

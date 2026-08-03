@@ -2212,6 +2212,27 @@ button:not(.vybe-action-btn):disabled {
   color: #d4d4d8;
 }
 
+.token-section-content .token-stat-protocol-logo {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  object-fit: cover;
+  flex-shrink: 0;
+  vertical-align: -0.15em;
+  margin-right: 0.35rem;
+}
+
+.token-section-content .token-stat-row--price1d .token-stat-row-value {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.token-section-content .token-stat-protocol-name {
+  min-width: 0;
+}
+
 .token-section-content .token-stat-top-taxonomy-meta {
   display: block;
   font-size: 0.65rem;
@@ -2462,15 +2483,20 @@ button:not(.vybe-action-btn):disabled {
 }
 
 .token-stats-row.token-stats-row--split-overview {
-  /* Move 20px from the right pair into Overview. */
-  grid-template-columns: minmax(0, calc(26% + 20px)) minmax(0, calc(74% - 20px));
+  /* Overview keeps a readable 2×2; pair takes the rest. */
+  grid-template-columns: minmax(350px, 0.9fr) minmax(0, 2.1fr);
   align-items: start;
+  gap: 0.65rem;
 }
 
 .token-stats-row--split-overview > .token-stats-col {
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+.token-stats-row--split-overview > .token-stats-col--overview {
+  min-width: 350px;
 }
 
 .token-stats-col--overview .token-stats-group {
@@ -2497,8 +2523,7 @@ button:not(.vybe-action-btn):disabled {
 
 .token-stats-pair-grid {
   display: grid;
-  /* Categories & Labels −20px; that space goes to Portfolio Value within the pair. */
-  grid-template-columns: minmax(0, 1fr) minmax(0, calc(56% - 20px));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 385px);
   gap: 0.65rem;
   min-width: 0;
   flex: 1 1 auto;
@@ -2509,7 +2534,14 @@ button:not(.vybe-action-btn):disabled {
 .token-stats-pair-grid > .token-stats-group {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   min-height: 0;
+}
+
+.token-stats-group--supply {
+  max-width: 385px;
+  width: 100%;
+  justify-self: stretch;
 }
 
 .token-stats-pair-grid .token-stat-rows {

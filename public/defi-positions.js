@@ -1484,34 +1484,79 @@ function isNativeStakingItem(item) {
   );
 }
 
+function isRewardSection(section) {
+  const hay = `${section?.tableType || ''} ${section?.label || ''} ${section?.name || ''}`.toLowerCase();
+  return /reward|claimable/.test(hay);
+}
+
 function buildDefiSummaryHtml(payload) {
   const platforms = Array.isArray(payload?.platforms) ? payload.platforms : [];
-  const allItems = collectAllPositionRows(platforms);
+  const hideDust = hideDustEnabled();
   let nativeCount = 0;
   let dustCount = 0;
+  let positionsCount = 0;
   let totalUsd = 0;
-  for (const item of allItems) {
-    if (isDustRow(item.row)) {
-      dustCount += 1;
-      continue;
+  let claimableUsd = 0;
+  const categories = new Map();
+  const protocolUsd = [];
+
+  for (const [pIndex, platform] of platforms.entries()) {
+    let platformValueUsd = 0;
+    let platformHasVisible = false;
+    for (const section of platform.sections || []) {
+      const rowsAll = Array.isArray(section.rows) ? section.rows : [];
+      dustCount += rowsAll.filter((row) => isDustRow(row)).length;
+      const visible = hideDust ? rowsAll.filter((row) => !isDustRow(row)) : rowsAll;
+      if (!visible.length) continue;
+      const sectionUsd = sumSectionUsd(visible);
+      const catKey = resolveTableType(section, visible[0] || rowsAll[0]);
+      const prev = categories.get(catKey) || { count: 0, usd: 0 };
+      prev.count += visible.length;
+      prev.usd += sectionUsd;
+      categories.set(catKey, prev);
+      if (isRewardSection(section)) claimableUsd += sectionUsd;
+      const isNative =
+        isNativeStakingItem({
+          platformId: platformId(platform, pIndex),
+          category: catKey,
+          row: visible[0] || rowsAll[0],
+        }) || /native|stake1111|solana_native/i.test(`${platform.platformId || ''} ${section.tableType || ''}`);
+      if (isNative) nativeCount += visible.length;
+      positionsCount += visible.length;
+      platformValueUsd += sectionUsd;
+      if (visible.length) platformHasVisible = true;
     }
-    if (isNativeStakingItem(item)) nativeCount += 1;
-    totalUsd += absUsd(item.row);
+    if (!platformHasVisible) continue;
+    totalUsd += platformValueUsd;
+    const logoRaw = cleanStr(platform.platformLogourl);
+    protocolUsd.push({
+      label: String(platform.platform || platform.platformId || 'Protocol'),
+      logoUrl: isLocalLogoUrl(logoRaw) ? logoRaw : '',
+      valueUsd: platformValueUsd,
+    });
   }
-  const positionsCount = allItems.length - dustCount;
+
+  protocolUsd.sort((a, b) => b.valueUsd - a.valueUsd);
+  const topProtocol = protocolUsd[0] || null;
+  const topCatEntry = [...categories.entries()].sort((a, b) => b[1].usd - a[1].usd || b[1].count - a[1].count)[0] || null;
+  const topCategory = topCatEntry
+    ? { name: defiCategoryLabel(topCatEntry[0]), count: topCatEntry[1].count, usd: topCatEntry[1].usd }
+    : null;
+
   if (window.WalletSummaryUi?.buildDefiSectionsHtml) {
     return window.WalletSummaryUi.buildDefiSectionsHtml({
       positionsCount,
+      protocolsCount: protocolUsd.length,
       nativeCount,
       dustCount,
       totalUsd,
-      verifiedUsd: null,
-      unverifiedUsd: null,
-      unpricedUsd: null,
-      uniqueCategories: null,
-      uniqueSubcategories: null,
-      topCategory: null,
-      topSubcategory: null,
+      claimableUsd,
+      topProtocol,
+      topProtocolUsd: topProtocol ? topProtocol.valueUsd : null,
+      uniqueCategories: categories.size,
+      tookMs: payload?.tookMs ?? null,
+      topCategory,
+      topCategoryUsd: topCategory ? topCategory.usd : null,
     });
   }
   return window.WalletSummaryUi?.buildDefiPlaceholderHtml?.() || '';
