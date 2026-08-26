@@ -3,595 +3,693 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vybe vs Jupiter / Phantom / Solflare</title>
-  <meta name="description" content="Comparison of Vybe vs Jupiter, Phantom, and Solflare for balances and DeFi. Phantom/Solflare TBD." />
+  <title>Vybe Solana Balances &amp; DeFi Positions API</title>
+  <meta name="description" content="Vybe Solana balances and DeFi positions API — sub-second responses, near-complete chain coverage, typed DeFi with USD. $999 package for wallets, dashboards, and analytics." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=12" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="vybe-mark.svg" />
+  <link rel="alternate icon" type="image/png" href="favicon.png" />
+  <link rel="stylesheet" href="styles.css?v=105" />
 </head>
 <body>
-  <div class="noise" aria-hidden="true"></div>
-  <div class="glow" aria-hidden="true"></div>
+  <nav class="toc">
+    <div class="wrap toc-inner">
+      <span class="lockup sm">
+        <img src="vybe-mark.svg" alt="Vybe owl mark" />
+        <span class="lockup-text">
+          <span class="lockup-wm">Vybe</span>
+          <i class="lockup-pipe"></i>
+          <span class="lockup-trade">Data</span>
+        </span>
+      </span>
+      <div class="toc-right">
+        <div class="toc-links">
+          <a class="toc-emph" href="#scorecard">Scorecard</a>
+          <a href="#balances">Balances</a>
+          <a href="#defi">DeFi</a>
+          <a href="#roadmap">Roadmap</a>
+          <a class="toc-emph" href="#package">Package</a>
+        </div>
+        <a class="story-btn" href="/gui/">▶ Live demo</a>
+      </div>
+    </div>
+  </nav>
 
-  <header class="hero">
-    <div class="hero-inner">
-      <p class="brand reveal">Vybe</p>
-      <h1 class="reveal delay-1">The $999 Vybe package</h1>
-      <p class="lede reveal delay-2">
-        One integration for <strong>wallet balances</strong> and <strong>DeFi positions</strong> —
-        built for product teams who need chain-complete data in under a second, not a portfolio website that takes 10+.
-        Benchmarked live against Jupiter; Phantom &amp; Solflare coming next.
-      </p>
-      <div class="cta-row reveal delay-3">
-        <a class="cta" href="/gui/">Try live GUI</a>
-        <a class="cta ghost" href="#package">Why $999</a>
-        <a class="cta ghost" href="#scorecard">See the proof</a>
-        <a class="cta ghost" href="#balances">Balances</a>
-        <a class="cta ghost" href="#defi">DeFi</a>
+  <header class="cover">
+    <div class="wrap">
+      <span class="lockup xl">
+        <img src="vybe-mark.svg" alt="Vybe owl mark" />
+        <span class="lockup-text">
+          <span class="lockup-wm">Vybe</span>
+          <i class="lockup-pipe"></i>
+          <span class="lockup-trade">Data</span>
+        </span>
+      </span>
+      <h1 class="reveal">The <span class="mono">$999</span> Vybe package</h1>
+      <div class="meta reveal delay-1">10 wallets · July 2026 · live captures · benchmarked vs Jupiter</div>
+      <div class="cta-row reveal delay-2">
+        <a class="gold-btn" href="/gui/">Open live demo</a>
+        <a class="outline-btn" href="#package">Why $999 · Package</a>
+        <a class="outline-btn" href="#scorecard">Comparisons · Proof</a>
       </div>
     </div>
   </header>
 
   <main>
-    <section class="section">
-      <div class="callout warn reveal">
-        <strong>Vybe balances API (tested today):</strong>
-        holdings are only <code>mint</code> + raw <code>amount</code> (enriched adds <code>decimals</code>).
-        <strong>No USD, price, symbol, name, or logo URL</strong> in that response.
-        Jupiter <code>wallet-tokens</code> includes <code>price</code> + <code>valueUsd</code> (and display metadata).
-        Enrichment (symbol, name, logo URL, price, USD) has been discussed and <strong>will be added shortly</strong> for the package.
-      </div>
-      <p class="section-lede reveal" style="margin-top:1rem">
-        <span class="pending-pill">Pending</span> Phantom &amp; Solflare = not measured yet. Every cell shows <strong>—</strong> until those runs land.
-      </p>
-    </section>
-
-    <section id="scorecard" class="section">
-      <p class="eyebrow">10 wallets · July 2026 · live captures</p>
-      <h2>Why teams pick Vybe</h2>
-      <p class="section-lede">
-        Jupiter’s portfolio is great for humans browsing a website. Vybe is built for <strong>APIs</strong>:
-        near-complete balances vs the chain, DeFi with USD already on positions, and responses measured in
-        <strong>milliseconds</strong> — not multi-second page loads. Phantom &amp; Solflare columns fill in once we finish those benchmarks.
-      </p>
-      <div class="table-wrap reveal">
-        <table class="wide">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Vybe</th>
-              <th>Jupiter</th>
-              <th>Phantom</th>
-              <th>Solflare</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Balances source</td>
-              <td>Vybe <code>/portfolio</code></td>
-              <td><code>wallet-tokens</code></td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Balances latency</td>
-              <td class="win">~60–300 ms</td>
-              <td>~2.6–15 s</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>DeFi latency</td>
-              <td class="win">~143–217 ms</td>
-              <td>~6–22 s</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Tokens returned</td>
-              <td class="win">4,281</td>
-              <td>732</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Match vs on-chain RPC</td>
-              <td class="win">4,273 / 4,277</td>
-              <td>731 / 4,277</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Amount exact vs RPC</td>
-              <td class="win">4,271 / 4,273</td>
-              <td>720 / 731</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>USD on balances</td>
-              <td class="miss">No</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>DeFi protocols</td>
-              <td>~22</td>
-              <td class="win">~100+</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>DeFi positions / USD</td>
-              <td>511 · ~$279k</td>
-              <td class="win">764 · ~$315k</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="charts reveal">
-        <article class="chart-card">
-          <h3>Latency — balances (avg ms)</h3>
-          <p class="chart-note">Lower is better. Phantom / Solflare pending.</p>
-          <div class="bars" data-max="7000">
-            <div class="bar-row">
-              <span class="bar-label">Vybe</span>
-              <div class="bar-track"><div class="bar bar-win" style="width:2.6%"></div></div>
-              <span class="bar-val">183</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-label">Jupiter</span>
-              <div class="bar-track"><div class="bar bar-jup" style="width:99.4%"></div></div>
-              <span class="bar-val">6,961</span>
-            </div>
-            <div class="bar-row pending-row">
-              <span class="bar-label">Phantom</span>
-              <div class="bar-track"><div class="bar bar-pending" style="width:0"></div></div>
-              <span class="bar-val">—</span>
-            </div>
-            <div class="bar-row pending-row">
-              <span class="bar-label">Solflare</span>
-              <div class="bar-track"><div class="bar bar-pending" style="width:0"></div></div>
-              <span class="bar-val">—</span>
-            </div>
-          </div>
-        </article>
-
-        <article class="chart-card">
-          <h3>Latency — DeFi (avg ms)</h3>
-          <p class="chart-note">Lower is better. Phantom / Solflare pending.</p>
-          <div class="bars">
-            <div class="bar-row">
-              <span class="bar-label">Vybe</span>
-              <div class="bar-track"><div class="bar bar-win" style="width:1.5%"></div></div>
-              <span class="bar-val">165</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-label">Jupiter</span>
-              <div class="bar-track"><div class="bar bar-jup" style="width:100%"></div></div>
-              <span class="bar-val">11,288</span>
-            </div>
-            <div class="bar-row pending-row">
-              <span class="bar-label">Phantom</span>
-              <div class="bar-track"><div class="bar bar-pending" style="width:0"></div></div>
-              <span class="bar-val">—</span>
-            </div>
-            <div class="bar-row pending-row">
-              <span class="bar-label">Solflare</span>
-              <div class="bar-track"><div class="bar bar-pending" style="width:0"></div></div>
-              <span class="bar-val">—</span>
-            </div>
-          </div>
-        </article>
-
-        <article class="chart-card">
-          <h3>Match vs on-chain RPC</h3>
-          <p class="chart-note">Shared mints with RPC (of 4,277). Higher is better.</p>
-          <div class="bars">
-            <div class="bar-row">
-              <span class="bar-label">Vybe</span>
-              <div class="bar-track"><div class="bar bar-win" style="width:99.9%"></div></div>
-              <span class="bar-val">4,273</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-label">Jupiter</span>
-              <div class="bar-track"><div class="bar bar-jup" style="width:17.1%"></div></div>
-              <span class="bar-val">731</span>
-            </div>
-            <div class="bar-row pending-row">
-              <span class="bar-label">Phantom</span>
-              <div class="bar-track"><div class="bar bar-pending" style="width:0"></div></div>
-              <span class="bar-val">—</span>
-            </div>
-            <div class="bar-row pending-row">
-              <span class="bar-label">Solflare</span>
-              <div class="bar-track"><div class="bar bar-pending" style="width:0"></div></div>
-              <span class="bar-val">—</span>
-            </div>
-          </div>
-        </article>
-
-        <article class="chart-card">
-          <h3>Amount exact vs RPC</h3>
-          <p class="chart-note">Exact amount matches (shared mints). Higher is better.</p>
-          <div class="bars">
-            <div class="bar-row">
-              <span class="bar-label">Vybe</span>
-              <div class="bar-track"><div class="bar bar-win" style="width:100%"></div></div>
-              <span class="bar-val">4,271</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-label">Jupiter</span>
-              <div class="bar-track"><div class="bar bar-jup" style="width:16.9%"></div></div>
-              <span class="bar-val">720</span>
-            </div>
-            <div class="bar-row pending-row">
-              <span class="bar-label">Phantom</span>
-              <div class="bar-track"><div class="bar bar-pending" style="width:0"></div></div>
-              <span class="bar-val">—</span>
-            </div>
-            <div class="bar-row pending-row">
-              <span class="bar-label">Solflare</span>
-              <div class="bar-track"><div class="bar bar-pending" style="width:0"></div></div>
-              <span class="bar-val">—</span>
-            </div>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section id="balances" class="section">
-      <p class="eyebrow">Wallet tokens</p>
-      <h2>Balances — complete and fast</h2>
-      <p class="section-lede">
-        If your product shows “what’s in this wallet,” missing tokens are a trust problem.
-        On the same 10 wallets, Vybe returned <strong>4,281</strong> holdings vs Jupiter’s
-        <strong>732</strong> <code>wallet-tokens</code> — matching on-chain RPC at ~99.9% while finishing in
-        ~0.2s instead of several seconds. That’s the core $999 value for balance surfaces.
-      </p>
-      <p class="section-lede">
-        Honest caveat: today’s Vybe balances payload is mint + raw amount (no symbol, name, logo URL, price, or USD in that fetch).
-        <strong>Discussed — enrichment landing shortly</strong> for the package. DeFi already has prices.
-      </p>
-      <div class="table-wrap reveal">
-        <table class="wide">
-          <thead>
-            <tr>
-              <th>Field</th>
-              <th>Vybe</th>
-              <th>Jupiter</th>
-              <th>Phantom</th>
-              <th>Solflare</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Mint / address</td>
-              <td class="win">Yes</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Amount</td>
-              <td class="win">Raw integer</td>
-              <td>UI decimal</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Decimals</td>
-              <td>Enriched only</td>
-              <td>Via metadata</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Symbol</td>
-              <td class="miss">No*</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Name</td>
-              <td class="miss">No*</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Logo URL</td>
-              <td class="miss">No*</td>
-              <td class="win">Yes (metadata)</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Price</td>
-              <td class="miss">No*</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>USD value</td>
-              <td class="miss">No*</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Staked SOL summary</td>
-              <td class="win"><code>sol_summary</code></td>
-              <td>As token rows</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Latency</td>
-              <td class="win">~60–300 ms</td>
-              <td>~2.6–15 s</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Coverage vs RPC</td>
-              <td class="win">~99.9%</td>
-              <td>~17%</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="chart-note" style="margin-top:0.75rem">* Not in Vybe balances fetch today — enrichment coming shortly for the package.</p>
-    </section>
-
-    <section id="defi" class="section">
-      <p class="eyebrow">Positions</p>
-      <h2>DeFi — API-ready positions with USD</h2>
-      <p class="section-lede">
-        Vybe returns typed positions (LPs, lending, vaults, farming…) with protocol id, labels, nested assets,
-        and <strong>USD values already on the position</strong> — in ~150–200&nbsp;ms.
-        Jupiter still wins on long-tail protocol count; we call that out below and treat it as roadmap, not fluff.
-        When both sides list the same position, values usually agree (~82% within 1%).
-      </p>
-      <div class="table-wrap reveal">
-        <table class="wide">
-          <thead>
-            <tr>
-              <th>Field / metric</th>
-              <th>Vybe</th>
-              <th>Jupiter</th>
-              <th>Phantom</th>
-              <th>Solflare</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><code>platformId</code> (protocol)</td>
-              <td class="win">Yes</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td><code>type</code> / <code>label</code></td>
-              <td class="win">Yes</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Position USD</td>
-              <td class="win">Yes</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Token price + USD in position</td>
-              <td class="win">Yes</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>LP <code>data.liquidities[]</code></td>
-              <td class="win">Yes</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>LP pool <code>name</code> (CPMM/DLMM…)</td>
-              <td>~41% (41/99)</td>
-              <td class="win">~54% (90/167)</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>LP <code>netApy</code></td>
-              <td class="miss">~22% (22/99)</td>
-              <td class="win">~99% (166/167)</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Lending health / supply / borrow</td>
-              <td class="win">Yes</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td><code>fetcherId</code></td>
-              <td class="miss">No</td>
-              <td class="win">Yes</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Protocol count</td>
-              <td>~22</td>
-              <td class="win">~100+</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>DeFi positions</td>
-              <td>511</td>
-              <td class="win">764</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>DeFi USD total</td>
-              <td>~$279k</td>
-              <td class="win">~$315k</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-            <tr>
-              <td>Latency</td>
-              <td class="win">~0.15–0.2 s</td>
-              <td>~6–22 s</td>
-              <td class="pending">—</td>
-              <td class="pending">—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3 class="reveal" style="margin-top:2rem">Position counts by label</h3>
-      <div class="table-wrap reveal">
-        <table class="wide">
-          <thead>
-            <tr>
-              <th>Label</th>
-              <th>Vybe</th>
-              <th>Jupiter</th>
-              <th>Phantom</th>
-              <th>Solflare</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>LiquidityPool</td><td>99</td><td class="win">167</td><td class="pending">—</td><td class="pending">—</td></tr>
-            <tr><td>Lending</td><td>133</td><td class="win">141</td><td class="pending">—</td><td class="pending">—</td></tr>
-            <tr><td>Staked</td><td>91</td><td class="win">231</td><td class="pending">—</td><td class="pending">—</td></tr>
-            <tr><td>Farming</td><td class="win">96</td><td>30</td><td class="pending">—</td><td class="pending">—</td></tr>
-            <tr><td>Vault</td><td>26</td><td class="win">39</td><td class="pending">—</td><td class="pending">—</td></tr>
-            <tr><td>Deposit</td><td>20</td><td class="win">64</td><td class="pending">—</td><td class="pending">—</td></tr>
-            <tr><td>Leverage</td><td>27</td><td>25</td><td class="pending">—</td><td class="pending">—</td></tr>
-            <tr><td>Rewards</td><td>9</td><td class="win">39</td><td class="pending">—</td><td class="pending">—</td></tr>
-            <tr><td>LimitOrder</td><td>5</td><td class="win">17</td><td class="pending">—</td><td class="pending">—</td></tr>
-            <tr><td>Margin / Airdrop</td><td class="miss">0</td><td class="win">yes</td><td class="pending">—</td><td class="pending">—</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="improve" class="section improve">
-      <p class="eyebrow warn-label">Roadmap · honesty sells</p>
-      <h2>Areas to improve</h2>
-      <p class="section-lede">
-        Buyers trust a package that names gaps. Here’s what Jupiter still does better — and what the $999 tier should close next.
-      </p>
-      <div class="improve-grid">
-        <article class="reveal">
-          <h3>Balances enrichment</h3>
-          <p class="note">Symbol, name, logo URL, price, <strong>valueUsd</strong> missing from Vybe balances today — <strong>discussed, shipping shortly</strong>.</p>
-        </article>
-        <article class="reveal delay-1">
-          <h3>LP name / type + APY</h3>
-          <p>Fill pool <code>name</code> (CPMM/DLMM…) and <code>netApy</code> (now ~22% vs Jupiter ~99%).</p>
-        </article>
-        <article class="reveal delay-2">
-          <h3>More protocols</h3>
-          <p>Flash, Jupiter Exchange/Governance, Elemental, Realms, BulkTrade, … (~+$36k / +253 positions in this set).</p>
-        </article>
-        <article class="reveal delay-3">
-          <h3>Extras</h3>
-          <p><code>fetcherId</code>, interest-bearing Token-2022 views, published protocol list, auth/SLA for $999.</p>
-        </article>
-      </div>
-    </section>
-
-    <section id="package" class="section package">
-      <p class="eyebrow">$999 Vybe package</p>
-      <h2 class="reveal">Ship balances + DeFi without owning the stack</h2>
-      <p class="lede reveal delay-1">
-        Stop stitching wallet RPCs, Turnstile-gated portfolio scrapers, and half-complete token lists.
-        For <strong>$999</strong> you get Vybe access to <strong>assets/balances</strong> and <strong>DeFi positions</strong> —
-        the same surfaces we benchmarked: chain-complete holdings and typed DeFi with USD, fast enough for product UX.
-      </p>
-
-      <div class="pitch-grid reveal delay-1">
-        <div>
-          <h3>What you buy</h3>
-          <ul>
-            <li>Balances API — near-full mint coverage vs chain, raw precision, sub-second</li>
-            <li>DeFi positions API — protocols, LP/lending shapes, USD on positions</li>
-            <li>One vendor for both surfaces (no Jupiter page-load workflow in your backend)</li>
-            <li>Documented JSON contracts below so your eng team can estimate integration in hours</li>
-          </ul>
+    <section id="lead">
+      <div class="wrap">
+        <div class="oneliner reveal">Positions in realtime. <em>Tokens and DeFi.</em></div>
+        <p class="oneliner-note reveal delay-1">
+          One integration for wallet balances and DeFi positions: chain-complete holdings and typed DeFi with USD,
+          measured in milliseconds. Every claim below carries a number from live captures.
+        </p>
+        <div class="status-card reveal delay-2">
+          <span class="tag">Coming soon — balances enrichment</span>
+          Vybe balances today return <code>mint</code> + raw <code>amount</code> with near-complete chain coverage.
+          <strong>Symbol, name, logo, price, and USD</strong> on balances are shipping shortly for the <span class="mono">$999</span> package.
+          <p class="fine">DeFi positions already include USD and per-token prices today.</p>
         </div>
-        <div>
-          <h3>What you avoid</h3>
-          <ul>
-            <li>Showing users 17% of their tokens and calling it a portfolio</li>
-            <li>Waiting 6–22s for a browser portfolio scrape to finish</li>
-            <li>Rebuilding lending/LP parsers for every major Solana protocol</li>
-            <li>Guessing amounts from rounded UI floats</li>
-          </ul>
+        <p class="pending-note reveal delay-3">
+          <span class="pending-pill">Benchmarked</span> Vybe vs Jupiter, Phantom, and Solflare on 10 real wallets — July 2026 live captures.
+        </p>
+      </div>
+    </section>
+
+    <section id="scorecard" class="alt">
+      <div class="wrap">
+        <div class="sec-num">01 · Scorecard</div>
+        <h2>Why teams pick Vybe</h2>
+        <p class="lede">
+          Jupiter’s portfolio endpoint serves a browsing UI. Vybe is built for <strong>APIs</strong>:
+          <span class="mono">~99.9%</span> balance match vs the chain, DeFi positions with USD attached,
+          and responses measured in milliseconds. Benchmarked against Jupiter, Phantom, and Solflare on 10 real wallets.
+        </p>
+                <div class="score-tables">
+          <div class="table-card reveal">
+            <table class="line-table">
+              <thead>
+                <tr>
+                <th class="sec-th"><span class="sec-label sec-label--inline"><svg class="sec-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 11.5 6.2 7.8l2.1 1.7 3.2-4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 12.5h9" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>DeFi Positions</span></span></th>
+
+                <th><span class="plat"><img src="images/vybe.svg" alt="" width="16" height="16" decoding="async" />Vybe</span></th>
+                <th><span class="plat"><img src="images/jupiter.png" alt="" width="16" height="16" decoding="async" />Jupiter</span></th>
+                <th><span class="plat"><img src="images/phantom.svg" alt="" width="16" height="16" decoding="async" />Phantom</span></th>
+                <th><span class="plat"><img src="images/solflare.svg" alt="" width="16" height="16" decoding="async" />Solflare</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.25" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 5.2V8l2 1.4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Latency</span></span></td>
+                  <td class="win">~143–217 ms</td>
+                  <td>~6–22 sec <span class="pct-delta">−99%</span></td>
+                  <td class="pending">—</td>
+                  <td>~0.5–12 sec <span class="pct-delta">−97%</span></td>
+                </tr>
+                <tr class="row-hidden" hidden aria-hidden="true">
+                  <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.4" y="3.6" width="11.2" height="8.8" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="6" cy="7.2" r="1.4" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M9.2 6.4h3.2M9.2 9.2h2.4M4.2 10.6c.5-.7 1.2-1.1 2-1.1s1.5.4 2 1.1" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="field-text"><code>fetcherId</code></span></span></td>
+                          <td class="miss">No <span class="pct-delta">−100%</span></td>
+                          <td class="win">Yes</td>
+                          <td class="pending">—</td>
+                          <td class="miss">No</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="3.5" r="1.6" fill="none" stroke="currentColor" stroke-width="1.25"/><circle cx="3.8" cy="12" r="1.6" fill="none" stroke="currentColor" stroke-width="1.25"/><circle cx="12.2" cy="12" r="1.6" fill="none" stroke="currentColor" stroke-width="1.25"/><path d="M7 4.8 4.6 10.4M9 4.8l2.4 5.6M5.4 12h5.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="field-text">Protocols</span></span></td>
+                  <td>~22 <span class="pct-delta">−78%</span></td>
+                  <td class="win">~100+</td>
+                  <td class="pending">—</td>
+                  <td>~96 <span class="pct-delta">−4%</span></td>
+                </tr>
+                <tr>
+                  <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.8 13.2 5.5 8 8.2 2.8 5.5Z" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/><path d="M2.8 8.2 8 10.9l5.2-2.7M2.8 10.6 8 13.3l5.2-2.7" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Positions returned</span></span></td>
+                  <td>511 <span class="pct-delta">−33%</span></td>
+                  <td class="win">764</td>
+                  <td class="pending">—</td>
+                  <td>764</td>
+                </tr>
+                <tr>
+                  <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.4v7.2M10.2 6.1c0-1-1-1.6-2.2-1.6S5.8 5.2 5.8 6.2c0 2.4 4.4 1.2 4.4 3.6 0 1.1-1.1 1.7-2.2 1.7S5.8 10.8 5.8 9.9" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg><span class="field-text">USD value</span></span></td>
+                  <td>~$279k <span class="pct-delta">−11%</span></td>
+                  <td class="win">~$315k</td>
+                  <td class="pending">—</td>
+                  <td>~$248k <span class="pct-delta">−21%</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-card reveal">
+            <table class="line-table">
+              <thead>
+                <tr>
+                <th class="sec-th"><span class="sec-label sec-label--inline"><svg class="sec-ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="4.5" width="11" height="8.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5 4.5V3.75a3 3 0 0 1 6 0V4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>Spot Holdings</span></span></th>
+
+                <th><span class="plat"><img src="images/vybe.svg" alt="" width="16" height="16" decoding="async" />Vybe</span></th>
+                <th><span class="plat"><img src="images/jupiter.png" alt="" width="16" height="16" decoding="async" />Jupiter</span></th>
+                <th><span class="plat"><img src="images/phantom.svg" alt="" width="16" height="16" decoding="async" />Phantom</span></th>
+                <th><span class="plat"><img src="images/solflare.svg" alt="" width="16" height="16" decoding="async" />Solflare</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.25" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 5.2V8l2 1.4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Latency</span></span></td>
+                  <td class="win">~126–325 ms</td>
+                  <td>~15–22 sec <span class="pct-delta">−99%</span></td>
+                  <td>~0.6–1.5 sec <span class="pct-delta">−82%</span></td>
+                  <td>~0.5–6 sec <span class="pct-delta">−87%</span></td>
+                </tr>
+                <tr>
+                  <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="5" width="11" height="8" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M6 5V3.9a2 2 0 0 1 4 0V5M2.5 8.5h11" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg><span class="field-text">Holdings returned</span></span></td>
+                  <td class="win">4,291</td>
+                  <td>736 <span class="pct-delta">−83%</span></td>
+                  <td>476 <span class="pct-delta">−89%</span></td>
+                  <td>1,616 <span class="pct-delta">−62%</span></td>
+                </tr>
+                <tr>
+                  <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.4v7.2M10.2 6.1c0-1-1-1.6-2.2-1.6S5.8 5.2 5.8 6.2c0 2.4 4.4 1.2 4.4 3.6 0 1.1-1.1 1.7-2.2 1.7S5.8 10.8 5.8 9.9" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg><span class="field-text">Valid USD Values</span></span></td>
+                  <td class="win">647</td>
+                  <td>466 <span class="pct-delta">−28%</span></td>
+                  <td>320 <span class="pct-delta">−51%</span></td>
+                  <td>417 <span class="pct-delta">−36%</span></td>
+                </tr>
+                <tr>
+                  <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 8.4V3.6A.8.8 0 0 1 3.6 2.8h4.8L13.2 8l-4.8 4.8Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6.2 5.2v3.2M5.2 6.4h2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="field-text">Valid USD Prices</span></span></td>
+                  <td class="win">1,038</td>
+                  <td>736 <span class="pct-delta">−29%</span></td>
+                  <td>400 <span class="pct-delta">−61%</span></td>
+                  <td>677 <span class="pct-delta">−35%</span></td>
+                </tr>
+                <tr>
+                  <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 1 0-4l1.8-1.8a2.8 2.8 0 1 1 4 4L11.2 8.8M9.4 6.6a2.8 2.8 0 0 1 0 4L7.6 12.4a2.8 2.8 0 1 1-4-4L4.8 7.2" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg><span class="field-text">1:1 Match with RPC</span></span></td>
+                  <td class="win">4,281</td>
+                  <td>723 <span class="pct-delta">−83%</span></td>
+                  <td>471 <span class="pct-delta">−89%</span></td>
+                  <td>1,598 <span class="pct-delta">−63%</span></td>
+                </tr>
+                <tr>
+                  <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.4 9.2a2.6 2.6 0 0 1 0-3.6L8 4a2.6 2.6 0 1 1 3.7 3.7l-.7.7M9.6 6.8a2.6 2.6 0 0 1 0 3.6L8 12a2.6 2.6 0 1 1-3.7-3.7l.7-.7" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><path d="M3.2 3.2 12.8 12.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg><span class="field-text">Only Found on RPC</span></span></td>
+                  <td class="win">3</td>
+                  <td>3,551 <span class="pct-delta">−100%</span></td>
+                  <td>3,810 <span class="pct-delta">−100%</span></td>
+                  <td>2,670 <span class="pct-delta">−100%</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="charts reveal">
+          <article class="chart-card">
+            <h4>Latency — balances (avg ms)</h4>
+            <p class="chart-note">Lower is better. Measured on 10 wallets — July 2026.</p>
+            <div class="bars" data-compare-n="4">
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/vybe.svg" alt="" width="16" height="16" decoding="async" />Vybe</span></span>
+                <div class="bar-track"><div class="bar bar-rank-1" style="width:2.9%"></div></div>
+                <span class="bar-val">200 ms</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/jupiter.png" alt="" width="16" height="16" decoding="async" />Jupiter</span></span>
+                <div class="bar-track"><div class="bar bar-rank-4" style="width:100%"></div></div>
+                <span class="bar-val">21,406 ms</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/phantom.svg" alt="" width="16" height="16" decoding="async" />Phantom</span></span>
+                <div class="bar-track"><div class="bar bar-rank-2" style="width:4.8%"></div></div>
+                <span class="bar-val">1,027 ms</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/solflare.svg" alt="" width="16" height="16" decoding="async" />Solflare</span></span>
+                <div class="bar-track"><div class="bar bar-rank-3" style="width:6.4%"></div></div>
+                <span class="bar-val">1,380 ms</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="chart-card">
+            <h4>Latency — DeFi</h4>
+            <p class="chart-note">Lower is better. Phantom — (no DeFi API). Solflare avg ~6.3s.</p>
+            <div class="bars" data-compare-n="3">
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/vybe.svg" alt="" width="16" height="16" decoding="async" />Vybe</span></span>
+                <div class="bar-track"><div class="bar bar-rank-1" style="width:1.5%"></div></div>
+                <span class="bar-val">~143–217 ms</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/jupiter.png" alt="" width="16" height="16" decoding="async" />Jupiter</span></span>
+                <div class="bar-track"><div class="bar bar-rank-3" style="width:100%"></div></div>
+                <span class="bar-val">~6–22 sec</span>
+              </div>
+              <div class="bar-row pending-row">
+                <span class="bar-label"><span class="plat"><img src="images/phantom.svg" alt="" width="16" height="16" decoding="async" />Phantom</span></span>
+                <div class="bar-track"><div class="bar bar-pending" style="width:0"></div></div>
+                <span class="bar-val">—</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/solflare.svg" alt="" width="16" height="16" decoding="async" />Solflare</span></span>
+                <div class="bar-track"><div class="bar bar-rank-2" style="width:45%"></div></div>
+                <span class="bar-val">~0.5–12 sec</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="chart-card">
+            <h4>Only Found on RPC</h4>
+            <p class="chart-note">On-chain mints missing from the API. Lower is better.</p>
+            <div class="bars" data-compare-n="4">
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/vybe.svg" alt="" width="16" height="16" decoding="async" />Vybe</span></span>
+                <div class="bar-track"><div class="bar bar-rank-1" style="width:0.1%"></div></div>
+                <span class="bar-val">3 mints</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/jupiter.png" alt="" width="16" height="16" decoding="async" />Jupiter</span></span>
+                <div class="bar-track"><div class="bar bar-rank-3" style="width:93%"></div></div>
+                <span class="bar-val">3,551 mints</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/phantom.svg" alt="" width="16" height="16" decoding="async" />Phantom</span></span>
+                <div class="bar-track"><div class="bar bar-rank-4" style="width:100%"></div></div>
+                <span class="bar-val">3,810 mints</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/solflare.svg" alt="" width="16" height="16" decoding="async" />Solflare</span></span>
+                <div class="bar-track"><div class="bar bar-rank-2" style="width:70%"></div></div>
+                <span class="bar-val">2,670 mints</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="chart-card">
+            <h4>1:1 Match with RPC</h4>
+            <p class="chart-note">Exact amount matches (shared mints). Higher is better.</p>
+            <div class="bars" data-compare-n="4">
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/vybe.svg" alt="" width="16" height="16" decoding="async" />Vybe</span></span>
+                <div class="bar-track"><div class="bar bar-rank-1" style="width:100%"></div></div>
+                <span class="bar-val">4,281 matches</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/jupiter.png" alt="" width="16" height="16" decoding="async" />Jupiter</span></span>
+                <div class="bar-track"><div class="bar bar-rank-3" style="width:16.9%"></div></div>
+                <span class="bar-val">723 matches</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/phantom.svg" alt="" width="16" height="16" decoding="async" />Phantom</span></span>
+                <div class="bar-track"><div class="bar bar-rank-4" style="width:11%"></div></div>
+                <span class="bar-val">471 matches</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label"><span class="plat"><img src="images/solflare.svg" alt="" width="16" height="16" decoding="async" />Solflare</span></span>
+                <div class="bar-track"><div class="bar bar-rank-2" style="width:37.4%"></div></div>
+                <span class="bar-val">1,598 matches</span>
+              </div>
+            </div>
+          </article>
         </div>
       </div>
+    </section>
 
-      <h3 class="reveal" style="margin-top:2.5rem">Built for these buyers</h3>
-      <div class="buyer-grid reveal">
-        <article class="buyer-card">
-          <div class="buyer-icon" aria-hidden="true">
-            <svg viewBox="0 0 40 40" fill="none"><rect x="6" y="10" width="28" height="20" rx="3" stroke="currentColor" stroke-width="2"/><path d="M12 16h16M12 21h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="28" cy="26" r="2.5" fill="currentColor"/></svg>
-          </div>
-          <h3>Wallet &amp; portfolio apps</h3>
-          <p>Users judge you on whether every token and DeFi position shows up. Vybe’s balance coverage (~99.9% vs RPC in our test) and fast DeFi feed let you refresh on open — not after a spinner.</p>
-        </article>
-        <article class="buyer-card">
-          <div class="buyer-icon" aria-hidden="true">
-            <svg viewBox="0 0 40 40" fill="none"><path d="M8 28V12M16 28V18M24 28V10M32 28V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M6 30h28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          </div>
-          <h3>Dashboards &amp; analytics</h3>
-          <p>Aggregate many wallets without timing out. Sub-second Vybe calls scale better than multi-second portfolio workflows when you’re charting cohorts, whales, or protocol exposure.</p>
-        </article>
-        <article class="buyer-card">
-          <div class="buyer-icon" aria-hidden="true">
-            <svg viewBox="0 0 40 40" fill="none"><rect x="10" y="6" width="20" height="28" rx="2" stroke="currentColor" stroke-width="2"/><path d="M15 14h10M15 19h10M15 24h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          </div>
-          <h3>Tax &amp; accounting</h3>
-          <p>Incomplete inventories create bad lots and angry customers. Start from a near-complete mint set and typed DeFi positions with USD — then layer your own cost basis and jurisdiction rules.</p>
-        </article>
-        <article class="buyer-card">
-          <div class="buyer-icon" aria-hidden="true">
-            <svg viewBox="0 0 40 40" fill="none"><path d="M20 6l12 6v8c0 8-5.5 12.5-12 14-6.5-1.5-12-6-12-14v-8l12-6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 20l3.5 3.5L26 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <h3>Risk &amp; compliance</h3>
-          <p>Screen wallets for lending health, LP exposure, and staked SOL without depending on a consumer portfolio UI. Structured JSON + protocol ids beat screenshots and CSV exports.</p>
-        </article>
+    <section id="depth" class="alt">
+      <div id="balances" class="depth-anchor" aria-hidden="true"></div>
+      <div id="defi" class="depth-anchor" aria-hidden="true"></div>
+      <div class="wrap">
+        <div class="sec-num">02 · Balances &amp; DeFi</div>
+        <div class="depth-tabs" role="tablist" aria-label="Balances and DeFi">
+          <button type="button" class="depth-tab is-active" role="tab" id="tab-balances" aria-controls="panel-balances" aria-selected="true" data-tab="balances">Balances</button>
+          <button type="button" class="depth-tab" role="tab" id="tab-defi" aria-controls="panel-defi" aria-selected="false" data-tab="defi">DeFi</button>
+        </div>
+
+        <div class="depth-panel is-active" role="tabpanel" id="panel-balances" aria-labelledby="tab-balances" data-panel="balances">
+          <h2>Balances — complete and fast</h2>
+                  <p class="lede">
+                    If your product shows “what’s in this wallet,” missing tokens are a trust problem.
+                    On the same 10 wallets, Vybe returned <span class="mono">4,291</span> holdings vs Jupiter’s
+                    <span class="mono">736</span> <code>wallet-tokens</code>. Vybe matched on-chain RPC at
+                    <span class="mono">~99.9%</span> and finished in <span class="mono">~0.2s</span>.
+                    That is the core <span class="mono">$999</span> value for balance surfaces.
+                  </p>
+                  <p class="lede">
+                    Known gap: today’s Vybe balances payload is mint + raw amount — no symbol, name, logo URL, price, or USD in that fetch.
+                    <strong>Discussed — enrichment landing shortly</strong> for the package. DeFi already has prices.
+                  </p>
+                  <div class="table-card reveal">
+                    <table class="line-table">
+                      <thead>
+                        <tr>
+                          <th>Field</th>
+                          <th><span class="plat"><img src="images/vybe.svg" alt="" width="16" height="16" decoding="async" />Vybe</span></th>
+                          <th><span class="plat"><img src="images/jupiter.png" alt="" width="16" height="16" decoding="async" />Jupiter</span></th>
+                          <th><span class="plat"><img src="images/phantom.svg" alt="" width="16" height="16" decoding="async" />Phantom</span></th>
+                          <th><span class="plat"><img src="images/solflare.svg" alt="" width="16" height="16" decoding="async" />Solflare</span></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 3.2 5 12.8M11 3.2 9.8 12.8M3.2 6.2h9.6M3.2 9.8h9.6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span class="field-text">Decimals</span></span></td>
+                          <td class="win">Provided</td>
+                          <td class="miss">Not Provided</td>
+                          <td>Provided</td>
+                          <td>Provided</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 12.5 8 3.5l4.8 9M5.1 9.2h5.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Symbol</span></span></td>
+                          <td>1,160 <span class="pct-delta">−20%</span></td>
+                          <td>735 <span class="pct-delta">−49%</span></td>
+                          <td>461 <span class="pct-delta">−68%</span></td>
+                          <td class="win">1,445</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.2h10M3 8h7.5M3 11.8h5.5" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg><span class="field-text">Name</span></span></td>
+                          <td>1,155 <span class="pct-delta">−20%</span></td>
+                          <td>727 <span class="pct-delta">−50%</span></td>
+                          <td>459 <span class="pct-delta">−68%</span></td>
+                          <td class="win">1,443</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.4" y="3.2" width="11.2" height="9.6" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="5.8" cy="6.4" r="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="m2.8 11.2 3.2-3.1 2.1 2 2.4-2.6 2.7 3.7" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Logo URL</span></span></td>
+                          <td>1,152 <span class="pct-delta">−15%</span></td>
+                          <td>733 <span class="pct-delta">−46%</span></td>
+                          <td>416 <span class="pct-delta">−69%</span></td>
+                          <td class="win">1,351</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 8.4V3.6A.8.8 0 0 1 3.6 2.8h4.8L13.2 8l-4.8 4.8Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6.2 5.2v3.2M5.2 6.4h2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="field-text">Valid USD Prices*</span></span></td>
+                          <td class="win">1,038</td>
+                          <td>736 <span class="pct-delta">−29%</span></td>
+                          <td>400 <span class="pct-delta">−61%</span></td>
+                          <td>677 <span class="pct-delta">−35%</span></td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.4v7.2M10.2 6.1c0-1-1-1.6-2.2-1.6S5.8 5.2 5.8 6.2c0 2.4 4.4 1.2 4.4 3.6 0 1.1-1.1 1.7-2.2 1.7S5.8 10.8 5.8 9.9" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg><span class="field-text">Valid USD Values*</span></span></td>
+                          <td class="win">647</td>
+                          <td>466 <span class="pct-delta">−28%</span></td>
+                          <td>320 <span class="pct-delta">−51%</span></td>
+                          <td>417 <span class="pct-delta">−36%</span></td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 12.5h10.4M4 12.5V7.2M7.2 12.5V4.5M10.4 12.5V8.8M13 12.5V5.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span class="field-text">Market Cap</span></span></td>
+                          <td class="win">1,010</td>
+                          <td>0 <span class="pct-delta">−100%</span></td>
+                          <td>397 <span class="pct-delta">−61%</span></td>
+                          <td>676 <span class="pct-delta">−33%</span></td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 11.2 5.6 8.2l2.2 2.1 5.4-5.6M10.8 4.7h2.4v2.4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">24h Volume</span></span></td>
+                          <td>558 <span class="pct-delta">−17%</span></td>
+                          <td>0 <span class="pct-delta">−100%</span></td>
+                          <td>0 <span class="pct-delta">−100%</span></td>
+                          <td class="win">676</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.25" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 5.2V8l2 1.4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Latency</span></span></td>
+                          <td class="win">~126–325 ms</td>
+                          <td>~15–22 sec <span class="pct-delta">−99%</span></td>
+                          <td>~0.6–1.5 sec <span class="pct-delta">−82%</span></td>
+                          <td>~0.5–6 sec <span class="pct-delta">−87%</span></td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 1 0-4l1.8-1.8a2.8 2.8 0 1 1 4 4L11.2 8.8M9.4 6.6a2.8 2.8 0 0 1 0 4L7.6 12.4a2.8 2.8 0 1 1-4-4L4.8 7.2" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg><span class="field-text">Coverage vs RPC</span></span></td>
+                          <td class="win">~99.9%</td>
+                          <td>~17% <span class="pct-delta">−83%</span></td>
+                          <td>~11% <span class="pct-delta">−89%</span></td>
+                          <td>~38% <span class="pct-delta">−62%</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+        </div>
+
+        <div class="depth-panel" role="tabpanel" id="panel-defi" aria-labelledby="tab-defi" data-panel="defi" hidden>
+          <h2>DeFi — API-ready positions with USD</h2>
+                  <p class="lede">
+                    Vybe returns typed positions (LPs, lending, vaults, farming…) with protocol id, labels, nested assets,
+                    and <strong>USD values already on the position</strong> — in <span class="mono">~150–200&nbsp;ms</span>.
+                    Jupiter still leads on long-tail protocol count — we're actively closing that gap (see roadmap).
+                    When both sides list the same position, values usually agree (<span class="mono">~82%</span> within 1%).
+                    Solflare <code>/v3/defi</code> returned <span class="mono">764</span> positions / <span class="mono">~$248k</span> on this set (avg <span class="mono">~6.3s</span>). Phantom has no DeFi positions API here — columns stay —.
+                  </p>
+                  <div class="table-card reveal">
+                    <table class="line-table">
+                      <thead>
+                        <tr>
+                          <th>Field / metric</th>
+                          <th><span class="plat"><img src="images/vybe.svg" alt="" width="16" height="16" decoding="async" />Vybe</span></th>
+                          <th><span class="plat"><img src="images/jupiter.png" alt="" width="16" height="16" decoding="async" />Jupiter</span></th>
+                          <th><span class="plat"><img src="images/phantom.svg" alt="" width="16" height="16" decoding="async" />Phantom</span></th>
+                          <th><span class="plat"><img src="images/solflare.svg" alt="" width="16" height="16" decoding="async" />Solflare</span></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="3.5" r="1.6" fill="none" stroke="currentColor" stroke-width="1.25"/><circle cx="3.8" cy="12" r="1.6" fill="none" stroke="currentColor" stroke-width="1.25"/><circle cx="12.2" cy="12" r="1.6" fill="none" stroke="currentColor" stroke-width="1.25"/><path d="M7 4.8 4.6 10.4M9 4.8l2.4 5.6M5.4 12h5.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="field-text"><code>platformId</code> (protocol)</span></span></td>
+                          <td class="win">Yes</td>
+                          <td class="win">Yes</td>
+                          <td class="pending">—</td>
+                          <td class="win">Yes</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.6" y="4.2" width="10.8" height="7.6" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5 7.2h6M5 9.6h4" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg><span class="field-text"><code>type</code> / <code>label</code></span></span></td>
+                          <td class="win">Yes</td>
+                          <td class="win">Yes</td>
+                          <td class="pending">—</td>
+                          <td class="win">Yes</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.4v7.2M10.2 6.1c0-1-1-1.6-2.2-1.6S5.8 5.2 5.8 6.2c0 2.4 4.4 1.2 4.4 3.6 0 1.1-1.1 1.7-2.2 1.7S5.8 10.8 5.8 9.9" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg><span class="field-text">Position USD</span></span></td>
+                          <td class="win">Yes</td>
+                          <td class="win">Yes</td>
+                          <td class="pending">—</td>
+                          <td class="win">Yes</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 8.4V3.6A.8.8 0 0 1 3.6 2.8h4.8L13.2 8l-4.8 4.8Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6.2 5.2v3.2M5.2 6.4h2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="field-text">Token price + USD in position</span></span></td>
+                          <td class="win">Yes</td>
+                          <td class="win">Yes</td>
+                          <td class="pending">—</td>
+                          <td class="win">Yes</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.2 7.2c0 1.5 1.1 2.6 2.4 2.6s2.4-1.1 2.4-2.6S8.8 4 7.6 3.2C6.4 4 5.2 5.7 5.2 7.2Z" fill="none" stroke="currentColor" stroke-width="1.25"/><path d="M3.2 12.2c.4-.9 1.2-1.4 2.1-1.4M10.8 10.8c.9 0 1.7.5 2.1 1.4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="field-text">LP <code>data.liquidities[]</code></span></span></td>
+                          <td class="win">Yes</td>
+                          <td class="win">Yes</td>
+                          <td class="pending">—</td>
+                          <td class="win">Yes (deposits)</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.2 7.2c0 1.5 1.1 2.6 2.4 2.6s2.4-1.1 2.4-2.6S8.8 4 7.6 3.2C6.4 4 5.2 5.7 5.2 7.2Z" fill="none" stroke="currentColor" stroke-width="1.25"/><path d="M3.2 12.2c.4-.9 1.2-1.4 2.1-1.4M10.8 10.8c.9 0 1.7.5 2.1 1.4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="field-text">LP pool <code>name</code> (CPMM/DLMM…)</span></span></td>
+                          <td>~41% (41/99) <span class="pct-delta">−24%</span></td>
+                          <td class="win">~54% (90/167)</td>
+                          <td class="pending">—</td>
+                          <td class="miss">No <span class="pct-delta">−100%</span></td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="5" cy="5" r="1.5" fill="none" stroke="currentColor" stroke-width="1.25"/><circle cx="11" cy="11" r="1.5" fill="none" stroke="currentColor" stroke-width="1.25"/><path d="M12.2 3.8 3.8 12.2" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg><span class="field-text">LP <code>netApy</code></span></span></td>
+                          <td class="miss">~22% (22/99) <span class="pct-delta">−78%</span></td>
+                          <td class="win">~99% (166/167)</td>
+                          <td class="pending">—</td>
+                          <td class="miss">No <span class="pct-delta">−100%</span></td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13s-4.8-2.8-4.8-6A2.7 2.7 0 0 1 8 5.2 2.7 2.7 0 0 1 12.8 7c0 3.2-4.8 6-4.8 6Z" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/><path d="M3.5 8.2h2l1.2-2 1.6 3.4 1.1-1.6H12" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Lending health / supply / borrow</span></span></td>
+                          <td class="win">Yes</td>
+                          <td class="win">Yes</td>
+                          <td class="pending">—</td>
+                          <td class="win">Partial</td>
+                        </tr>
+                        <tr class="row-hidden" hidden aria-hidden="true">
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.4" y="3.6" width="11.2" height="8.8" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="6" cy="7.2" r="1.4" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M9.2 6.4h3.2M9.2 9.2h2.4M4.2 10.6c.5-.7 1.2-1.1 2-1.1s1.5.4 2 1.1" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="field-text"><code>fetcherId</code></span></span></td>
+                          <td class="miss">No <span class="pct-delta">−100%</span></td>
+                          <td class="win">Yes</td>
+                          <td class="pending">—</td>
+                          <td class="miss">No <span class="pct-delta">−100%</span></td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="3.5" r="1.6" fill="none" stroke="currentColor" stroke-width="1.25"/><circle cx="3.8" cy="12" r="1.6" fill="none" stroke="currentColor" stroke-width="1.25"/><circle cx="12.2" cy="12" r="1.6" fill="none" stroke="currentColor" stroke-width="1.25"/><path d="M7 4.8 4.6 10.4M9 4.8l2.4 5.6M5.4 12h5.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="field-text">Protocol count</span></span></td>
+                          <td>~22 <span class="pct-delta">−78%</span></td>
+                          <td class="win">~100+</td>
+                          <td class="pending">—</td>
+                          <td>~96 <span class="pct-delta">−4%</span></td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.8 13.2 5.5 8 8.2 2.8 5.5Z" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/><path d="M2.8 8.2 8 10.9l5.2-2.7M2.8 10.6 8 13.3l5.2-2.7" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">DeFi positions</span></span></td>
+                          <td>511 <span class="pct-delta">−33%</span></td>
+                          <td class="win">764</td>
+                          <td class="pending">—</td>
+                          <td>764</td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.4v7.2M10.2 6.1c0-1-1-1.6-2.2-1.6S5.8 5.2 5.8 6.2c0 2.4 4.4 1.2 4.4 3.6 0 1.1-1.1 1.7-2.2 1.7S5.8 10.8 5.8 9.9" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg><span class="field-text">DeFi USD total</span></span></td>
+                          <td>~$279k <span class="pct-delta">−11%</span></td>
+                          <td class="win">~$315k</td>
+                          <td class="pending">—</td>
+                          <td>~$248k <span class="pct-delta">−21%</span></td>
+                        </tr>
+                        <tr>
+                          <td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.25" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 5.2V8l2 1.4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Latency</span></span></td>
+                          <td class="win">~0.15–0.2 sec</td>
+                          <td>~6–22 sec <span class="pct-delta">−99%</span></td>
+                          <td class="pending">—</td>
+                          <td>~0.5–12 sec <span class="pct-delta">−97%</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+
+
+                  <h3 class="reveal">Position counts by label</h3>
+                  <div class="table-card reveal">
+                    <table class="line-table">
+                      <thead>
+                        <tr>
+                          <th>Label</th>
+                          <th><span class="plat"><img src="images/vybe.svg" alt="" width="16" height="16" decoding="async" />Vybe</span></th>
+                          <th><span class="plat"><img src="images/jupiter.png" alt="" width="16" height="16" decoding="async" />Jupiter</span></th>
+                          <th><span class="plat"><img src="images/phantom.svg" alt="" width="16" height="16" decoding="async" />Phantom</span></th>
+                          <th><span class="plat"><img src="images/solflare.svg" alt="" width="16" height="16" decoding="async" />Solflare</span></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.2 7.2c0 1.5 1.1 2.6 2.4 2.6s2.4-1.1 2.4-2.6S8.8 4 7.6 3.2C6.4 4 5.2 5.7 5.2 7.2Z" fill="none" stroke="currentColor" stroke-width="1.25"/><path d="M3.2 12.2c.4-.9 1.2-1.4 2.1-1.4M10.8 10.8c.9 0 1.7.5 2.1 1.4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="field-text">LiquidityPool</span></span></td><td>99 <span class="pct-delta">−41%</span></td><td class="win">167</td><td class="pending">—</td><td>191</td></tr>
+                        <tr><td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 6.2 8 3.2l5.2 3M3.5 6.2v5.2M6.5 6.2v5.2M9.5 6.2v5.2M12.5 6.2v5.2M2.5 12.2h11" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Lending</span></span></td><td>133 <span class="pct-delta">−6%</span></td><td class="win">141</td><td class="pending">—</td><td>147</td></tr>
+                        <tr><td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.2" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 7V5.4a2.5 2.5 0 0 1 5 0V7" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg><span class="field-text">Staked</span></span></td><td>91 <span class="pct-delta">−61%</span></td><td class="win">231</td><td class="pending">—</td><td>163 <span class="pct-delta">−29%</span></td></tr>
+                        <tr><td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13.2V7.2M8 7.2c0-2.2 1.6-3.8 3.6-4 .2 2.2-1.4 4-3.6 4ZM8 7.2c0-2.2-1.6-3.8-3.6-4C4.2 5.4 5.8 7.2 8 7.2Z" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Farming</span></span></td><td class="win">96</td><td>30 <span class="pct-delta">−69%</span></td><td class="pending">—</td><td>99</td></tr>
+                        <tr><td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.6" y="3.2" width="10.8" height="9.6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2.2" fill="none" stroke="currentColor" stroke-width="1.25"/><circle cx="8" cy="8" r="0.6" fill="currentColor"/></svg><span class="field-text">Vault</span></span></td><td>26 <span class="pct-delta">−33%</span></td><td class="win">39</td><td class="pending">—</td><td>21 <span class="pct-delta">−46%</span></td></tr>
+                        <tr><td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.8v7.2M5.4 7.4 8 10l2.6-2.6M3.2 12.6h9.6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Deposit</span></span></td><td>20 <span class="pct-delta">−69%</span></td><td class="win">64</td><td class="pending">—</td><td>85</td></tr>
+                        <tr><td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.2 12.2a5.4 5.4 0 1 1 7.6 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M8 9.6 10.4 5.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="9.6" r="1" fill="currentColor"/></svg><span class="field-text">Leverage</span></span></td><td class="win">27</td><td>25 <span class="pct-delta">−7%</span></td><td class="pending">—</td><td>27</td></tr>
+                        <tr><td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="6.2" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.25"/><path d="M2.8 7h10.4V5.4H2.8ZM8 5.4v7.8M8 5.4c0-1.4-1-2.2-2.1-2.2S4 4.2 4.6 5.4M8 5.4c0-1.4 1-2.2 2.1-2.2S12 4.2 11.4 5.4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Rewards</span></span></td><td>9 <span class="pct-delta">−77%</span></td><td class="win">39</td><td class="pending">—</td><td>15 <span class="pct-delta">−62%</span></td></tr>
+                        <tr><td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 4.2h6.6M6.2 8h6.6M6.2 11.8h6.6M3.4 4.2h.01M3.4 8h.01M3.4 11.8h.01" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="field-text">LimitOrder</span></span></td><td>5 <span class="pct-delta">−71%</span></td><td class="win">17</td><td class="pending">—</td><td>5 <span class="pct-delta">−71%</span></td></tr>
+                        <tr><td><span class="field-label"><svg class="field-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7.2c0-3 2.2-5 5-5s5 2 5 5H3Z" fill="none" stroke="currentColor" stroke-width="1.25"/><path d="M3 7.2 8 12l5-4.8M8 12v1.5" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="field-text">Margin / Airdrop</span></span></td><td class="miss">0 <span class="pct-delta">−100%</span></td><td class="win">yes</td><td class="pending">—</td><td>yes</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+        </div>
       </div>
+    </section>
 
-      <h3 class="reveal" style="margin-top:2.75rem">1. Assets / balances — payload</h3>
-      <p class="section-lede reveal">
-        <strong>Request:</strong> <code>GET …/api/v1/owners/{wallet}/portfolio</code>
-        (enriched: <code>…/portfolio/enriched</code> adds <code>decimals</code>).
-        This is the complete-holdings engine behind the $999 balances surface.
-      </p>
-      <pre class="codeblock reveal" tabindex="0"><code>{
+    <section id="roadmap">
+      <div class="wrap">
+        <div class="sec-num">03 · Roadmap</div>
+        <h2>What we're shipping next</h2>
+        <p class="lede">
+          Vybe already covers major Solana DeFi today. Here's what's on deck for the <span class="mono">$999</span> package — closing coverage gaps and enriching the API surface.
+        </p>
+        <div class="grid-2">
+          <article class="pillar reveal">
+            <div class="pillar-num">01</div>
+            <h4>Balances enrichment</h4>
+            <p>Symbol, name, logo URL, price, and <strong>valueUsd</strong> on balances — shipping shortly.</p>
+          </article>
+          <article class="pillar reveal delay-1">
+            <div class="pillar-num">02</div>
+            <h4>LP name / type + APY</h4>
+            <p>Richer pool metadata: CPMM/DLMM labels and <code>netApy</code> on liquidity positions.</p>
+          </article>
+          <article class="pillar reveal delay-2">
+            <div class="pillar-num">03</div>
+            <h4>Protocol expansion</h4>
+            <p>Actively porting long-tail protocols to close the gap vs Jupiter portfolio coverage.</p>
+          </article>
+          <article class="pillar reveal delay-3">
+            <div class="pillar-num">04</div>
+            <h4>Enterprise extras</h4>
+            <p>Published protocol list, auth/SLA, Token-2022 views, and production-grade reliability for <span class="mono">$999</span>.</p>
+          </article>
+        </div>
+
+        <h3 class="reveal" style="margin-top:2.5rem">Protocols in active development</h3>
+        <p class="lede reveal">These DeFi protocols are being ported to Vybe's portfolio engine:</p>
+        <ul class="plain-list reveal protocol-roadmap-list">
+          <li><strong>Parcl</strong> — real-estate derivatives &amp; margin</li>
+          <li><strong>Solana Mobile</strong> — SKR staking</li>
+          <li><strong>BulkTrade</strong> — deposit vaults</li>
+          <li><strong>Sharky</strong> — NFT lending &amp; staking</li>
+          <li><strong>DefiTuna</strong> — lending, LP, and staking</li>
+          <li><strong>Ore Supply</strong> — mining rewards &amp; staking</li>
+          <li><strong>Flash</strong> — staking</li>
+          <li><strong>Streamflow</strong> — vesting &amp; staking</li>
+          <li><strong>Wormhole</strong> — staking</li>
+          <li><strong>RateX</strong> — liquidity &amp; leverage</li>
+          <li><strong>Grass</strong> — staking</li>
+          <li><strong>Nosana</strong> — compute staking</li>
+          <li><strong>Sonarwatch</strong> — portfolio engine integration</li>
+        </ul>
+        <p class="chart-note reveal">Plus ongoing coverage for Jupiter Exchange/Governance, Realms, Elemental, and other high-volume protocols already on the roadmap.</p>
+      </div>
+    </section>
+
+    <section id="package" class="alt">
+      <div class="wrap">
+        <div class="sec-num">04 · Package · $999</div>
+        <h2>Ship balances + DeFi without owning the stack</h2>
+        <p class="lede">
+          Stop stitching wallet RPCs, gated portfolio scrapers, and half-complete token lists.
+          For <span class="mono">$999</span> you get Vybe access to <strong>assets/balances</strong> and <strong>DeFi positions</strong> —
+          the same surfaces benchmarked above: chain-complete holdings and typed DeFi with USD, fast enough for product UX.
+        </p>
+
+        <div class="grid-2">
+          <div class="pillar reveal">
+            <h4>What you buy</h4>
+            <ul>
+              <li>Balances API — near-full mint coverage vs chain, raw precision, sub-second</li>
+              <li>DeFi positions API — protocols, LP/lending shapes, USD on positions</li>
+              <li>One vendor for both surfaces (no page-load workflow in your backend)</li>
+              <li>Documented JSON contracts below so your eng team can estimate integration in hours</li>
+            </ul>
+          </div>
+          <div class="pillar reveal delay-1">
+            <h4>What you avoid</h4>
+            <ul>
+              <li>Showing users 17% of their tokens and calling it a portfolio</li>
+              <li>Waiting 6–22s for a browser portfolio scrape to finish</li>
+              <li>Rebuilding lending/LP parsers for every major Solana protocol</li>
+              <li>Guessing amounts from rounded UI floats</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 class="reveal">Built for these buyers</h3>
+        <div class="grid-2">
+          <article class="pillar reveal">
+            <div class="buyer-icon" aria-hidden="true">
+              <svg viewBox="0 0 40 40" fill="none"><rect x="6" y="10" width="28" height="20" rx="3" stroke="currentColor" stroke-width="2"/><path d="M12 16h16M12 21h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="28" cy="26" r="2.5" fill="currentColor"/></svg>
+            </div>
+            <h4>Wallet &amp; portfolio apps</h4>
+            <p>Users judge you on whether every token and DeFi position shows up. Vybe’s balance coverage (<span class="mono">~99.9%</span> vs RPC in this test) and fast DeFi feed let you refresh on open — not after a spinner.</p>
+          </article>
+          <article class="pillar reveal delay-1">
+            <div class="buyer-icon" aria-hidden="true">
+              <svg viewBox="0 0 40 40" fill="none"><path d="M8 28V12M16 28V18M24 28V10M32 28V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M6 30h28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <h4>Dashboards &amp; analytics</h4>
+            <p>Aggregate many wallets without timing out. Sub-second Vybe calls scale better than multi-second portfolio workflows when you’re charting cohorts, whales, or protocol exposure.</p>
+          </article>
+          <article class="pillar reveal delay-2">
+            <div class="buyer-icon" aria-hidden="true">
+              <svg viewBox="0 0 40 40" fill="none"><rect x="10" y="6" width="20" height="28" rx="2" stroke="currentColor" stroke-width="2"/><path d="M15 14h10M15 19h10M15 24h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <h4>Tax &amp; accounting</h4>
+            <p>Incomplete inventories create bad lots and angry customers. Start from a near-complete mint set and typed DeFi positions with USD — then layer your own cost basis and jurisdiction rules.</p>
+          </article>
+          <article class="pillar reveal delay-3">
+            <div class="buyer-icon" aria-hidden="true">
+              <svg viewBox="0 0 40 40" fill="none"><path d="M20 6l12 6v8c0 8-5.5 12.5-12 14-6.5-1.5-12-6-12-14v-8l12-6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 20l3.5 3.5L26 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h4>Risk &amp; compliance</h4>
+            <p>Screen wallets for lending health, LP exposure, and staked SOL without depending on a consumer portfolio UI. Structured JSON + protocol ids beat screenshots and CSV exports.</p>
+          </article>
+        </div>
+
+        <h3 class="reveal">1. Assets / balances — payload</h3>
+        <p class="lede reveal">
+          <strong>Request:</strong> <code>GET …/api/v1/owners/{wallet}/portfolio</code>
+          (enriched: <code>…/portfolio/enriched</code> adds <code>decimals</code>).
+          This is the complete-holdings engine behind the <span class="mono">$999</span> balances surface.
+        </p>
+        <pre class="codeblock reveal" tabindex="0"><code>{
   "owner": "&lt;wallet&gt;",
   "token_count": 70,
   "query_time_us": 12345,
@@ -606,19 +704,19 @@
     { "mint": "&lt;mint&gt;", "amount": 1, "decimals": 9 }
   ]
 }</code></pre>
-      <ul class="reveal">
-        <li><code>amount</code> = raw token units (integer), not UI decimals.</li>
-        <li><strong>No</strong> <code>symbol</code> / <code>name</code> / logo URL / <code>price</code> / <code>valueUsd</code> in Vybe balances today — enrichment discussed, coming shortly.</li>
-        <li><code>sol_summary</code> lamports for native / staked / wrapped SOL.</li>
-      </ul>
+        <ul class="plain-list reveal">
+          <li><code>amount</code> = raw token units (integer), not UI decimals.</li>
+          <li><strong>No</strong> <code>symbol</code> / <code>name</code> / logo URL / <code>price</code> / <code>valueUsd</code> in Vybe balances today — enrichment discussed, coming shortly.</li>
+          <li><code>sol_summary</code> lamports for native / staked / wrapped SOL.</li>
+        </ul>
 
-      <h3 class="reveal" style="margin-top:2.5rem">2. DeFi positions — payload</h3>
-      <p class="section-lede reveal">
-        <strong>Response envelope:</strong> <code>{ message, data: { sonarwatch, vybe_portfolio } }</code>.
-        Production positions: <code>data.vybe_portfolio.positions[]</code>.
-        USD and token prices are on the DeFi side today — ready for portfolio value UIs.
-      </p>
-      <pre class="codeblock reveal" tabindex="0"><code>{
+        <h3 class="reveal">2. DeFi positions — payload</h3>
+        <p class="lede reveal">
+          <strong>Response envelope:</strong> <code>{ message, data: { sonarwatch, vybe_portfolio } }</code>.
+          Production positions: <code>data.vybe_portfolio.positions[]</code>.
+          USD and token prices are on the DeFi side today — ready for portfolio value UIs.
+        </p>
+        <pre class="codeblock reveal" tabindex="0"><code>{
   "message": "success",
   "data": {
     "sonarwatch": { "tookMs": 0, "positions": [] },
@@ -666,41 +764,64 @@
     }
   }
 }</code></pre>
-      <ul class="reveal">
-        <li>Common labels: LiquidityPool, Lending, Farming, Staked, Vault, Deposit, Leverage, Rewards, …</li>
-        <li>Lending positions use <code>suppliedAssets</code> / <code>borrowedAssets</code> / <code>healthRatio</code> (same family as Jupiter).</li>
-        <li>DeFi <strong>does</strong> include USD (<code>value</code>) and per-token <code>price</code> — unlike Vybe balances.</li>
-      </ul>
+        <ul class="plain-list reveal">
+          <li>Common labels: LiquidityPool, Lending, Farming, Staked, Vault, Deposit, Leverage, Rewards, …</li>
+          <li>Lending positions use <code>suppliedAssets</code> / <code>borrowedAssets</code> / <code>healthRatio</code> (same family as Jupiter).</li>
+          <li>DeFi <strong>does</strong> include USD (<code>value</code>) and per-token <code>price</code> — unlike Vybe balances.</li>
+        </ul>
 
-      <div class="cta-banner reveal">
-        <div>
-          <h3>Ready to integrate?</h3>
-          <p>Use the benchmarks as diligence, the payloads as your contract, and the roadmap as the upgrade path — all under one $999 Vybe package.</p>
+        <div class="cta-banner reveal">
+          <div>
+            <h3>Ready to integrate?</h3>
+            <p>Use the benchmarks as diligence, the payloads as your contract, and the roadmap as the upgrade path — all under one <span class="mono">$999</span> Vybe package.</p>
+          </div>
+          <a class="gold-btn" href="https://solana-balances-api.vybenetwork.com">Open balances demo</a>
         </div>
-        <a class="cta" href="https://balancetests.dehghani.ca">Open balance proof</a>
+        <p class="links reveal">
+          Also:
+          <a href="https://solana-defi-positions-api.vybenetwork.com" rel="noopener">DeFi positions demo</a>
+          ·
+          <a href="#scorecard">Scorecard</a>
+        </p>
       </div>
-      <p class="links reveal">
-        Also:
-        <a href="https://defitests.dehghani.ca" rel="noopener">DeFi benchmark</a>
-        ·
-        <a href="#scorecard">Scorecard</a>
-      </p>
     </section>
 
-    <section class="section appendix">
-      <h2>Methodology</h2>
-      <ul>
-        <li>Vybe + Jupiter: same 10 wallets; balances Jul 20 (RPC-bracketed); DeFi Jul 17.</li>
-        <li>Jupiter balances = <code>wallet-tokens</code>; DeFi = other portfolio elements.</li>
-        <li>Vybe balances = <code>/portfolio</code>; DeFi = <code>vybe_portfolio.positions</code>.</li>
-        <li>Phantom &amp; Solflare: columns reserved — fill after upcoming benchmark.</li>
-      </ul>
+    <section id="methodology">
+      <div class="wrap">
+        <div class="sec-num">05 · Methodology</div>
+        <h2>How it was measured</h2>
+        <ul class="plain-list">
+          <li><strong>10 real wallets</strong> with diverse DeFi activity — July 2026 live captures.</li>
+          <li><strong>Vybe</strong> — balances via <code>/portfolio</code>; DeFi via <code>vybe_portfolio.positions</code>.</li>
+          <li><strong>Jupiter</strong> — <code>wallet-tokens</code> for balances; portfolio API for DeFi.</li>
+          <li><strong>Phantom</strong> — fungible balances API (no public Solana DeFi positions API).</li>
+          <li><strong>Solflare</strong> — web portfolio tokens + DeFi endpoints.</li>
+          <li>Balance coverage validated against on-chain RPC holdings. Latency measured end-to-end per request.</li>
+        </ul>
+      </div>
     </section>
+
+    <div class="band">
+      <div class="wrap">
+        <div class="strike">Portfolio scrapes in 6–22 seconds.</div>
+        <div class="keep">Balances + DeFi in <em>milliseconds.</em></div>
+        <p>Vybe — where the signal lives.</p>
+      </div>
+    </div>
   </main>
 
   <footer>
-    <span>Vybe · GTM</span>
-    <span>defig2m.dehghani.ca</span>
+    <div class="wrap">
+      <span class="lockup sm">
+        <img src="vybe-mark.svg" alt="Vybe owl mark" />
+        <span class="lockup-text">
+          <span class="lockup-wm">Vybe</span>
+          <i class="lockup-pipe"></i>
+          <span class="lockup-trade">Data</span>
+        </span>
+      </span>
+      <span class="foot-line">Vybe Network · Solana balances &amp; DeFi positions API</span>
+    </div>
   </footer>
 
   <script>
@@ -709,7 +830,47 @@
       { threshold: 0.08, rootMargin: "0px 0px -6% 0px" }
     );
     document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
-    requestAnimationFrame(() => document.querySelector(".hero")?.classList.add("ready"));
+    requestAnimationFrame(() => document.querySelector(".cover")?.classList.add("ready"));
+
+
+    (function depthTabs() {
+      // Only Balances/DeFi tabs — exclude .gap-meta-tab (also uses .depth-tab for styling)
+      const tabs = [...document.querySelectorAll(".depth-tab[data-tab]")];
+      const panels = [...document.querySelectorAll(".depth-panel")];
+      if (!tabs.length) return;
+
+      function activate(name, { push } = {}) {
+        if (name !== "balances" && name !== "defi") return;
+        tabs.forEach((btn) => {
+          const on = btn.dataset.tab === name;
+          btn.classList.toggle("is-active", on);
+          btn.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        panels.forEach((panel) => {
+          const on = panel.dataset.panel === name;
+          panel.classList.toggle("is-active", on);
+          panel.hidden = !on;
+        });
+        if (push) {
+          const url = new URL(location.href);
+          url.hash = name === "defi" ? "defi" : "balances";
+          history.replaceState(null, "", url);
+        }
+      }
+
+      tabs.forEach((btn) => {
+        btn.addEventListener("click", () => activate(btn.dataset.tab, { push: true }));
+      });
+
+      function fromHash() {
+        const h = (location.hash || "").replace(/^#/, "");
+        if (h === "defi") activate("defi");
+        else if (h === "balances" || h === "depth") activate("balances");
+      }
+      window.addEventListener("hashchange", fromHash);
+      fromHash();
+    })();
+
   </script>
 </body>
 </html>
