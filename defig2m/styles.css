@@ -438,7 +438,8 @@ code {
   background: radial-gradient(ellipse at center, rgba(227, 179, 65, 0.07) 0%, transparent 60%);
   pointer-events: none;
 }
-.band .strike { font-size: clamp(20px, 3vw, 30px); font-weight: 600; color: var(--text-muted); text-decoration: line-through; text-decoration-color: var(--error); text-decoration-thickness: 3px; }
+.band .band-lead { font-size: clamp(20px, 3vw, 30px); font-weight: 600; color: var(--text-muted); }
+.band .strike-word { text-decoration: line-through; text-decoration-color: var(--error); text-decoration-thickness: 3px; }
 .band .keep { font-size: clamp(30px, 5vw, 50px); font-weight: 900; letter-spacing: -0.03em; margin-top: 10px; }
 .band .keep em { font-style: normal; color: var(--accent); }
 .band p { color: var(--text-muted); margin-top: 18px; font-size: 14px; }
