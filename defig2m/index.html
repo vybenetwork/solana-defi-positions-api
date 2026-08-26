@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;500;600;700;900&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/svg+xml" href="vybe-mark.svg" />
   <link rel="alternate icon" type="image/png" href="favicon.png" />
-  <link rel="stylesheet" href="styles.css?v=106" />
+  <link rel="stylesheet" href="styles.css?v=107" />
 </head>
 <body>
   <nav class="toc">
@@ -28,6 +28,7 @@
           <a class="toc-emph" href="#scorecard">Scorecard</a>
           <a href="#balances">Balances</a>
           <a href="#defi">DeFi</a>
+          <a href="#protocols">Protocols</a>
           <a href="#roadmap">Roadmap</a>
           <a class="toc-emph" href="#package">Package</a>
         </div>
@@ -589,8 +590,8 @@
           </article>
           <article class="pillar reveal delay-2">
             <div class="pillar-num">03</div>
-            <h4>Protocol expansion</h4>
-            <p>Actively porting long-tail protocols to close the gap vs Jupiter portfolio coverage.</p>
+            <h4>Published protocol catalog</h4>
+            <p>Full <code>platformId</code> list with position variants — so integrators know exactly what ships in the API.</p>
           </article>
           <article class="pillar reveal delay-3">
             <div class="pillar-num">04</div>
@@ -599,24 +600,87 @@
           </article>
         </div>
 
-        <h3 class="reveal" style="margin-top:2.5rem">Protocols in active development</h3>
-        <p class="lede reveal">These DeFi protocols are being ported to Vybe's portfolio engine:</p>
-        <ul class="plain-list reveal protocol-roadmap-list">
-          <li><strong>Parcl</strong> — real-estate derivatives &amp; margin</li>
-          <li><strong>Solana Mobile</strong> — SKR staking</li>
-          <li><strong>BulkTrade</strong> — deposit vaults</li>
-          <li><strong>Sharky</strong> — NFT lending &amp; staking</li>
-          <li><strong>DefiTuna</strong> — lending, LP, and staking</li>
-          <li><strong>Ore Supply</strong> — mining rewards &amp; staking</li>
-          <li><strong>Flash</strong> — staking</li>
-          <li><strong>Streamflow</strong> — vesting &amp; staking</li>
-          <li><strong>Wormhole</strong> — staking</li>
-          <li><strong>RateX</strong> — liquidity &amp; leverage</li>
-          <li><strong>Grass</strong> — staking</li>
-          <li><strong>Nosana</strong> — compute staking</li>
-          <li><strong>Sonarwatch</strong> — portfolio engine integration</li>
-        </ul>
-        <p class="chart-note reveal">Plus ongoing coverage for Jupiter Exchange/Governance, Realms, Elemental, and other high-volume protocols already on the roadmap.</p>
+        <h3 id="protocols" class="reveal" style="margin-top:2.5rem">Supported protocols</h3>
+        <p class="lede reveal">Each protocol returns typed positions via <code>platformId</code> with standard <code>label</code> variants — lending, LP, staking, vaults, and more.</p>
+        <div class="table-card reveal">
+          <table class="line-table protocols-table">
+            <thead>
+              <tr>
+                <th>Protocol</th>
+                <th><code>platformId</code></th>
+                <th>Supported variants</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Parcl</td>
+                <td><code>parcl</code></td>
+                <td><span class="var-cell"><span class="var-chip">Margin</span> <span class="var-chip">Staked</span> <span class="var-chip">Deposit</span></span></td>
+              </tr>
+              <tr>
+                <td>Solana Mobile</td>
+                <td><code>solanamobile</code></td>
+                <td><span class="var-cell"><span class="var-chip">Staked</span></span></td>
+              </tr>
+              <tr>
+                <td>BulkTrade</td>
+                <td><code>bulktrade</code></td>
+                <td><span class="var-cell"><span class="var-chip">Deposit</span></span></td>
+              </tr>
+              <tr>
+                <td>Sharky</td>
+                <td><code>sharky</code></td>
+                <td><span class="var-cell"><span class="var-chip">Lending</span> <span class="var-chip">Staked</span></span></td>
+              </tr>
+              <tr>
+                <td>DefiTuna</td>
+                <td><code>defituna</code></td>
+                <td><span class="var-cell"><span class="var-chip">Staked</span> <span class="var-chip">Lending</span> <span class="var-chip">LiquidityPool</span> <span class="var-chip">LimitOrder</span></span></td>
+              </tr>
+              <tr>
+                <td>Ore Supply</td>
+                <td><code>oresupply</code></td>
+                <td><span class="var-cell"><span class="var-chip">Rewards</span> <span class="var-chip">Staked</span> <span class="var-chip">Farming</span></span></td>
+              </tr>
+              <tr>
+                <td>Flash</td>
+                <td><code>flash</code></td>
+                <td><span class="var-cell"><span class="var-chip">Staked</span></span></td>
+              </tr>
+              <tr>
+                <td>Streamflow</td>
+                <td><code>streamflow</code></td>
+                <td><span class="var-cell"><span class="var-chip">Staked</span> <span class="var-chip">Vesting</span></span></td>
+              </tr>
+              <tr>
+                <td>Wormhole</td>
+                <td><code>wormhole</code></td>
+                <td><span class="var-cell"><span class="var-chip">Staked</span></span></td>
+              </tr>
+              <tr>
+                <td>RateX</td>
+                <td><code>ratex</code></td>
+                <td><span class="var-cell"><span class="var-chip">LiquidityPool</span> <span class="var-chip">Leverage</span> <span class="var-chip">Rewards</span></span></td>
+              </tr>
+              <tr>
+                <td>Grass</td>
+                <td><code>grass</code></td>
+                <td><span class="var-cell"><span class="var-chip">Staked</span></span></td>
+              </tr>
+              <tr>
+                <td>Nosana</td>
+                <td><code>nosana</code></td>
+                <td><span class="var-cell"><span class="var-chip">Staked</span></span></td>
+              </tr>
+              <tr>
+                <td>Sonarwatch engine</td>
+                <td><code>sonarwatch</code></td>
+                <td><span class="var-cell"><span class="var-chip">LiquidityPool</span> <span class="var-chip">Lending</span> <span class="var-chip">Staked</span> <span class="var-chip">Vault</span> <span class="var-chip">Deposit</span> <span class="var-chip">Leverage</span> <span class="var-chip">Rewards</span> <span class="var-chip">Farming</span> <span class="var-chip">Vesting</span> <span class="var-chip">Margin</span> <span class="var-chip">LimitOrder</span></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="chart-note reveal">Plus Kamino, Meteora, Raydium, Orca, Marginfi, Drift, Jupiter, and other core Solana DeFi — see the <a href="/gui/">live demo</a> for full coverage on any wallet.</p>
       </div>
     </section>
 

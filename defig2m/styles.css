@@ -927,6 +927,11 @@ footer .foot-line { display: block; margin-top: 4px; }
   color: var(--text-muted);
   font-size: 10.5px;
 }
+.protocols-table .var-cell {
+  max-width: none;
+  white-space: normal;
+}
+.protocols-table td { vertical-align: top; }
 .var-prog {
   font-family: var(--mono);
   font-size: 10.5px;
