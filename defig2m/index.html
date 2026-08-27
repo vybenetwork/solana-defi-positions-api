@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;500;600;700;900&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/svg+xml" href="vybe-mark.svg" />
   <link rel="alternate icon" type="image/png" href="favicon.png" />
-  <link rel="stylesheet" href="styles.css?v=107" />
+  <link rel="stylesheet" href="styles.css?v=108" />
 </head>
 <body>
   <nav class="toc">
@@ -601,81 +601,74 @@
         </div>
 
         <h3 id="protocols" class="reveal" style="margin-top:2.5rem">Supported protocols</h3>
-        <p class="lede reveal">Each protocol returns typed positions via <code>platformId</code> with standard <code>label</code> variants — lending, LP, staking, vaults, and more.</p>
+        <p class="lede reveal">Grouped by position <code>label</code>. A protocol appears once per variant it returns.</p>
         <div class="table-card reveal">
           <table class="line-table protocols-table">
             <thead>
               <tr>
+                <th>Variant</th>
                 <th>Protocol</th>
                 <th><code>platformId</code></th>
-                <th>Supported variants</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Parcl</td>
-                <td><code>parcl</code></td>
-                <td><span class="var-cell"><span class="var-chip">Margin</span> <span class="var-chip">Staked</span> <span class="var-chip">Deposit</span></span></td>
+              <tr class="proto-group-start">
+                <td rowspan="10"><span class="var-chip">Staked</span></td>
+                <td>DefiTuna</td><td><code>defituna</code></td>
               </tr>
-              <tr>
-                <td>Solana Mobile</td>
-                <td><code>solanamobile</code></td>
-                <td><span class="var-cell"><span class="var-chip">Staked</span></span></td>
+              <tr><td>Flash</td><td><code>flash</code></td></tr>
+              <tr><td>Grass</td><td><code>grass</code></td></tr>
+              <tr><td>Nosana</td><td><code>nosana</code></td></tr>
+              <tr><td>Ore Supply</td><td><code>oresupply</code></td></tr>
+              <tr><td>Parcl</td><td><code>parcl</code></td></tr>
+              <tr><td>Sharky</td><td><code>sharky</code></td></tr>
+              <tr><td>Solana Mobile</td><td><code>solanamobile</code></td></tr>
+              <tr><td>Streamflow</td><td><code>streamflow</code></td></tr>
+              <tr><td>Wormhole</td><td><code>wormhole</code></td></tr>
+
+              <tr class="proto-group-start">
+                <td rowspan="2"><span class="var-chip">Lending</span></td>
+                <td>DefiTuna</td><td><code>defituna</code></td>
               </tr>
-              <tr>
-                <td>BulkTrade</td>
-                <td><code>bulktrade</code></td>
-                <td><span class="var-cell"><span class="var-chip">Deposit</span></span></td>
+              <tr><td>Sharky</td><td><code>sharky</code></td></tr>
+
+              <tr class="proto-group-start">
+                <td rowspan="2"><span class="var-chip">Deposit</span></td>
+                <td>BulkTrade</td><td><code>bulktrade</code></td>
               </tr>
-              <tr>
-                <td>Sharky</td>
-                <td><code>sharky</code></td>
-                <td><span class="var-cell"><span class="var-chip">Lending</span> <span class="var-chip">Staked</span></span></td>
+              <tr><td>Parcl</td><td><code>parcl</code></td></tr>
+
+              <tr class="proto-group-start">
+                <td rowspan="2"><span class="var-chip">LiquidityPool</span></td>
+                <td>DefiTuna</td><td><code>defituna</code></td>
               </tr>
-              <tr>
-                <td>DefiTuna</td>
-                <td><code>defituna</code></td>
-                <td><span class="var-cell"><span class="var-chip">Staked</span> <span class="var-chip">Lending</span> <span class="var-chip">LiquidityPool</span> <span class="var-chip">LimitOrder</span></span></td>
+              <tr><td>RateX</td><td><code>ratex</code></td></tr>
+
+              <tr class="proto-group-start">
+                <td rowspan="2"><span class="var-chip">Rewards</span></td>
+                <td>Ore Supply</td><td><code>oresupply</code></td>
               </tr>
-              <tr>
-                <td>Ore Supply</td>
-                <td><code>oresupply</code></td>
-                <td><span class="var-cell"><span class="var-chip">Rewards</span> <span class="var-chip">Staked</span> <span class="var-chip">Farming</span></span></td>
+              <tr><td>RateX</td><td><code>ratex</code></td></tr>
+
+              <tr class="proto-group-start">
+                <td><span class="var-chip">Margin</span></td>
+                <td>Parcl</td><td><code>parcl</code></td>
               </tr>
-              <tr>
-                <td>Flash</td>
-                <td><code>flash</code></td>
-                <td><span class="var-cell"><span class="var-chip">Staked</span></span></td>
+              <tr class="proto-group-start">
+                <td><span class="var-chip">Farming</span></td>
+                <td>Ore Supply</td><td><code>oresupply</code></td>
               </tr>
-              <tr>
-                <td>Streamflow</td>
-                <td><code>streamflow</code></td>
-                <td><span class="var-cell"><span class="var-chip">Staked</span> <span class="var-chip">Vesting</span></span></td>
+              <tr class="proto-group-start">
+                <td><span class="var-chip">Vesting</span></td>
+                <td>Streamflow</td><td><code>streamflow</code></td>
               </tr>
-              <tr>
-                <td>Wormhole</td>
-                <td><code>wormhole</code></td>
-                <td><span class="var-cell"><span class="var-chip">Staked</span></span></td>
+              <tr class="proto-group-start">
+                <td><span class="var-chip">Leverage</span></td>
+                <td>RateX</td><td><code>ratex</code></td>
               </tr>
-              <tr>
-                <td>RateX</td>
-                <td><code>ratex</code></td>
-                <td><span class="var-cell"><span class="var-chip">LiquidityPool</span> <span class="var-chip">Leverage</span> <span class="var-chip">Rewards</span></span></td>
-              </tr>
-              <tr>
-                <td>Grass</td>
-                <td><code>grass</code></td>
-                <td><span class="var-cell"><span class="var-chip">Staked</span></span></td>
-              </tr>
-              <tr>
-                <td>Nosana</td>
-                <td><code>nosana</code></td>
-                <td><span class="var-cell"><span class="var-chip">Staked</span></span></td>
-              </tr>
-              <tr>
-                <td>Sonarwatch engine</td>
-                <td><code>sonarwatch</code></td>
-                <td><span class="var-cell"><span class="var-chip">LiquidityPool</span> <span class="var-chip">Lending</span> <span class="var-chip">Staked</span> <span class="var-chip">Vault</span> <span class="var-chip">Deposit</span> <span class="var-chip">Leverage</span> <span class="var-chip">Rewards</span> <span class="var-chip">Farming</span> <span class="var-chip">Vesting</span> <span class="var-chip">Margin</span> <span class="var-chip">LimitOrder</span></span></td>
+              <tr class="proto-group-start">
+                <td><span class="var-chip">LimitOrder</span></td>
+                <td>DefiTuna</td><td><code>defituna</code></td>
               </tr>
             </tbody>
           </table>

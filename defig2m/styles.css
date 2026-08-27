@@ -931,7 +931,13 @@ footer .foot-line { display: block; margin-top: 4px; }
   max-width: none;
   white-space: normal;
 }
-.protocols-table td { vertical-align: top; }
+.protocols-table td { vertical-align: middle; }
+.protocols-table tr.proto-group-start td {
+  border-top: 1px solid var(--border-card);
+}
+.protocols-table tbody tr:first-child td {
+  border-top: none;
+}
 .var-prog {
   font-family: var(--mono);
   font-size: 10.5px;
