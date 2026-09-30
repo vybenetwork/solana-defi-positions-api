@@ -21,7 +21,14 @@ import {
   WALLET_TOKEN_BALANCE_LIMIT,
 } from './api/wallet-balance.js';
 import { resolveTokenMeta } from './api/resolve-token-meta.js';
-import { getWalletDefiPositions, sumDefiPositionsUsd } from './api/wallet-defi-positions.js';
+import {
+  getWalletDefiPositions,
+  legacyPlatformsFromResponse,
+  partialFailuresFromResponse,
+  portfolioElementsFromResponse,
+  sumDefiPositionsUsd,
+} from './api/wallet-defi-positions.js';
+import { mapPortfolioElementsToPlatforms, sumPortfolioValueUsd } from './api/map-defi-portfolio.js';
 import { cachedMetaToApiResponse } from './api/token-meta-api.js';
 import {
   DEFI_SYMBOL_ENRICH_LIMIT,
@@ -347,7 +354,9 @@ function bumpCategory(
 
 async function buildDefiPlatformsPayload(ownerAddress: string) {
   const payload = await getWalletDefiPositions(dataHttp, ownerAddress);
-  const platformsRaw = Array.isArray(payload.data) ? payload.data : [];
+  const legacyPlatforms = legacyPlatformsFromResponse(payload);
+  const portfolio = portfolioElementsFromResponse(payload);
+  const platformsRaw = legacyPlatforms ?? mapPortfolioElementsToPlatforms(portfolio);
   const { platforms: hydratedPlatforms, hydrated, stillMissing } =
     hydrateDefiPlatformsFromDiskCache(platformsRaw);
   const logoEnrichPending = collectDefiLogoEnrichPending(
@@ -365,14 +374,20 @@ async function buildDefiPlatformsPayload(ownerAddress: string) {
     );
   });
   const platforms = stripRemoteDefiPlatformLogos(hydratedPlatforms);
-  const totalDefiValueUsd =
+  const legacyTotal =
     payload.totalDefiValueUsd != null && String(payload.totalDefiValueUsd).trim() !== ''
       ? Number(payload.totalDefiValueUsd)
-      : sumDefiPositionsUsd(platforms as Parameters<typeof sumDefiPositionsUsd>[0]);
+      : null;
+  const totalDefiValueUsd = legacyPlatforms
+    ? legacyTotal != null && Number.isFinite(legacyTotal)
+      ? legacyTotal
+      : sumDefiPositionsUsd(platforms as Parameters<typeof sumDefiPositionsUsd>[0])
+    : sumPortfolioValueUsd(portfolio);
   return {
     platforms,
     totalDefiValueUsd: Number.isFinite(totalDefiValueUsd) ? totalDefiValueUsd : 0,
     platformCount: platforms.length,
+    partialFailures: partialFailuresFromResponse(payload),
     symbolCacheHydrated: hydrated,
     symbolEnrichPending: stillMissing,
     logoEnrichPending,
@@ -430,6 +445,7 @@ app.get('/api/wallets/:ownerAddress/defi-positions', async (req: Request, res: R
       platforms: built.platforms,
       totalDefiValueUsd: built.totalDefiValueUsd,
       platformCount: built.platformCount,
+      partialFailures: built.partialFailures,
       symbolCacheHydrated: built.symbolCacheHydrated,
       symbolEnrichPending: built.symbolEnrichPending,
       logoEnrichPending: built.logoEnrichPending,

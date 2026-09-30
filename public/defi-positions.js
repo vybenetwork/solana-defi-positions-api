@@ -28,6 +28,7 @@ const DEFI_CATEGORY_LABELS = {
   vesting: 'Vesting',
   deposit: 'Deposit',
   leverage: 'Leverage',
+  trade: 'Orders',
   default: 'Other',
 };
 const DEFI_TIER_LEGEND_SVG_VOLUME =
@@ -160,6 +161,8 @@ const DEFI_SECTION_ICON_SVGS = {
     '<circle cx="8" cy="5.2" r="1.7" fill="none" stroke="currentColor" stroke-width="1.25"/><path d="M4.2 12.2 8 9.8l3.8 2.4" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/><path d="M8 7.2v2.6" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>',
   leverage:
     '<path d="M3.5 11.8 6.4 8.2l2.1 1.8 3-4.3" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.2 5.7h-2.8v2.8" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>',
+  orders:
+    '<path d="M4.2 3.4h5.2l2.4 2.4v6.8H4.2z" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/><path d="M9.4 3.4v2.4h2.4M6 8.2h4.2M6 10.2h2.8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>',
   positions:
     '<rect x="3.5" y="3.5" width="4.2" height="4.2" rx="0.8" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="8.3" y="3.5" width="4.2" height="4.2" rx="0.8" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="3.5" y="8.3" width="4.2" height="4.2" rx="0.8" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="8.3" y="8.3" width="4.2" height="4.2" rx="0.8" fill="none" stroke="currentColor" stroke-width="1.2"/>',
   everythingElse:
@@ -179,6 +182,8 @@ function resolveSectionIconKey(section, row) {
   if (label.includes('stake') || label.includes('staked')) return 'staked';
   if (label.includes('deposit')) return 'deposit';
   if (label.includes('liquidity') || label.includes('pool')) return 'liquidity';
+  if (label.includes('lever') || label.includes('margin') || label.includes('perp')) return 'leverage';
+  if (label.includes('limit') || label.includes('dca') || label.includes('order')) return 'orders';
 
   const byType = {
     rewards: 'rewards',
@@ -190,6 +195,7 @@ function resolveSectionIconKey(section, row) {
     deposit: 'deposit',
     nativeStaking: 'nativeStaking',
     leverage: 'leverage',
+    trade: 'orders',
   };
   return byType[tableType] || 'positions';
 }
@@ -1652,6 +1658,11 @@ function sectionNameCell(row) {
       text = '—';
     }
   }
+  const health = toNum(row.healthRatio);
+  if (health != null) {
+    const healthText = `Health ${health.toFixed(2)}`;
+    text = text === '—' ? healthText : `${text} · ${healthText}`;
+  }
   const title = text === '—' ? '' : ` title="${escapeHtml(text)}"`;
   return `<td class="defi-section-meta-col defi-section-name-col"${title}><span class="defi-section-meta-text">${escapeHtml(text)}</span></td>`;
 }
@@ -1728,7 +1739,7 @@ function renderPairTokenCell(row) {
       <div class="defi-token-logo-stack" aria-hidden="true">${logoHtml || `<img class="defi-token-logo" src="${TOKEN_PLACEHOLDER}" alt="Token logo placeholder" />`}</div>
       <div class="defi-token-text">
         <span class="defi-token-symbol">${escapeHtml(title)}</span>
-        <span class="defi-token-name">Liquidity pool</span>
+        <span class="defi-token-name">${escapeHtml(row.tableType === 'trade' ? formatSectionTypeLabel(row.sectionType) || 'Order' : 'Liquidity pool')}</span>
       </div>
     </div>
   `;
@@ -2047,6 +2058,44 @@ function priceCell(row) {
   return `<td class="num defi-price-cell">${formatDefiPriceUsd(row.price)}</td>`;
 }
 
+function indexedAmountCell(row, index) {
+  const amount = asArray(row.amount)[index];
+  if (amount == null || amount === '') return '<td class="num">—</td>';
+  const mint = asArray(row.address)[index];
+  const leg = resolveLegFields(
+    asArray(row.symbol)[index],
+    asArray(row.name)[index],
+    asArray(row.logourl ?? row.logoUrl)[index],
+    mint,
+  );
+  return `<td class="num defi-amounts-col">${renderAmountLineHtml(amount, leg.displayLabel, leg.logo, mint)}</td>`;
+}
+
+function fillCell(row) {
+  const n = toNum(row.filledPct);
+  if (n == null) return '<td class="num">—</td>';
+  const label = `${Math.abs(n) >= 10 ? Math.round(n) : n.toFixed(1)}%`;
+  return `<td class="num">${escapeHtml(label)}</td>`;
+}
+
+function plainDefiPrice(value) {
+  return formatDefiPriceUsd(value).replace(/<[^>]+>/g, '');
+}
+
+function leverageDescriptionCell(row) {
+  const chunks = [];
+  const name = formatSectionMeta(row.sectionName);
+  if (name !== '—') chunks.push(escapeHtml(name));
+  const entry = toNum(row.entryPrice);
+  const mark = toNum(row.markPrice);
+  const liq = toNum(row.liquidationPrice);
+  if (entry != null) chunks.push(`Entry ${escapeHtml(plainDefiPrice(entry))}`);
+  if (mark != null) chunks.push(`Mark ${escapeHtml(plainDefiPrice(mark))}`);
+  if (liq != null) chunks.push(`Liq ${escapeHtml(plainDefiPrice(liq))}`);
+  const text = chunks.length ? chunks.join(' · ') : '—';
+  return `<td class="defi-section-meta-col defi-section-name-col"><span class="defi-section-meta-text">${text}</span></td>`;
+}
+
 function buildAssetTableSchema(tableType, { amountHeader = 'Amount', rateHeader = 'APY', debt = false } = {}) {
   return {
     tableType,
@@ -2076,6 +2125,7 @@ function isNumericHeaderColumn(layout, colIndex) {
   if (layout === 'nativeStaking') return colIndex >= 3;
   // Size…Leverage
   if (layout === 'leverage') return colIndex >= 5;
+  if (layout === 'trade') return colIndex >= 4 && colIndex <= 7;
   return false;
 }
 
@@ -2107,6 +2157,7 @@ function renderTableColgroup(layout) {
       <col class="defi-col-account" />
     </colgroup>`;
   }
+  if (layout === 'trade') return renderTableColgroup('asset9');
   if (layout === 'leverage') {
     return `<colgroup>
       <col class="defi-col-index" />
@@ -2198,7 +2249,7 @@ function buildTableSchema(tableType) {
             <tr>
               <td>${index + 1}</td>
               <td>${renderAssetCell(row)}</td>
-              ${sectionNameCell(row)}
+              ${leverageDescriptionCell(row)}
               ${sectionTypeCell(row)}
               <td>${renderSideBadge(row.side)}</td>
               ${amountCell(row)}
@@ -2206,6 +2257,28 @@ function buildTableSchema(tableType) {
               ${usdMetricCell(row.collateralValue)}
               ${usdMetricCell(row.pnlValue)}
               ${leverageCell(row)}
+            </tr>
+          `;
+        },
+      };
+    case 'trade':
+      return {
+        tableType,
+        layout: 'trade',
+        columns: ['#', 'Order', 'Description', 'Position type', 'Input', 'Output', 'Fill', 'Value', 'Account'],
+        renderRow(row, index) {
+          const accountRow = row.ref ? { ...row, address: row.ref } : row;
+          return `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${renderAssetCell(row)}</td>
+              ${sectionNameCell(row)}
+              ${sectionTypeCell(row)}
+              ${indexedAmountCell(row, 0)}
+              ${indexedAmountCell(row, 1)}
+              ${fillCell(row)}
+              ${valueCell(row)}
+              ${accountCell(accountRow)}
             </tr>
           `;
         },
@@ -2381,6 +2454,8 @@ function renderPlatform(platform, index) {
       const displayRows = rowsForDisplay(allRows, platformExpanded);
       const sectionUsd = sumSectionUsd(displayRows);
       const rowCount = displayRows.length;
+      const health = toNum(section.healthRatio);
+      const healthNote = health != null ? ` · health ${health.toFixed(2)}` : '';
       const iconRow = displayRows[0] || (Array.isArray(section.rows) ? section.rows[0] : null);
       return `
         <div class="defi-section-block">
@@ -2389,7 +2464,7 @@ function renderPlatform(platform, index) {
               ${renderSectionIconHtml(section, iconRow)}
               <span class="defi-section-title__text">${escapeHtml(heading)}</span>
             </span>
-            <span class="defi-section-meta">${rowCount} row${rowCount === 1 ? '' : 's'} · ${formatUsd(sectionUsd, { compact: false })}</span>
+            <span class="defi-section-meta">${rowCount} row${rowCount === 1 ? '' : 's'} · ${formatUsd(sectionUsd, { compact: false })}${healthNote}</span>
           </h3>
           ${renderSectionTable(section, platformExpanded)}
         </div>
@@ -2454,7 +2529,10 @@ function renderPlatforms(payload, options = {}) {
   if (!defiMeta || !defiPlatforms) return;
 
   if (platforms.length === 0) {
-    defiMeta.textContent = 'No DeFi positions were returned for this wallet.';
+    const partial = Array.isArray(payload.partialFailures) ? payload.partialFailures.map((name) => cleanStr(name)).filter(Boolean) : [];
+    defiMeta.textContent = partial.length
+      ? `No DeFi positions were returned. Partial failure: ${partial.join(', ')}.`
+      : 'No DeFi positions were returned for this wallet.';
     defiPlatforms.innerHTML = '<p class="defi-empty-state">Try another wallet with LP, lending, staking, or rewards positions.</p>';
     renderSummary(payload, 0, 0);
     renderDefiStats(payload);
@@ -2465,9 +2543,11 @@ function renderPlatforms(payload, options = {}) {
   renderSummary(payload, visible, hidden);
 
   const dustNote = hidden > 0 ? ` · ${hidden.toLocaleString()} under ${DUST_USD_LABEL} hidden` : '';
+  const partial = Array.isArray(payload.partialFailures) ? payload.partialFailures.map((name) => cleanStr(name)).filter(Boolean) : [];
+  const partialNote = partial.length ? ` · partial: ${partial.join(', ')} failed` : '';
   const protocolWord = platforms.length === 1 ? 'protocol' : 'protocols';
   const positionWord = visible === 1 ? 'position' : 'positions';
-  defiMeta.textContent = `Showing ${visible.toLocaleString()} ${positionWord} across ${platforms.length.toLocaleString()} ${protocolWord}${dustNote}`;
+  defiMeta.textContent = `Showing ${visible.toLocaleString()} ${positionWord} across ${platforms.length.toLocaleString()} ${protocolWord}${dustNote}${partialNote}`;
   defiPlatforms.innerHTML = platforms.map(renderPlatform).join('');
   renderDefiStats(payload);
 }

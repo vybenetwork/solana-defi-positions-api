@@ -86,9 +86,56 @@ export interface VybeDefiPlatformPosition {
   [key: string]: unknown;
 }
 
-/** Response from GET /v4/wallets/{ownerAddress}/defi-positions */
+/** Asset inside a portfolio element (`token` | `generic` | `collectible`). */
+export interface VybePortfolioAsset {
+  type?: string;
+  networkId?: string;
+  value?: number | null;
+  attributes?: Record<string, unknown>;
+  name?: string;
+  imageUri?: string | null;
+  ref?: string;
+  sourceRefs?: Array<{ name?: string; address?: string }>;
+  link?: string;
+  data?: {
+    address?: string;
+    amount?: number | null;
+    price?: number | null;
+    yield?: { apr?: number | null; apy?: number | null } | null;
+    name?: string;
+    imageUri?: string | null;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+/**
+ * One position from GET /v4/wallets/{owner}/defi-positions.
+ * `type` selects the `data` shape: borrowlend | liquidity | leverage | trade | multiple.
+ */
+export interface VybePortfolioElement {
+  type?: string;
+  networkId?: string;
+  platformId?: string;
+  value?: number | null;
+  label?: string;
+  name?: string;
+  tags?: string[];
+  netApy?: number | null;
+  data?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+/**
+ * Response from GET /v4/wallets/{ownerAddress}/defi-positions.
+ * Current envelope is `{ message, data: { portfolio } }`. `data` as a platform array is the legacy shape.
+ * `partial_failures` is present on HTTP 502 when some protocol handlers failed.
+ */
 export interface VybeDefiPositionsResponse {
-  data: VybeDefiPlatformPosition[];
+  message?: string;
+  data?: { portfolio?: VybePortfolioElement[] } | VybeDefiPlatformPosition[];
+  partial_failures?: string[] | null;
+  /** Legacy grouped response only. */
   totalDefiValueUsd?: number | string;
   [key: string]: unknown;
 }
