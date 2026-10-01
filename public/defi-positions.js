@@ -1061,6 +1061,17 @@ function formatAmount(value, { stable = false, html = false } = {}) {
   return `${sign}${formatFromFirstNonZero(abs) ?? '0'}`;
 }
 
+/** Health is a ratio: 0.06 → 6%, 1 → 100%. */
+function formatHealthPct(ratio) {
+  const n = toNum(ratio);
+  if (n == null) return null;
+  const pct = n * 100;
+  const sign = pct < 0 ? '−' : '';
+  const rounded = Math.round(Math.abs(pct) * 100) / 100;
+  const body = Number.isInteger(rounded) ? String(rounded) : String(rounded);
+  return `${sign}${body}%`;
+}
+
 function formatPct(value) {
   const n = toNum(value);
   if (n == null) return '—';
@@ -1660,7 +1671,7 @@ function sectionNameCell(row) {
   }
   const health = toNum(row.healthRatio);
   if (health != null) {
-    const healthText = `Health ${health.toFixed(2)}`;
+    const healthText = `Health ${formatHealthPct(health)}`;
     text = text === '—' ? healthText : `${text} · ${healthText}`;
   }
   const title = text === '—' ? '' : ` title="${escapeHtml(text)}"`;
@@ -2455,7 +2466,7 @@ function renderPlatform(platform, index) {
       const sectionUsd = sumSectionUsd(displayRows);
       const rowCount = displayRows.length;
       const health = toNum(section.healthRatio);
-      const healthNote = health != null ? ` · health ${health.toFixed(2)}` : '';
+      const healthNote = health != null ? ` · health ${formatHealthPct(health)}` : '';
       const iconRow = displayRows[0] || (Array.isArray(section.rows) ? section.rows[0] : null);
       return `
         <div class="defi-section-block">
