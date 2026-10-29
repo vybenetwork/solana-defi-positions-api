@@ -9,3 +9,4 @@ data/protocol-icons/
 deploy/
 scripts/
 DEPLOY.md
+.env.backup*
