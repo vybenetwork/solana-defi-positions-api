@@ -21,7 +21,7 @@ Try the live demo: https://solana-defi-positions-api.vybenetwork.com
 ---
 
 - **[Try the LIVE demo →](https://solana-defi-positions-api.vybenetwork.com)**
-- **[Get your free Vybe API key →](https://vybe.fyi/api-pricing)**
+- **[Get your free Vybe API key →](https://vybe.fyi/api-pricing?utm_source=defi-positions-api-readme&utm_medium=referral)**
 - **[Positions (lending & LPs) guide →](https://docs.vybenetwork.com/docs/positions-yields-staking)**
 - **[Realtime wallet balances guide →](https://docs.vybenetwork.com/docs/token-balances)**
 - **[DeFi positions endpoint →](https://docs.vybenetwork.com/reference/get_defi_accounts_v4_proxy)**
@@ -66,7 +66,7 @@ Then open **http://localhost:3001**, paste a Solana wallet address, and load DeF
 | `HTTP_PROXY_POOL_SIZE` | No | Rotating proxy slot count | `10` |
 | `HTTP_PROXY_WARMUP` | No | Warm Jupiter/pump.fun at startup | `true` |
 
-Get your API keys at `https://vybe.fyi/api-pricing`.
+Get your API keys at `https://vybe.fyi/api-pricing?utm_source=defi-positions-api-readme&utm_medium=referral`.
 
 ---
 
