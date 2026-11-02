@@ -2,7 +2,7 @@
 
 <p align="center">
 
-[![Demo](https://img.shields.io/badge/Demo-Solana%20DeFi%20Positions%20API%20live%20app-c2410c?style=for-the-badge&logo=googlechrome&logoColor=white)](https://solana-defi-positions-api.vybenetwork.com)
+[![Demo](https://img.shields.io/badge/Demo-Solana%20DeFi%20Positions%20API%20live%20app-c2410c?style=for-the-badge&logo=googlechrome&logoColor=white)](https://solana-defi-positions-api.vybenetwork.com?utm_source=defi-positions-api-readme&utm_medium=referral)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-5b21b6?style=for-the-badge&logo=github&logoColor=white)](https://github.com/vybenetwork/solana-defi-positions-api)
 [![DeFi positions guide](https://img.shields.io/badge/Guides-Lend%20%26%20LP%20positions-3b82f6?style=for-the-badge&logo=gitbook&logoColor=white)](https://docs.vybenetwork.com/docs/positions-yields-staking)
 [![DeFi positions API](https://img.shields.io/badge/Endpoint-DeFi%20positions-6366f1?style=for-the-badge&logo=swagger&logoColor=white)](https://docs.vybenetwork.com/reference/get_defi_accounts_v4_proxy)
@@ -15,13 +15,13 @@
 
 It includes a production-ready Node.js backend and a modern frontend that integrate Vybe’s DeFi positions and wallet token-balance endpoints—explore platform cards, position tables, APY badges, USD magnitude indicators, and symbol enrichment for LP / lending / staking rows.
 
-Try the live demo: https://solana-defi-positions-api.vybenetwork.com
+Try the live demo: [`https://solana-defi-positions-api.vybenetwork.com`](https://solana-defi-positions-api.vybenetwork.com?utm_source=defi-positions-api-readme&utm_medium=referral)
 
 ![Solana DeFi Positions API app](screenshots/solana-defi-positions-api-app-demo.jpg)
 
 ---
 
-- **[Try the LIVE demo →](https://solana-defi-positions-api.vybenetwork.com)**
+- **[Try the LIVE demo →](https://solana-defi-positions-api.vybenetwork.com?utm_source=defi-positions-api-readme&utm_medium=referral)**
 - **[Get your free Vybe API key →](https://vybe.fyi/api-pricing?utm_source=defi-positions-api-readme&utm_medium=referral)**
 - **[Positions (lending & LPs) guide →](https://docs.vybenetwork.com/docs/positions-yields-staking)**
 - **[Realtime wallet balances guide →](https://docs.vybenetwork.com/docs/token-balances)**
