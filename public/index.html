@@ -53,7 +53,56 @@
     <meta name="twitter:image" content="https://solana-defi-positions-api.vybenetwork.com/solana-defi-positions-api.jpg" />
     <meta name="twitter:image:alt" content="Solana DeFi Positions API app powered by Vybe API" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="app.css?v=194" />
+    <link rel="stylesheet" href="app.css?v=196" />
+      <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "Solana DeFi Positions API",
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "Web",
+          "url": "https://solana-defi-positions-api.vybenetwork.com/",
+          "description": "Lending, staking, LP, and reward positions",
+          "provider": {
+            "@type": "Organization",
+            "name": "Vybe Network",
+            "url": "https://vybe.fyi/"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What does a DeFi lookup show?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Positions grouped by protocol, plus that wallet's token holdings."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do I get a Vybe API key?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Generate a free API key on Vybe. A free key starts your first calls. Paid plans raise the rate limit."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Which position types are grouped?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Lending, staking, liquidity, and rewards, with USD by protocol."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div class="container">
@@ -342,6 +391,66 @@
           </div>
         </nav>
       </header>
+
+      <section class="seo-answer" aria-labelledby="defiAnswerTitle">
+        <p class="seo-answer__eyebrow"><span>Vybe</span><span class="seo-answer__pill">DeFi positions</span></p>
+        <div class="seo-answer__top">
+          <div class="seo-answer__intro">
+            <h2 id="defiAnswerTitle">Lending, staking, LP, and reward positions</h2>
+            <p>Enter a wallet and this page loads its DeFi positions, grouped into lending, staking, liquidity, and rewards, with USD value by protocol. Each protocol total is the sum of the positions under it.</p>
+            <p>Token holdings load beside those positions, with symbols filled in for the mints. Names and logos come from the token details for those mints. A free API key on Vybe is enough to start. Paid plans raise the rate limit.</p>
+            <a class="page-masthead__btn page-masthead__btn--key" href="https://vybe.fyi/api-pricing?utm_source=defi-positions&amp;utm_medium=referral">
+              <span class="page-masthead__btn-icon page-masthead__btn-icon--key" aria-hidden="true"></span>
+              Generate a free API key to get started
+            </a>
+          </div>
+          <aside class="seo-answer__endpoints" aria-label="Endpoints Used">
+            <h3><svg class="seo-answer__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12"/><path d="M8 12h12"/><path d="M8 18h12"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>Endpoints Used:</h3>
+            <ul>
+          <li><span>DeFi Positions API</span> <code>GET /v4/wallets/{ownerAddress}/defi-positions</code></li>
+          <li><span>Wallet Token Balance API</span> <code>GET /v4/wallets/{ownerAddress}/token-balance</code></li>
+          <li><span>Token Details API</span> <code>GET /v4/tokens/{mintAddress}</code></li>
+          <li><span>Token Trade History API</span> <code>GET /v4/trades</code></li>
+          <li><span>Labeled Programs API</span> <code>GET /v4/programs/labeled-program-accounts</code></li>
+            </ul>
+          </aside>
+        </div>
+        <ul class="seo-answer__cards">
+        <li class="seo-answer__card seo-answer__card--price">
+          <h3><svg class="seo-answer__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16l5-5 3.5 3.5L20 7"/><path d="M14 7h6v6"/></svg>Positions</h3>
+          <p>Open DeFi positions for the wallet, with protocol and USD value.</p>
+        </li>
+        <li class="seo-answer__card seo-answer__card--candles">
+          <h3><svg class="seo-answer__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16"/><path d="M7 8h3v6H7z"/><path d="M17 4v16"/><path d="M14 11h3v5h-3z"/></svg>Groups</h3>
+          <p>Rows grouped into lending, staking, liquidity, and rewards.</p>
+        </li>
+        <li class="seo-answer__card seo-answer__card--history">
+          <h3><svg class="seo-answer__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>Protocol USD</h3>
+          <p>USD value rolled up by protocol from the positions response.</p>
+        </li>
+        <li class="seo-answer__card seo-answer__card--product">
+          <h3><svg class="seo-answer__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v5h5"/><path d="M10 13h6"/><path d="M10 17h4"/></svg>Holdings</h3>
+          <p>Token balances for the same wallet, with symbols filled in.</p>
+        </li>
+        </ul>
+        <div class="seo-answer__faq">
+          <p class="seo-answer__label">Also answered here</p>
+          <div class="seo-answer__faq-grid">
+          <article>
+            <h3>What does a DeFi lookup show?</h3>
+            <p>Positions grouped by protocol, plus that wallet's token holdings.</p>
+          </article>
+          <article>
+            <h3>How do I get a Vybe API key?</h3>
+            <p><a href="https://vybe.fyi/api-pricing?utm_source=defi-positions&amp;utm_medium=referral">Generate a free API key on Vybe</a>. A free key starts your first calls. Paid plans raise the rate limit.</p>
+          </article>
+          <article>
+            <h3>Which position types are grouped?</h3>
+            <p>Lending, staking, liquidity, and rewards, with USD by protocol.</p>
+          </article>
+          </div>
+        </div>
+      </section>
 
       <section class="section-card section-card--inputs inputs panel">
         <div class="section-heading">
