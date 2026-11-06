@@ -2,10 +2,27 @@
 
 > Solana DeFi positions API for LPs, lending, staking & yield farming across 50+ protocols. SonarWatch alternative wallet tracker powered by the Vybe API.
 
-Live demo of the Vybe Solana API. The linked docs pages are the Markdown versions.
+This is a free demo that showcases the Vybe DeFi endpoints. Open it in the browser to test and demo them. Nothing to install. The linked docs pages are the Markdown versions.
+
+## What this demo shows
+Enter a wallet and the page loads its DeFi positions, grouped into lending, staking, liquidity, and rewards, with USD value by protocol. Each protocol total is the sum of the positions under it. Token holdings load beside those positions, with symbols, names, and logos filled in.
+
+- Positions: open DeFi positions for the wallet, with protocol and USD value.
+- Groups: rows grouped into lending, staking, liquidity, and rewards.
+- Protocol USD: USD value rolled up by protocol from the positions response.
+- Holdings: token balances for the same wallet, with symbols filled in.
+
+## Endpoints this demo calls
+- DeFi Positions API: `GET /v4/wallets/{ownerAddress}/defi-positions`
+- Wallet Token Balance API: `GET /v4/wallets/{ownerAddress}/token-balance`
+- Token Details API: `GET /v4/tokens/{mintAddress}`
+- Token Trade History API: `GET /v4/trades`
+- Labeled Programs API: `GET /v4/programs/labeled-program-accounts`
+
+The demo page is free to use. Calling DeFi Positions needs the Portfolio plan. It is not on the Free plan or the five standard plans.
 
 ## Demo
-- [Solana DeFi Positions API](https://solana-defi-positions-api.vybenetwork.com/): Solana DeFi positions API for LPs, lending, staking & yield farming across 50+ protocols. SonarWatch alternative wallet tracker powered by the Vybe API.
+- [Solana DeFi Positions API](https://solana-defi-positions-api.vybenetwork.com/): Free browser demo of the DeFi endpoints. Enter a wallet to test positions by protocol.
 
 ## Docs
 - [Wallet DeFi Positions](https://docs.vybenetwork.com/docs/defi-positions.md)
